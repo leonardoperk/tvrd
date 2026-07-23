@@ -74,53 +74,87 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 14px 12px;
+    padding: 0;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.18s, transform 0.12s;
+    display: flex; flex-direction: column;
+    overflow: hidden; position: relative;
   }
-  .day-card:active { background: var(--surface2); border-color: var(--accent); }
+  .day-card:active { border-color: var(--accent); transform: scale(0.97); }
+  .day-card.has-history { border-color: rgba(200,241,53,0.18); }
 
-  /* card top: emoji + name */
-  .card-top { display: flex; align-items: center; gap: 8px; }
-  .day-dot {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: var(--accent-dim); border: 1.5px solid var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
+  .card-header {
+    padding: 14px 14px 10px;
+    display: flex; flex-direction: column; gap: 6px;
   }
-  .day-name { font-size: 13px; font-weight: 700; line-height: 1.2; }
+  .card-emoji {
+    font-size: 26px; line-height: 1;
+  }
+  .day-name {
+    font-size: 13px; font-weight: 700; line-height: 1.25;
+    color: var(--text); letter-spacing: -0.1px;
+  }
 
-  /* card analytics section */
+  .card-divider {
+    height: 1px; background: rgba(255,255,255,0.05); margin: 0;
+  }
+
   .card-analytics {
-    flex: 1; display: flex; flex-direction: column; gap: 6px;
+    flex: 1; display: flex; flex-direction: column;
+    padding: 12px 14px 12px;
   }
-  .card-date-row { font-size: 11px; color: var(--text-muted); }
-  .card-vol-row { display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap; }
-  .card-vol { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
-  .card-vol-unit { font-size: 11px; color: var(--text-muted); }
+  .card-no-history {
+    flex: 1; display: flex; align-items: center;
+    font-size: 12px; color: var(--text-muted);
+  }
+  .card-vol-block { margin-bottom: 6px; }
+  .card-vol-row { display: flex; align-items: baseline; gap: 4px; }
+  .card-vol {
+    font-size: 30px; font-weight: 800;
+    letter-spacing: -1px; line-height: 1;
+    color: var(--text);
+  }
+  .card-vol-unit { font-size: 12px; color: var(--text-muted); font-weight: 500; }
   .vol-trend {
-    font-size: 11px; font-weight: 700; margin-left: 2px;
-    padding: 1px 5px; border-radius: 4px;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 6px; border-radius: 5px; margin-left: 2px;
   }
   .vol-trend.up { color: var(--accent); background: var(--accent-dim); }
   .vol-trend.down { color: var(--red); background: rgba(255,68,68,0.1); }
-  .card-meta-row { font-size: 11px; color: var(--text-dim); }
+  .card-date-row { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+
   .card-weeks-row {
     display: flex; align-items: center; gap: 5px;
-    margin-top: auto; padding-top: 8px;
+    margin-top: auto; padding-top: 10px;
     border-top: 1px solid rgba(255,255,255,0.05);
   }
   .week-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--border);
   }
-  .week-dot.active { background: var(--accent); }
-  .weeks-label { font-size: 10px; color: var(--text-muted); margin-left: 2px; }
-  .card-no-history {
-    flex: 1; display: flex; align-items: center;
-    font-size: 12px; color: var(--text-muted);
+  .week-dot.active { background: var(--accent); box-shadow: 0 0 4px rgba(200,241,53,0.5); }
+
+  /* PREVIEW SCREEN */
+  .preview-hero {
+    text-align: center; padding: 36px 20px 28px;
+    border-bottom: 1px solid var(--border);
   }
+  .preview-hero-emoji { font-size: 56px; line-height: 1; margin-bottom: 12px; }
+  .preview-hero-name { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .preview-hero-sub { font-size: 13px; color: var(--text-muted); }
+  .preview-ex-list { padding: 16px; display: flex; flex-direction: column; gap: 1px; }
+  .preview-ex-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px;
+    background: var(--surface); border-radius: 0;
+  }
+  .preview-ex-item:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+  .preview-ex-item:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+  .preview-ex-item:only-child { border-radius: var(--radius); }
+  .preview-ex-name { font-size: 14px; font-weight: 600; flex: 1; }
+  .preview-ex-meta { font-size: 12px; color: var(--text-muted); }
+  .preview-ex-last { font-size: 11px; color: var(--text-dim); text-align: right; }
+
   .day-arrow { display: none; }
   .day-info { display: none; }
   .day-meta { display: none; }
@@ -159,7 +193,7 @@
     font-size: 10px; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.8px; text-align: center;
   }
-  .set-col-label.reps-col { flex: 0 0 112px; text-align: center; }
+  .set-col-label.reps-col { flex: 0 0 132px; text-align: center; }
   .set-col-label.weight-col { flex: 1; text-align: center; }
 
   /* SET ROWS */
@@ -182,7 +216,7 @@
     background: var(--surface2); border-radius: var(--radius-sm);
     border: 1px solid var(--border); overflow: hidden;
   }
-  .num-widget.reps-widget { flex: 0 0 112px; }
+  .num-widget.reps-widget { flex: 0 0 132px; }
   .num-widget.weight-widget { flex: 1; }
   .num-btn {
     width: 44px; height: 48px; border: none; background: transparent;
@@ -894,13 +928,14 @@ function renderHome() {
       }).join('');
 
       analyticsHTML = `
-        <div class="card-date-row">${formatDate(last.date)}${lastMin ? ` · ${lastMin} min` : ''}</div>
-        <div class="card-vol-row">
-          <span class="card-vol">${lastVol > 0 ? Math.round(lastVol).toLocaleString('de') : lastSets}</span>
-          <span class="card-vol-unit">${lastVol > 0 ? 'kg' : 'Sets'}</span>
-          ${trendHTML}
+        <div class="card-vol-block">
+          <div class="card-vol-row">
+            <span class="card-vol">${lastVol > 0 ? Math.round(lastVol).toLocaleString('de') : lastSets}</span>
+            <span class="card-vol-unit">${lastVol > 0 ? 'kg' : 'Sets'}</span>
+            ${trendHTML}
+          </div>
+          <div class="card-date-row">${formatDate(last.date)}${lastMin ? ' · ' + lastMin + ' min' : ''}</div>
         </div>
-        <div class="card-meta-row">${lastSets} Sets · ${day.exercises.length} Übungen</div>
         <div class="card-weeks-row">
           <div class="week-dots-wrap">
             ${weekDots}
@@ -911,11 +946,12 @@ function renderHome() {
     }
 
     return `
-      <div class="day-card" onclick="previewDay('${day.id}')">
-        <div class="card-top">
-          <div class="day-dot">${day.emoji || '💪'}</div>
+      <div class="day-card ${sessions.length ? 'has-history' : ''}" onclick="previewDay('${day.id}')">
+        <div class="card-header">
+          <div class="card-emoji">${day.emoji || '💪'}</div>
           <div class="day-name">${day.name}</div>
         </div>
+        <div class="card-divider"></div>
         <div class="card-analytics">${analyticsHTML}</div>
       </div>
     `;
@@ -954,19 +990,31 @@ function previewDay(dayId) {
 
   const lastSession = getLastSession(dayId);
   const body = document.getElementById('preview-body');
-  body.innerHTML = day.exercises.map(ex => {
-    const lastEx = lastSession && lastSession.exercises.find(e => e.exId === ex.id);
-    const lastLine = lastEx
-      ? `🕐 ${lastEx.sets.map(s => `${s.reps}×${s.weight}kg`).join(' · ')}`
-      : '🕐 Erstes Mal';
-    return `
-      <div class="preview-ex-item">
-        <div class="preview-ex-name">${ex.name}</div>
-        <div class="preview-ex-meta">${ex.sets} Sets · ${ex.targetReps} Reps</div>
-        <div class="preview-ex-last">${lastLine}</div>
-      </div>
-    `;
-  }).join('');
+  const lastDate = lastSession
+    ? formatDate(lastSession.date)
+    : null;
+
+  body.innerHTML = `
+    <div class="preview-hero">
+      <div class="preview-hero-emoji">${day.emoji || '💪'}</div>
+      <div class="preview-hero-name">${day.name}</div>
+      <div class="preview-hero-sub">${day.exercises.length} Übungen${lastDate ? ' · Zuletzt ' + lastDate : ' · Erstes Mal'}</div>
+    </div>
+    <div class="preview-ex-list">
+      ${day.exercises.map(ex => {
+        const lastEx = lastSession && lastSession.exercises.find(e => e.exId === ex.id);
+        const lastLine = lastEx
+          ? lastEx.sets.map(s => s.reps === 'allout' ? `allout·${s.weight}kg` : `${s.reps}×${s.weight}kg`).join(' ')
+          : '—';
+        return `
+          <div class="preview-ex-item">
+            <div class="preview-ex-name">${ex.name}</div>
+            <div class="preview-ex-meta">${ex.sets}×${ex.targetReps}</div>
+            <div class="preview-ex-last">${lastLine}</div>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
 
   showScreen('screen-day-preview');
 }

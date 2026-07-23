@@ -101,22 +101,23 @@
     color: var(--text);
   }
   .day-card.has-history .card-vol { color: var(--accent); }
-  .card-vol-unit { font-size: 13px; color: var(--text-muted); font-weight: 500; padding-bottom: 4px; }
+  .card-vol-unit { font-size: 13px; color: var(--text-dim); font-weight: 500; padding-bottom: 4px; }
   .vol-trend {
     font-size: 10px; font-weight: 700;
     padding: 2px 5px; border-radius: 4px; margin-bottom: 4px;
   }
   .vol-trend.up { color: var(--accent); background: var(--accent-dim); }
   .vol-trend.down { color: var(--red); background: rgba(255,68,68,0.1); }
-  .card-meta { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
+  .card-meta { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
   .day-card:not(.has-history) {
-    border: 1px dashed rgba(255,255,255,0.12);
+    border: 1px dashed rgba(255,255,255,0.2);
+    background: #161616;
   }
   .day-card:not(.has-history) .card-label {
-    color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.45);
   }
   .card-empty-label {
-    font-size: 12px; color: rgba(255,255,255,0.18);
+    font-size: 12px; color: rgba(255,255,255,0.38);
     letter-spacing: 0.3px; text-align: center; width: 100%;
   }
 

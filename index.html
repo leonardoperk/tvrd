@@ -640,8 +640,14 @@
     <button class="btn-icon" onclick="showAddDayModal()" title="Tag hinzufügen">+</button>
   </div>
   <div class="scroll-area" id="plan-body"></div>
-  <div class="bottom-bar">
-    <button class="btn-primary" onclick="activateNewPlan()">Neuen Plan aktivieren</button>
+  <div class="bottom-bar" style="flex-direction:column;gap:8px;padding-top:12px">
+    <button class="btn-primary" style="width:100%" onclick="activateNewPlan()">Neuen Plan aktivieren</button>
+    <div style="display:flex;gap:8px;width:100%">
+      <button class="btn-secondary" style="flex:1" onclick="exportData()">⬇ Export</button>
+      <label class="btn-secondary" style="flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        ⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(this)">
+      </label>
+    </div>
   </div>
 </div>
 
@@ -1534,6 +1540,41 @@ function showConfirm(title, body, onOk) {
   confirmCallback = onOk;
   document.getElementById('confirm-ok-btn').onclick = () => { if (confirmCallback) confirmCallback(); };
   openModal('modal-confirm');
+}
+
+// ─── EXPORT / IMPORT ──────────────────────────────────────────────────────────
+
+function exportData() {
+  const json = JSON.stringify(db, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url; a.download = `tvrd_backup_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup exportiert ✓');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.plan || !parsed.history) throw new Error('Ungültiges Format');
+      parsed.version = parsed.version || CURRENT_VERSION;
+      const migrated = migrateDB(parsed);
+      localStorage.setItem(DB_KEY, JSON.stringify(migrated));
+      showToast('Import erfolgreich — App wird neu geladen…');
+      setTimeout(() => location.reload(), 1200);
+    } catch(err) {
+      showToast('Import fehlgeschlagen: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────

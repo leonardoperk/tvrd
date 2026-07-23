@@ -266,8 +266,22 @@
   .plan-exercise-row {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    touch-action: none;
   }
   .plan-exercise-row:last-child { border-bottom: none; }
+  .drag-handle {
+    width: 24px; display: flex; align-items: center; justify-content: center;
+    color: var(--border); font-size: 18px; cursor: grab; flex-shrink: 0;
+    letter-spacing: -2px;
+  }
+  .drag-ph {
+    height: 44px; border-radius: var(--radius-sm);
+    background: var(--accent-dim); border: 1px dashed var(--accent);
+    margin: 2px 0;
+  }
+  .plan-exercise-row.dragging {
+    opacity: 0.4;
+  }
   .plan-ex-name { flex: 1; font-size: 14px; }
   .plan-ex-meta { font-size: 12px; color: var(--text-muted); }
   .plan-ex-delete {
@@ -538,7 +552,10 @@
         <input class="form-input" id="ex-step-input" placeholder="2.5" type="number" inputmode="decimal" step="0.25">
       </div>
     </div>
-    <button class="btn-primary" style="width:100%;margin-top:8px" onclick="saveExerciseModal()">Speichern</button>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-exercise')">← Zurück</button>
+      <button class="btn-primary" style="flex:2" onclick="saveExerciseModal()">Speichern</button>
+    </div>
   </div>
 </div>
 
@@ -1136,7 +1153,76 @@ function toggleHistorySession(id) {
 
 let editingExercise = { dayId: null, exIdx: null };
 
-function renderPlan() {
+// ─── DRAG & DROP ──────────────────────────────────────────────────────────────
+
+let drag = null;
+
+function onExDragStart(e, dayId, exIdx) {
+  e.preventDefault();
+  const row = document.getElementById(`pex-${dayId}-${exIdx}`);
+  const rect = row.getBoundingClientRect();
+  const touch = e.touches[0];
+
+  const ph = document.createElement('div');
+  ph.className = 'drag-ph';
+  ph.style.height = rect.height + 'px';
+  row.parentNode.insertBefore(ph, row);
+
+  row.classList.add('dragging');
+  row.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;top:${rect.top}px;z-index:999;background:var(--surface2);border-radius:var(--radius-sm);padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);`;
+
+  drag = { dayId, exIdx, row, ph, offsetY: touch.clientY - rect.top };
+
+  document.addEventListener('touchmove', onExDragMove, { passive: false });
+  document.addEventListener('touchend', onExDragEnd, { once: true });
+}
+
+function onExDragMove(e) {
+  if (!drag) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  drag.row.style.top = (touch.clientY - drag.offsetY) + 'px';
+
+  drag.row.style.display = 'none';
+  const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+  drag.row.style.display = '';
+  const rowUnder = elUnder?.closest('[data-ex-row]');
+  if (rowUnder) {
+    const rect = rowUnder.getBoundingClientRect();
+    if (touch.clientY < rect.top + rect.height / 2) {
+      rowUnder.parentNode.insertBefore(drag.ph, rowUnder);
+    } else {
+      rowUnder.parentNode.insertBefore(drag.ph, rowUnder.nextSibling);
+    }
+  }
+}
+
+function onExDragEnd() {
+  if (!drag) return;
+  document.removeEventListener('touchmove', onExDragMove);
+
+  const { dayId, exIdx, row, ph } = drag;
+  drag = null;
+
+  const container = ph.parentNode;
+  const children = [...container.children];
+  const phIdx = children.indexOf(ph);
+  const newIdx = children.slice(0, phIdx).filter(el => el.hasAttribute('data-ex-row')).length;
+
+  ph.remove();
+  row.style.cssText = '';
+  row.classList.remove('dragging');
+
+  if (newIdx !== exIdx) {
+    const day = db.plan.days.find(d => d.id === dayId);
+    const [moved] = day.exercises.splice(exIdx, 1);
+    day.exercises.splice(newIdx, 0, moved);
+    saveDB();
+  }
+  renderPlan(dayId);
+}
+
+function renderPlan(expandDayId) {
   const body = document.getElementById('plan-body');
   const days = db.plan.days;
 
@@ -1145,11 +1231,12 @@ function renderPlan() {
     return;
   }
 
-  body.innerHTML = days.map((day, di) => {
+  body.innerHTML = days.map((day) => {
     const exHTML = day.exercises.map((ex, ei) => `
-      <div class="plan-exercise-row">
+      <div class="plan-exercise-row" id="pex-${day.id}-${ei}" data-ex-row data-ex-idx="${ei}">
+        <div class="drag-handle" ontouchstart="onExDragStart(event,'${day.id}',${ei})">⠿</div>
         <div class="plan-ex-name">${ex.name}</div>
-        <div class="plan-ex-meta">${ex.sets}×${ex.targetReps} · ±${ex.weightStep}kg</div>
+        <div class="plan-ex-meta">${ex.sets}×${ex.targetReps}</div>
         <button class="plan-ex-edit" onclick="showEditExerciseModal('${day.id}', ${ei})">✏️</button>
         <button class="plan-ex-delete" onclick="deleteExercise('${day.id}', ${ei})">✕</button>
       </div>
@@ -1169,6 +1256,13 @@ function renderPlan() {
       </div>
     `;
   }).join('');
+
+  if (expandDayId) {
+    const body2 = document.getElementById(`pd-${expandDayId}`);
+    const toggle = document.getElementById(`pdt-${expandDayId}`);
+    if (body2) { body2.classList.add('open'); }
+    if (toggle) { toggle.classList.add('open'); }
+  }
 }
 
 function togglePlanDay(id) {
@@ -1202,10 +1296,14 @@ function showEditExerciseModal(dayId, exIdx) {
 
 function saveExerciseModal() {
   const name = document.getElementById('ex-name-input').value.trim();
-  const sets = parseInt(document.getElementById('ex-sets-input').value) || 3;
-  const targetReps = document.getElementById('ex-reps-input').value.trim() || '10-12';
+  const setsRaw = document.getElementById('ex-sets-input').value.trim();
+  const targetReps = document.getElementById('ex-reps-input').value.trim();
   const weightStep = parseFloat(document.getElementById('ex-step-input').value) || 2.5;
-  if (!name) { showToast('Bitte Name eingeben'); return; }
+
+  if (!name) { showToast('Name ist Pflichtfeld'); return; }
+  if (!setsRaw) { showToast('Sets ist Pflichtfeld'); return; }
+  if (!targetReps) { showToast('Ziel Reps ist Pflichtfeld'); return; }
+  const sets = parseInt(setsRaw);
 
   const day = db.plan.days.find(d => d.id === editingExercise.dayId);
   if (!day) return;
@@ -1218,7 +1316,7 @@ function saveExerciseModal() {
 
   saveDB();
   closeModal('modal-exercise');
-  renderPlan();
+  renderPlan(editingExercise.dayId);
   showToast(editingExercise.exIdx !== null ? 'Übung aktualisiert' : 'Übung hinzugefügt');
 }
 

@@ -427,6 +427,17 @@
   .chart-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
   .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
 
+  /* ALL OUT BUTTON */
+  .allout-btn {
+    flex: 1; height: 44px; border-radius: var(--radius-sm);
+    background: var(--surface2); border: 1.5px solid var(--border);
+    color: var(--text-muted); font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .allout-btn.active {
+    background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+  }
+
   /* TOAST */
   .toast {
     position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -1048,12 +1059,13 @@ function renderWorkout() {
       ? `🕐 Letztes Mal: ${ex.lastSets.map(s => `${s.reps}×${s.weight}kg`).join(' · ')}`
       : '🕐 Erstes Mal';
 
+    const isAllOut = ex.targetReps.toLowerCase() === 'all out';
+
     const setsHTML = ex.sets.map((set, si) => {
       const prevSet = ex.lastSets[si];
-      return `
-        <div class="set-row ${set.done ? 'done' : ''}" id="set-${ei}-${si}">
-          <div class="set-label">S${si+1}</div>
-          <div class="num-widget reps-widget">
+      const repsWidget = isAllOut
+        ? `<button class="allout-btn ${set.reps === 'allout' ? 'active' : ''}" onclick="toggleAllOut(${ei},${si})">All Out</button>`
+        : `<div class="num-widget reps-widget">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'reps',-1)">−</button>
             <input class="num-input" type="number" inputmode="numeric"
               value="${set.reps}"
@@ -1061,7 +1073,11 @@ function renderWorkout() {
               onchange="setVal(${ei},${si},'reps',this.value)"
               oninput="setVal(${ei},${si},'reps',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'reps',1)">+</button>
-          </div>
+          </div>`;
+      return `
+        <div class="set-row ${set.done ? 'done' : ''}" id="set-${ei}-${si}">
+          <div class="set-label">S${si+1}</div>
+          ${repsWidget}
           <div class="num-widget weight-widget">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${-(ex.weightStep || 2.5)})">−</button>
             <input class="num-input" type="number" inputmode="decimal"
@@ -1079,13 +1095,13 @@ function renderWorkout() {
       <div class="exercise-block">
         <div class="exercise-header">
           <div class="exercise-name">${ex.name}</div>
-          <div class="exercise-target">${ex.targetReps} reps</div>
+          <div class="exercise-target">${isAllOut ? 'All Out' : ex.targetReps + ' reps'}</div>
         </div>
         <div class="exercise-progress"><div class="exercise-progress-fill" id="prog-${ei}" style="width:${progress}%"></div></div>
         <div class="last-session">${lastLine}</div>
         <div class="set-cols-header">
           <div class="set-label"></div>
-          <div class="set-col-label reps-col">reps</div>
+          <div class="set-col-label reps-col">${isAllOut ? '' : 'reps'}</div>
           <div class="set-col-label weight-col">kg</div>
         </div>
         ${setsHTML}
@@ -1102,8 +1118,18 @@ function updateWorkoutProgress() {
 }
 
 function isSetCommitted(set) {
-  return (set.reps !== '' && parseFloat(set.reps) > 0) ||
+  return set.reps === 'allout' ||
+         (set.reps !== '' && parseFloat(set.reps) > 0) ||
          (set.weight !== '' && parseFloat(set.weight) > 0);
+}
+
+function toggleAllOut(ei, si) {
+  const set = workoutState.exercises[ei].sets[si];
+  set.reps = set.reps === 'allout' ? '' : 'allout';
+  const btn = document.getElementById(`set-${ei}-${si}`)?.querySelector('.allout-btn');
+  if (btn) btn.classList.toggle('active', set.reps === 'allout');
+  onValChanged(ei, si);
+  saveWorkoutDraft();
 }
 
 function adjustVal(ei, si, field, delta) {
@@ -1445,7 +1471,7 @@ function deleteExercise(dayId, exIdx) {
     day.exercises.splice(exIdx, 1);
     saveDB();
     closeModal('modal-confirm');
-    renderPlan();
+    renderPlan(dayId);
   });
 }
 

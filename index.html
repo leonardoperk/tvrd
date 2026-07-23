@@ -336,6 +336,97 @@
   .form-row { display: flex; gap: 10px; }
   .form-row .form-field { flex: 1; }
 
+  /* PR ANIMATIONS */
+  @keyframes prRowFlash {
+    0%   { background: transparent; }
+    25%  { background: rgba(200,241,53,0.2); }
+    100% { background: transparent; }
+  }
+  @keyframes prExGlow {
+    0%   { box-shadow: none; border-color: var(--border); }
+    30%  { box-shadow: 0 0 24px rgba(200,241,53,0.35); border-color: var(--accent); }
+    100% { box-shadow: none; border-color: var(--border); }
+  }
+  @keyframes prBadgeIn {
+    from { transform: scale(0) translateY(4px); opacity: 0; }
+    to   { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  @keyframes prBadgeFade { to { opacity: 0; transform: translateY(-8px); } }
+  @keyframes sessionPRPulse {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.15); }
+  }
+  .pr-row-flash { animation: prRowFlash 0.8s ease; }
+  .pr-ex-glow   { animation: prExGlow 1s ease; }
+  .pr-badge {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: var(--accent); color: #000;
+    font-size: 10px; font-weight: 800; border-radius: 4px; padding: 2px 7px;
+    pointer-events: none; z-index: 10; white-space: nowrap;
+    animation: prBadgeIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275),
+               prBadgeFade 0.4s ease 2.2s forwards;
+  }
+  .finish-pr-badge {
+    display: inline-block; background: var(--accent); color: #000;
+    font-size: 13px; font-weight: 800; border-radius: 8px; padding: 4px 14px;
+    margin-bottom: 12px;
+    animation: sessionPRPulse 0.6s ease 0.3s 2;
+  }
+
+  /* WEEK DOT TOOLTIP */
+  .week-dots-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; cursor: default; }
+  .week-dots-wrap:hover .week-tooltip, .week-dots-wrap:active .week-tooltip { opacity: 1; pointer-events: auto; }
+  .week-tooltip {
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 10px; font-size: 11px; color: var(--text-dim);
+    white-space: nowrap; opacity: 0; pointer-events: none;
+    transition: opacity 0.15s; z-index: 20;
+  }
+
+  /* ANALYTICS SCREEN */
+  .analytics-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .analytics-tab {
+    flex-shrink: 0; height: 42px; padding: 0 16px;
+    display: flex; align-items: center; font-size: 13px; font-weight: 600;
+    color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer;
+    white-space: nowrap; transition: all 0.15s;
+  }
+  .analytics-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .analytics-panel { display: none; }
+  .analytics-panel.active { display: block; }
+
+  .pr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pr-table th { text-align: left; color: var(--text-muted); font-size: 11px; font-weight: 600; padding: 6px 0 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .pr-table td { padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+  .pr-ex-name-cell { font-weight: 600; padding-right: 8px; }
+  .pr-val { font-weight: 700; color: var(--text); }
+  .pr-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .stat-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .stat-card {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; text-align: center;
+  }
+  .stat-card-num { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .stat-card-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  .heatmap { display: flex; gap: 3px; flex-wrap: wrap; }
+  .heatmap-week { display: flex; flex-direction: column; gap: 3px; }
+  .heatmap-day { width: 14px; height: 14px; border-radius: 3px; background: var(--surface2); }
+  .heatmap-day.active { background: var(--accent); }
+  .heatmap-day.dim { background: rgba(200,241,53,0.35); }
+
+  .prog-select {
+    width: 100%; height: 44px; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 15px; border-radius: var(--radius-sm);
+    padding: 0 12px; font-family: inherit; margin-bottom: 16px; outline: none;
+  }
+  .chart-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .chart-wrap { margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 12px 4px; }
+  .chart-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
+  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+
   /* TOAST */
   .toast {
     position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -450,7 +541,7 @@
       <div class="header-title">TVRD</div>
       <div class="header-sub" id="home-date"></div>
     </div>
-    <button class="btn-icon" onclick="showScreen('screen-history')" title="History">📊</button>
+    <button class="btn-icon" onclick="showScreen('screen-analytics')" title="Analytics">📊</button>
     <button class="btn-icon" onclick="showScreen('screen-plan')" title="Plan">⚙️</button>
   </div>
   <div id="draft-banner" style="display:none"></div>
@@ -492,13 +583,29 @@
 <div class="screen" id="screen-finish">
   <div class="scroll-area">
     <div class="finish-summary">
-      <div class="finish-icon">🏋️</div>
+      <div class="finish-icon" id="finish-icon">🏋️</div>
+      <div id="finish-pr-badge"></div>
       <div class="finish-title">Training done.</div>
       <div class="finish-sub" id="finish-sub"></div>
       <div class="finish-stats" id="finish-stats"></div>
       <button class="btn-primary" style="width:100%" onclick="showScreen('screen-home')">Zurück zum Start</button>
     </div>
   </div>
+</div>
+
+<!-- ANALYTICS SCREEN -->
+<div class="screen" id="screen-analytics">
+  <div class="header">
+    <button class="btn-icon" onclick="showScreen('screen-home')">←</button>
+    <div class="header-title">Analytics</div>
+  </div>
+  <div class="analytics-tabs">
+    <div class="analytics-tab active" onclick="switchAnalyticsTab('verlauf',this)">Verlauf</div>
+    <div class="analytics-tab" onclick="switchAnalyticsTab('prs',this)">PRs</div>
+    <div class="analytics-tab" onclick="switchAnalyticsTab('progression',this)">Progression</div>
+    <div class="analytics-tab" onclick="switchAnalyticsTab('konsistenz',this)">Konsistenz</div>
+  </div>
+  <div class="scroll-area" id="analytics-body"></div>
 </div>
 
 <!-- HISTORY SCREEN -->
@@ -701,6 +808,7 @@ function showScreen(id) {
   if (id === 'screen-home') renderHome();
   if (id === 'screen-plan') renderPlan();
   if (id === 'screen-history') renderHistory('all');
+  if (id === 'screen-analytics') renderAnalytics('verlauf');
 }
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
@@ -776,7 +884,12 @@ function renderHome() {
           ${trendHTML}
         </div>
         <div class="card-meta-row">${lastSets} Sets · ${day.exercises.length} Übungen</div>
-        <div class="card-weeks-row">${weekDots}<span class="weeks-label">4 Wo</span></div>
+        <div class="card-weeks-row">
+          <div class="week-dots-wrap">
+            ${weekDots}
+            <div class="week-tooltip">Trainings in den letzten 4 Wochen</div>
+          </div>
+        </div>
       `;
     }
 
@@ -878,6 +991,7 @@ function startWorkout() {
     })
   };
 
+  prShownForEx = new Set();
   renderWorkout();
   showScreen('screen-workout');
   startTimer();
@@ -898,6 +1012,7 @@ function resumeWorkout() {
   workoutState = draft.workoutState;
   const totalElapsed = draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
   workoutState.startTime = Date.now() - totalElapsed * 1000;
+  prShownForEx = new Set();
   renderWorkout();
   showScreen('screen-workout');
   startTimer();
@@ -999,12 +1114,12 @@ function adjustVal(ei, si, field, delta) {
   const row = document.getElementById(`set-${ei}-${si}`);
   const selector = field === 'reps' ? '.reps-widget .num-input' : '.weight-widget .num-input';
   row.querySelector(selector).value = newVal;
-  onValChanged(ei, si);
+  onValChangedWithPR(ei, si);
 }
 
 function setVal(ei, si, field, val) {
   workoutState.exercises[ei].sets[si][field] = val === '' ? '' : parseFloat(val) || 0;
-  onValChanged(ei, si);
+  onValChangedWithPR(ei, si);
 }
 
 function onValChanged(ei, si) {
@@ -1073,6 +1188,10 @@ function finishWorkout() {
   const totalVol = session.exercises.reduce((a, ex) => a + ex.sets.reduce((b, s) => b + s.reps * s.weight, 0), 0);
   const min = Math.floor(timerSeconds / 60);
 
+  const isSessionPR = checkSessionPR(totalVol);
+  document.getElementById('finish-icon').textContent = isSessionPR ? '🏆' : '🏋️';
+  document.getElementById('finish-pr-badge').innerHTML = isSessionPR
+    ? '<div class="finish-pr-badge">⚡ Neuer Session-PR!</div>' : '';
   document.getElementById('finish-sub').textContent = workoutState.dayName + ' · ' + new Date().toLocaleDateString('de-AT', { day: 'numeric', month: 'long' });
   document.getElementById('finish-stats').innerHTML = `
     <div class="finish-stat"><div class="finish-stat-num">${totalSets}</div><div class="finish-stat-label">Sets</div></div>
@@ -1400,6 +1519,293 @@ function showToast(msg) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─── PR SYSTEM ────────────────────────────────────────────────────────────────
+
+let prShownForEx = new Set();
+let prCheckTimers = {};
+
+function getExBests(exId) {
+  let bestWeight = 0, bestSetVol = 0, bestSessionVol = 0;
+  db.history.forEach(session => {
+    const ex = session.exercises.find(e => e.exId === exId);
+    if (!ex) return;
+    let sessionVol = 0;
+    ex.sets.forEach(s => {
+      bestWeight = Math.max(bestWeight, +s.weight || 0);
+      bestSetVol = Math.max(bestSetVol, (+s.reps || 0) * (+s.weight || 0));
+      sessionVol += (+s.reps || 0) * (+s.weight || 0);
+    });
+    bestSessionVol = Math.max(bestSessionVol, sessionVol);
+  });
+  return { bestWeight, bestSetVol, bestSessionVol };
+}
+
+function checkSetAndExPR(ei, si) {
+  const ex = workoutState.exercises[ei];
+  const set = ex.sets[si];
+  const reps = +set.reps || 0;
+  const weight = +set.weight || 0;
+  if (!reps && !weight) return;
+
+  const bests = getExBests(ex.exId);
+  const setVol = reps * weight;
+  const isWeightPR = weight > 0 && weight > bests.bestWeight;
+  const isVolPR = setVol > 0 && setVol > bests.bestSetVol;
+
+  if (isWeightPR || isVolPR) {
+    const row = document.getElementById(`set-${ei}-${si}`);
+    if (row) {
+      row.querySelectorAll('.pr-badge').forEach(b => b.remove());
+      row.classList.remove('pr-row-flash');
+      void row.offsetWidth;
+      row.classList.add('pr-row-flash');
+      row.style.position = 'relative';
+      const badge = document.createElement('div');
+      badge.className = 'pr-badge';
+      badge.textContent = isWeightPR ? '⚡ Gewicht PR' : '⚡ Volumen PR';
+      row.appendChild(badge);
+      setTimeout(() => badge.remove(), 2700);
+    }
+  }
+
+  // Exercise PR: current session total vs. all-time session best for this exercise
+  const sessionExVol = ex.sets.reduce((a, s) => a + (+s.reps||0)*(+s.weight||0), 0);
+  if (sessionExVol > bests.bestSessionVol && sessionExVol > 0 && !prShownForEx.has(ei)) {
+    prShownForEx.add(ei);
+    const block = document.getElementById(`prog-${ei}`)?.closest('.exercise-block');
+    if (block) {
+      block.classList.remove('pr-ex-glow');
+      void block.offsetWidth;
+      block.classList.add('pr-ex-glow');
+      const exBadge = document.createElement('div');
+      exBadge.className = 'pr-badge';
+      exBadge.style.cssText = 'position:absolute;right:12px;top:12px;';
+      exBadge.textContent = '🏆 Übungs-PR';
+      block.style.position = 'relative';
+      block.appendChild(exBadge);
+      setTimeout(() => exBadge.remove(), 3000);
+    }
+  }
+}
+
+function onValChangedWithPR(ei, si) {
+  onValChanged(ei, si);
+  clearTimeout(prCheckTimers[`${ei}-${si}`]);
+  prCheckTimers[`${ei}-${si}`] = setTimeout(() => checkSetAndExPR(ei, si), 600);
+}
+
+function checkSessionPR(totalVol) {
+  if (!db.history.length || totalVol <= 0) return false;
+  const prevBest = Math.max(...db.history.slice(1).map(s =>
+    s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (+st.reps||0)*(+st.weight||0), 0), 0)
+  ), 0);
+  return totalVol > prevBest;
+}
+
+// ─── ANALYTICS ────────────────────────────────────────────────────────────────
+
+let currentAnalyticsTab = 'verlauf';
+
+function switchAnalyticsTab(tab, el) {
+  currentAnalyticsTab = tab;
+  document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderAnalytics(tab);
+}
+
+function renderAnalytics(tab) {
+  tab = tab || currentAnalyticsTab;
+  const body = document.getElementById('analytics-body');
+  if (!body) return;
+
+  if (tab === 'verlauf') {
+    body.innerHTML = renderVerlaufHTML();
+  } else if (tab === 'prs') {
+    body.innerHTML = renderPRBoardHTML();
+  } else if (tab === 'progression') {
+    body.innerHTML = renderProgressionHTML();
+    setupProgSelect();
+  } else if (tab === 'konsistenz') {
+    body.innerHTML = renderKonsistenzHTML();
+  }
+}
+
+function renderVerlaufHTML() {
+  const sessions = db.history;
+  if (!sessions.length) return `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Noch keine Sessions.</div></div>`;
+  return sessions.map(session => {
+    const d = new Date(session.date);
+    const dateStr = d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    const min = Math.floor((session.duration || 0) / 60);
+    const totalSets = session.exercises.reduce((a, ex) => a + ex.sets.length, 0);
+    const exHTML = session.exercises.map(ex => `
+      <div class="history-ex-row">
+        <div class="history-ex-name">${ex.name}</div>
+        <div class="history-set-pills">${ex.sets.map((s,i) => `<span class="history-set-pill">S${i+1}: ${s.reps}r · ${s.weight}kg</span>`).join('')}</div>
+      </div>`).join('');
+    return `
+      <div class="history-session">
+        <div class="history-session-header" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div><div class="history-session-date">${session.dayName}</div><div class="history-session-meta">${dateStr} · ${totalSets} Sets${min ? ' · '+min+'min' : ''}</div></div>
+          <div style="color:var(--text-muted);font-size:18px">›</div>
+        </div>
+        <div class="history-session-body">${exHTML}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderPRBoardHTML() {
+  const allExIds = new Map();
+  db.history.forEach(s => s.exercises.forEach(ex => {
+    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, ex.name);
+  }));
+  if (!allExIds.size) return `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Noch keine PRs — training starten!</div></div>`;
+
+  const rows = [...allExIds.entries()].map(([exId, name]) => {
+    let bestWeight = 0, bestWeightDate = null;
+    let bestSetVol = 0, bestSetVolDate = null;
+    db.history.forEach(s => {
+      const ex = s.exercises.find(e => e.exId === exId);
+      if (!ex) return;
+      ex.sets.forEach(st => {
+        if ((+st.weight||0) > bestWeight) { bestWeight = +st.weight; bestWeightDate = s.date; }
+        const sv = (+st.reps||0)*(+st.weight||0);
+        if (sv > bestSetVol) { bestSetVol = sv; bestSetVolDate = s.date; }
+      });
+    });
+    const fmt = ts => new Date(ts).toLocaleDateString('de-AT', { day:'numeric', month:'short' });
+    return `<tr>
+      <td class="pr-ex-name-cell">${name}</td>
+      <td><div class="pr-val">${bestWeight > 0 ? bestWeight+'kg' : '—'}</div>${bestWeightDate ? `<div class="pr-date">${fmt(bestWeightDate)}</div>` : ''}</td>
+      <td><div class="pr-val">${bestSetVol > 0 ? Math.round(bestSetVol)+'kg' : '—'}</div>${bestSetVolDate ? `<div class="pr-date">${fmt(bestSetVolDate)}</div>` : ''}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div style="padding:16px">
+    <table class="pr-table">
+      <thead><tr><th>Übung</th><th>Max Gewicht</th><th>Set Volumen</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderProgressionHTML() {
+  const allExIds = new Map();
+  db.history.forEach(s => s.exercises.forEach(ex => {
+    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, ex.name);
+  }));
+  const options = [...allExIds.entries()].map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+  return `<div style="padding:16px">
+    <select class="prog-select" id="prog-ex-select" onchange="renderProgCharts(this.value)">
+      <option value="">— Übung wählen —</option>${options}
+    </select>
+    <div id="prog-charts"></div>
+  </div>`;
+}
+
+function setupProgSelect() {
+  const sel = document.getElementById('prog-ex-select');
+  if (sel && sel.options.length > 1) {
+    sel.selectedIndex = 1;
+    renderProgCharts(sel.value);
+  }
+}
+
+function renderProgCharts(exId) {
+  const container = document.getElementById('prog-charts');
+  if (!container || !exId) return;
+  const data = db.history
+    .filter(s => s.exercises.some(e => e.exId === exId))
+    .sort((a, b) => a.date - b.date)
+    .map(s => {
+      const ex = s.exercises.find(e => e.exId === exId);
+      const maxW = Math.max(...ex.sets.map(st => +st.weight || 0));
+      const vol = ex.sets.reduce((a, st) => a + (+st.reps||0)*(+st.weight||0), 0);
+      return { date: s.date, maxW, vol };
+    });
+  if (data.length < 2) { container.innerHTML = `<div class="chart-empty">Mindestens 2 Sessions nötig für den Chart.</div>`; return; }
+  container.innerHTML = `
+    <div class="chart-wrap"><div class="chart-label">Max. Gewicht (kg)</div>${svgLine(data, 'maxW', '#c8f135')}</div>
+    <div class="chart-wrap"><div class="chart-label">Session Volumen (kg)</div>${svgLine(data, 'vol', '#7ec8e3')}</div>
+  `;
+}
+
+function svgLine(data, field, color) {
+  const W = 300, H = 110, PL = 38, PR = 10, PT = 8, PB = 28;
+  const vals = data.map(d => d[field]);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = max - min || 1;
+  const xS = i => PL + (i / (data.length - 1)) * (W - PL - PR);
+  const yS = v => PT + (1 - (v - min) / range) * (H - PT - PB);
+  const path = data.map((d, i) => `${i ? 'L' : 'M'}${xS(i).toFixed(1)},${yS(d[field]).toFixed(1)}`).join('');
+  const dots = data.map((d, i) => `<circle cx="${xS(i).toFixed(1)}" cy="${yS(d[field]).toFixed(1)}" r="3" fill="${color}"/>`).join('');
+  const yLabels = [min, min + range/2, max].map(v =>
+    `<text x="${PL-4}" y="${(yS(v)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--text-muted)">${Math.round(v)}</text>`).join('');
+  const step = Math.max(1, Math.floor(data.length / 4));
+  const xLabels = data.filter((_, i) => i % step === 0 || i === data.length-1).map((d, _, arr) => {
+    const i = data.indexOf(d);
+    return `<text x="${xS(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text-muted)">${new Date(d.date).toLocaleDateString('de-AT',{day:'numeric',month:'short'})}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">
+    ${yLabels}${xLabels}
+    <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+  </svg>`;
+}
+
+function renderKonsistenzHTML() {
+  const sessions = db.history;
+  if (!sessions.length) return `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Noch keine Daten.</div></div>`;
+
+  const now = Date.now();
+  const msDay = 86400000, msWeek = 7 * msDay;
+
+  // Avg sessions/week (last 8 weeks)
+  const last8w = sessions.filter(s => now - s.date < 8 * msWeek);
+  const avgPerWeek = (last8w.length / 8).toFixed(1);
+
+  // Current streak (consecutive weeks with ≥1 session, going back from now)
+  let streak = 0;
+  for (let w = 0; w < 52; w++) {
+    const hit = sessions.some(s => (now - s.date) >= w * msWeek && (now - s.date) < (w+1) * msWeek);
+    if (hit) streak++; else break;
+  }
+
+  // Total sessions
+  const total = sessions.length;
+
+  // Heatmap: last 16 weeks × 7 days
+  const weeks = 16;
+  const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+  const todayMs = startOfToday.getTime();
+  const heatmapStart = todayMs - (weeks * 7 - 1) * msDay;
+  const sessionDates = new Set(sessions.map(s => {
+    const d = new Date(s.date); d.setHours(0,0,0,0); return d.getTime();
+  }));
+  let heatHTML = '';
+  for (let w = 0; w < weeks; w++) {
+    heatHTML += '<div class="heatmap-week">';
+    for (let d = 0; d < 7; d++) {
+      const dayMs = heatmapStart + (w * 7 + d) * msDay;
+      const active = sessionDates.has(dayMs);
+      const future = dayMs > todayMs;
+      heatHTML += `<div class="heatmap-day${active ? ' active' : future ? '' : ''}"></div>`;
+    }
+    heatHTML += '</div>';
+  }
+
+  return `<div style="padding:16px">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-card-num">${avgPerWeek}×</div><div class="stat-card-label">Ø / Woche (8 Wo)</div></div>
+      <div class="stat-card"><div class="stat-card-num">${streak}</div><div class="stat-card-label">Wochen-Streak</div></div>
+      <div class="stat-card"><div class="stat-card-num">${total}</div><div class="stat-card-label">Sessions gesamt</div></div>
+    </div>
+    <div class="section-title">Letzte 16 Wochen</div>
+    <div class="heatmap">${heatHTML}</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:8px">← älter · neuer →</div>
+  </div>`;
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────

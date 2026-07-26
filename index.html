@@ -63,7 +63,24 @@
 
   #screen-home .scroll-area {
     padding-bottom: 24px;
+    display: flex; align-items: center; justify-content: center;
   }
+
+  /* FOCUS VIEW */
+  .focus-card { width: 100%; text-align: center; padding: 0 8px; }
+  .focus-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 10px;
+  }
+  .focus-eyebrow.draft { color: var(--accent); }
+  .focus-name { font-size: 34px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .focus-meta { font-size: 14px; color: var(--text-dim); }
+  .focus-link {
+    display: block; width: 100%; text-align: center; margin-top: 14px;
+    background: none; border: none; color: var(--text-muted); font-size: 13px;
+    font-family: inherit; cursor: pointer; padding: 6px;
+  }
+  .focus-link:active { color: var(--accent); }
 
   /* DAY CARDS */
   .day-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -119,6 +136,13 @@
   .card-empty-label {
     font-size: 12px; color: rgba(255,255,255,0.55);
     letter-spacing: 0.3px; text-align: center; width: 100%;
+  }
+  .suggested-tag {
+    position: absolute; top: 10px; right: 12px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim);
+    border: 1px solid rgba(200,241,53,0.3);
+    padding: 3px 7px; border-radius: 20px;
   }
 
   .card-footer {
@@ -460,16 +484,26 @@
   .chart-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
   .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
 
-  /* ALL OUT BUTTON */
-  .allout-btn {
-    flex: 1; height: 44px; border-radius: var(--radius-sm);
-    background: var(--surface2); border: 1.5px solid var(--border);
-    color: var(--text-muted); font-size: 13px; font-weight: 700;
-    cursor: pointer; font-family: inherit; transition: all 0.15s;
+  /* REST TIMER */
+  .rest-btn {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+    font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
   }
-  .allout-btn.active {
-    background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+  .rest-btn:active { background: var(--border); color: var(--accent); }
+  .rest-timer-banner {
+    position: fixed; left: 16px; right: 16px; bottom: 78px; z-index: 50;
+    background: var(--surface2); border: 1px solid var(--accent);
+    border-radius: var(--radius); padding: 12px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    cursor: pointer; transition: background 0.2s, border-color 0.2s;
   }
+  .rest-timer-banner.done { border-color: var(--red); background: rgba(255,68,68,0.1); }
+  .rest-timer-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .rest-timer-num { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .rest-timer-banner.done .rest-timer-num { color: var(--red); }
+  .rest-timer-hint { font-size: 11px; color: var(--text-dim); }
 
   /* TOAST */
   .toast {
@@ -526,25 +560,6 @@
   .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
   .empty-state-text { font-size: 15px; }
 
-  /* DRAFT BANNER */
-  .draft-banner {
-    margin: 12px 16px 0;
-    background: var(--surface2); border: 1px solid var(--accent);
-    border-radius: var(--radius); padding: 12px 14px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .draft-banner-text { flex: 1; font-size: 13px; font-weight: 600; }
-  .draft-banner-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .draft-btn-resume {
-    background: var(--accent); color: #000; border: none;
-    border-radius: var(--radius-sm); padding: 8px 14px;
-    font-size: 13px; font-weight: 700; cursor: pointer; flex-shrink: 0;
-  }
-  .draft-btn-discard {
-    background: none; border: none; color: var(--text-muted);
-    font-size: 18px; cursor: pointer; padding: 4px; flex-shrink: 0;
-  }
-
   /* PREVIEW SCREEN */
   .preview-ex-item {
     background: var(--surface); border: 1px solid var(--border);
@@ -578,7 +593,7 @@
 </head>
 <body>
 
-<!-- HOME SCREEN -->
+<!-- HOME SCREEN (FOCUS VIEW) -->
 <div class="screen active" id="screen-home">
   <div class="header">
     <div style="flex:1">
@@ -588,7 +603,15 @@
     <button class="btn-icon" onclick="showScreen('screen-analytics')" title="Analytics">📊</button>
     <button class="btn-icon" onclick="showScreen('screen-plan')" title="Plan">⚙️</button>
   </div>
-  <div id="draft-banner" style="display:none"></div>
+  <div class="scroll-area" id="focus-body"></div>
+</div>
+
+<!-- OVERVIEW SCREEN -->
+<div class="screen" id="screen-overview">
+  <div class="header">
+    <button class="btn-icon" onclick="showScreen('screen-home')">←</button>
+    <div class="header-title">Alle Tage</div>
+  </div>
   <div class="scroll-area">
     <div class="day-grid" id="day-grid"></div>
   </div>
@@ -597,7 +620,7 @@
 <!-- DAY PREVIEW SCREEN -->
 <div class="screen" id="screen-day-preview">
   <div class="header">
-    <button class="btn-icon" onclick="showScreen('screen-home')">←</button>
+    <button class="btn-icon" onclick="showScreen('screen-overview')">←</button>
     <div class="header-title" id="preview-title"></div>
   </div>
   <div class="scroll-area" id="preview-body"></div>
@@ -617,6 +640,10 @@
     <div id="workout-timer" style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums;">0:00</div>
   </div>
   <div class="scroll-area" id="workout-body"></div>
+  <div class="rest-timer-banner" id="rest-timer-banner" style="display:none" onclick="cancelRestTimer()">
+    <span class="rest-timer-label">Pause <span class="rest-timer-hint">· antippen zum Abbrechen</span></span>
+    <span class="rest-timer-num" id="rest-timer-num"></span>
+  </div>
   <div class="bottom-bar">
     <button class="btn-secondary" onclick="confirmExitWorkout()">Abbrechen</button>
     <button class="btn-primary" onclick="finishWorkout()">Training beenden ✓</button>
@@ -708,6 +735,10 @@
         <label class="form-label">Gewicht-Schritt (kg)</label>
         <input class="form-input" id="ex-step-input" placeholder="2.5" type="number" inputmode="decimal" step="0.25">
       </div>
+      <div class="form-field">
+        <label class="form-label">Pause (Sek.)</label>
+        <input class="form-input" id="ex-rest-input" placeholder="90" type="number" inputmode="numeric" step="5">
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:8px">
       <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-exercise')">← Zurück</button>
@@ -719,16 +750,12 @@
 <div class="modal-overlay" id="modal-day" onclick="closeModalIfBg(event, 'modal-day')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Trainingstag hinzufügen</div>
+    <div class="modal-title" id="modal-day-title">Trainingstag hinzufügen</div>
     <div class="form-field">
       <label class="form-label">Name des Tages</label>
       <input class="form-input" id="day-name-input" placeholder="z.B. Brust & Bizeps" type="text">
     </div>
-    <div class="form-field">
-      <label class="form-label">Emoji (optional)</label>
-      <input class="form-input" id="day-emoji-input" placeholder="💪" type="text" maxlength="2">
-    </div>
-    <button class="btn-primary" style="width:100%;margin-top:8px" onclick="saveDayModal()">Hinzufügen</button>
+    <button class="btn-primary" style="width:100%;margin-top:8px" id="day-modal-save-btn" onclick="saveDayModal()">Hinzufügen</button>
   </div>
 </div>
 
@@ -855,40 +882,83 @@ let db = loadDB();
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'screen-home') renderHome();
+  if (id === 'screen-home') renderFocusHome();
+  if (id === 'screen-overview') renderOverview();
   if (id === 'screen-plan') renderPlan();
   if (id === 'screen-history') renderHistory('all');
   if (id === 'screen-analytics') renderAnalytics('verlauf');
 }
 
-// ─── HOME ─────────────────────────────────────────────────────────────────────
+// ─── HOME (FOCUS VIEW) ────────────────────────────────────────────────────────
 
-function renderHome() {
+function calcSessionVol(s) {
+  return s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (parseFloat(st.reps)||0) * (parseFloat(st.weight)||0), 0), 0);
+}
+
+function hasEntryToday() {
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayMs = todayStart.getTime();
+  return db.history.some(h => {
+    const d = new Date(h.date); d.setHours(0,0,0,0);
+    return d.getTime() === todayMs;
+  });
+}
+
+function renderFocusHome() {
   const dateEl = document.getElementById('home-date');
   dateEl.textContent = new Date().toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
 
-  // Draft banner
-  const bannerEl = document.getElementById('draft-banner');
+  const body = document.getElementById('focus-body');
   const draft = db.draftWorkout;
+
   if (draft) {
     const elapsed = draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
     const m = Math.floor(elapsed / 60);
-    bannerEl.style.display = '';
-    bannerEl.innerHTML = `
-      <div class="draft-banner">
-        <div style="flex:1">
-          <div class="draft-banner-text">⚡ ${draft.workoutState.dayName}</div>
-          <div class="draft-banner-sub">Unterbrochen vor ${m < 1 ? 'weniger als 1 min' : m + ' min'}</div>
-        </div>
-        <button class="draft-btn-resume" onclick="resumeWorkout()">Fortsetzen</button>
-        <button class="draft-btn-discard" onclick="discardDraft()" title="Verwerfen">✕</button>
+    body.innerHTML = `
+      <div class="focus-card">
+        <div class="focus-eyebrow draft">⚡ Training unterbrochen</div>
+        <div class="focus-name">${draft.workoutState.dayName}</div>
+        <div class="focus-meta">Unterbrochen vor ${m < 1 ? 'weniger als 1 min' : m + ' min'}</div>
+        <button class="btn-primary" style="width:100%;margin-top:20px" onclick="resumeWorkout()">Fortsetzen ▶</button>
+        <button class="focus-link" onclick="discardDraft()">Verwerfen</button>
       </div>
     `;
-  } else {
-    bannerEl.style.display = 'none';
-    bannerEl.innerHTML = '';
+    return;
   }
 
+  const days = db.plan.days;
+  if (!days.length) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Noch kein Plan. Tippe ⚙️ um einen Plan zu erstellen.</div></div>`;
+    return;
+  }
+
+  const suggestedDayId = getSuggestedDayId();
+  const day = days.find(d => d.id === suggestedDayId) || days[0];
+  const lastSession = getLastSession(day.id);
+  const metaLine = lastSession
+    ? `Zuletzt ${formatDate(lastSession.date)} · ${Math.round(calcSessionVol(lastSession)).toLocaleString('de')} kg`
+    : 'Erstes Mal';
+
+  body.innerHTML = `
+    <div class="focus-card">
+      <div class="focus-eyebrow">Nächstes Training</div>
+      <div class="focus-name">${day.name}</div>
+      <div class="focus-meta">${metaLine}</div>
+      <button class="btn-primary" style="width:100%;margin-top:20px" onclick="startWorkoutForDay('${day.id}')">Training starten ▶</button>
+      <button class="focus-link" onclick="showScreen('screen-overview')">Alle Tage anzeigen</button>
+      ${hasEntryToday() ? '' : `<button class="focus-link" onclick="logActiveRest()">...oder Aktive Erholung loggen</button>`}
+    </div>
+  `;
+}
+
+function startWorkoutForDay(dayId) {
+  pendingDayId = dayId;
+  startWorkout();
+}
+
+// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
+
+function renderOverview() {
   const grid = document.getElementById('day-grid');
   const days = db.plan.days;
 
@@ -897,9 +967,10 @@ function renderHome() {
     return;
   }
 
+  const suggestedDayId = getSuggestedDayId();
+
   grid.innerHTML = days.map(day => {
     const sessions = db.history.filter(h => h.dayId === day.id).sort((a, b) => b.date - a.date);
-    const calcVol = s => s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (parseFloat(st.reps)||0) * (parseFloat(st.weight)||0), 0), 0);
     const now = Date.now();
 
     const weekDots = [0,1,2,3].map(w => {
@@ -916,8 +987,8 @@ function renderHome() {
     } else {
       const last = sessions[0];
       const prev = sessions[1] || null;
-      const lastVol = calcVol(last);
-      const prevVol = prev ? calcVol(prev) : null;
+      const lastVol = calcSessionVol(last);
+      const prevVol = prev ? calcSessionVol(prev) : null;
       const trend = (prevVol && prevVol > 0) ? Math.round((lastVol - prevVol) / prevVol * 100) : null;
       const lastSets = last.exercises.reduce((a, ex) => a + ex.sets.length, 0);
       const lastMin = Math.floor((last.duration || 0) / 60);
@@ -936,6 +1007,7 @@ function renderHome() {
 
     return `
       <div class="day-card ${sessions.length ? 'has-history' : ''}" onclick="previewDay('${day.id}')">
+        ${day.id === suggestedDayId ? '<div class="suggested-tag">Empfohlen</div>' : ''}
         <div class="card-label">${day.name}</div>
         <div class="card-body">${bodyHTML}</div>
         <div class="card-footer">
@@ -947,6 +1019,33 @@ function renderHome() {
       </div>
     `;
   }).join('');
+}
+
+function logActiveRest() {
+  showConfirm(
+    'Aktive Erholung loggen?',
+    'Heute wird als Erholungstag festgehalten — zählt für Streak & Heatmap, aber nicht als Training.',
+    () => {
+      db.history.unshift({
+        id: Date.now().toString(), planId: db.plan.id, dayId: null, dayName: 'Aktive Erholung',
+        date: Date.now(), duration: 0, type: 'activeRest', exercises: []
+      });
+      saveDB();
+      closeModal('modal-confirm');
+      renderFocusHome();
+      showToast('Aktive Erholung geloggt ✓');
+    }
+  );
+}
+
+function getSuggestedDayId() {
+  const days = db.plan.days;
+  if (!days.length) return null;
+  const trainingSessions = db.history.filter(h => h.dayId).sort((a, b) => b.date - a.date);
+  if (!trainingSessions.length) return days[0].id;
+  const idx = days.findIndex(d => d.id === trainingSessions[0].dayId);
+  if (idx === -1) return days[0].id;
+  return days[(idx + 1) % days.length].id;
 }
 
 function getLastSession(dayId) {
@@ -994,7 +1093,7 @@ function previewDay(dayId) {
       ${day.exercises.map(ex => {
         const lastEx = lastSession && lastSession.exercises.find(e => e.exId === ex.id);
         const lastLine = lastEx
-          ? lastEx.sets.map(s => s.reps === 'allout' ? `allout·${s.weight}kg` : `${s.reps}×${s.weight}kg`).join(' ')
+          ? lastEx.sets.map(s => `${s.reps}×${s.weight}kg`).join(' ')
           : '—';
         return `
           <div class="preview-ex-item">
@@ -1033,6 +1132,7 @@ function startWorkout() {
         name: ex.name,
         targetReps: ex.targetReps,
         weightStep: ex.weightStep || 2.5,
+        restSeconds: ex.restSeconds || 90,
         sets: Array.from({ length: ex.sets }, (_, i) => {
           const prev = lastSets[i];
           return {
@@ -1050,6 +1150,7 @@ function startWorkout() {
   renderWorkout();
   showScreen('screen-workout');
   startTimer();
+  requestWakeLock();
 }
 
 function saveWorkoutDraft() {
@@ -1071,12 +1172,13 @@ function resumeWorkout() {
   renderWorkout();
   showScreen('screen-workout');
   startTimer();
+  requestWakeLock();
 }
 
 function discardDraft() {
   db.draftWorkout = null;
   saveDB();
-  renderHome();
+  renderFocusHome();
 }
 
 function startTimer() {
@@ -1088,6 +1190,60 @@ function startTimer() {
     document.getElementById('workout-timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
   }, 1000);
 }
+
+// ─── REST TIMER ───────────────────────────────────────────────────────────────
+
+let restTimerInterval = null;
+let restTimerEndsAt = 0;
+
+function startRestTimer(seconds) {
+  clearInterval(restTimerInterval);
+  restTimerEndsAt = Date.now() + seconds * 1000;
+  const banner = document.getElementById('rest-timer-banner');
+  banner.classList.remove('done');
+  banner.style.display = 'flex';
+  tickRestTimer();
+  restTimerInterval = setInterval(tickRestTimer, 250);
+}
+
+function tickRestTimer() {
+  const banner = document.getElementById('rest-timer-banner');
+  const numEl = document.getElementById('rest-timer-num');
+  if (!banner || banner.style.display === 'none') { clearInterval(restTimerInterval); return; }
+  const remaining = Math.max(0, Math.ceil((restTimerEndsAt - Date.now()) / 1000));
+  const m = Math.floor(remaining / 60);
+  const s = remaining % 60;
+  numEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if (remaining <= 0) {
+    clearInterval(restTimerInterval);
+    banner.classList.add('done');
+    if (navigator.vibrate) navigator.vibrate([200,100,200]);
+    setTimeout(() => { banner.style.display = 'none'; }, 1500);
+  }
+}
+
+function cancelRestTimer() {
+  clearInterval(restTimerInterval);
+  document.getElementById('rest-timer-banner').style.display = 'none';
+}
+
+// ─── WAKE LOCK ────────────────────────────────────────────────────────────────
+
+let wakeLock = null;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (workoutState && document.visibilityState === 'visible') requestWakeLock();
+});
 
 function renderWorkout() {
   if (!workoutState) return;
@@ -1103,13 +1259,9 @@ function renderWorkout() {
       ? `🕐 Letztes Mal: ${ex.lastSets.map(s => `${s.reps}×${s.weight}kg`).join(' · ')}`
       : '🕐 Erstes Mal';
 
-    const isAllOut = ex.targetReps.toLowerCase() === 'all out';
-
     const setsHTML = ex.sets.map((set, si) => {
       const prevSet = ex.lastSets[si];
-      const repsWidget = isAllOut
-        ? `<button class="allout-btn ${set.reps === 'allout' ? 'active' : ''}" onclick="toggleAllOut(${ei},${si})">All Out</button>`
-        : `<div class="num-widget reps-widget">
+      const repsWidget = `<div class="num-widget reps-widget">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'reps',-1)">−</button>
             <input class="num-input" type="number" inputmode="numeric"
               value="${set.reps}"
@@ -1131,6 +1283,7 @@ function renderWorkout() {
               oninput="setVal(${ei},${si},'weight',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${ex.weightStep || 2.5})">+</button>
           </div>
+          <button class="rest-btn" onclick="startRestTimer(${ex.restSeconds || 90})" title="Pause starten">⏱</button>
         </div>
       `;
     }).join('');
@@ -1139,13 +1292,13 @@ function renderWorkout() {
       <div class="exercise-block">
         <div class="exercise-header">
           <div class="exercise-name">${ex.name}</div>
-          <div class="exercise-target">${isAllOut ? 'All Out' : ex.targetReps + ' reps'}</div>
+          <div class="exercise-target">${ex.targetReps} reps</div>
         </div>
         <div class="exercise-progress"><div class="exercise-progress-fill" id="prog-${ei}" style="width:${progress}%"></div></div>
         <div class="last-session">${lastLine}</div>
         <div class="set-cols-header">
           <div class="set-label"></div>
-          <div class="set-col-label reps-col">${isAllOut ? '' : 'reps'}</div>
+          <div class="set-col-label reps-col">reps</div>
           <div class="set-col-label weight-col">kg</div>
         </div>
         ${setsHTML}
@@ -1162,18 +1315,8 @@ function updateWorkoutProgress() {
 }
 
 function isSetCommitted(set) {
-  return set.reps === 'allout' ||
-         (set.reps !== '' && parseFloat(set.reps) > 0) ||
+  return (set.reps !== '' && parseFloat(set.reps) > 0) ||
          (set.weight !== '' && parseFloat(set.weight) > 0);
-}
-
-function toggleAllOut(ei, si) {
-  const set = workoutState.exercises[ei].sets[si];
-  set.reps = set.reps === 'allout' ? '' : 'allout';
-  const btn = document.getElementById(`set-${ei}-${si}`)?.querySelector('.allout-btn');
-  if (btn) btn.classList.toggle('active', set.reps === 'allout');
-  onValChanged(ei, si);
-  saveWorkoutDraft();
 }
 
 function adjustVal(ei, si, field, delta) {
@@ -1223,6 +1366,8 @@ function confirmExitWorkout() {
 
 function exitWorkout() {
   clearInterval(timerInterval);
+  cancelRestTimer();
+  releaseWakeLock();
   workoutState = null;
   db.draftWorkout = null;
   saveDB();
@@ -1233,6 +1378,8 @@ function exitWorkout() {
 function finishWorkout() {
   if (!workoutState) return;
   clearInterval(timerInterval);
+  cancelRestTimer();
+  releaseWakeLock();
   db.draftWorkout = null;
 
   // Save to history
@@ -1258,10 +1405,10 @@ function finishWorkout() {
   const totalVol = session.exercises.reduce((a, ex) => a + ex.sets.reduce((b, s) => b + s.reps * s.weight, 0), 0);
   const min = Math.floor(timerSeconds / 60);
 
-  const isSessionPR = checkSessionPR(totalVol);
-  document.getElementById('finish-icon').textContent = isSessionPR ? '🏆' : '🏋️';
-  document.getElementById('finish-pr-badge').innerHTML = isSessionPR
-    ? '<div class="finish-pr-badge">⚡ Neuer Session-PR!</div>' : '';
+  const isDayPR = checkDayPR(session.dayId, totalVol);
+  document.getElementById('finish-icon').textContent = isDayPR ? '🏆' : '🏋️';
+  document.getElementById('finish-pr-badge').innerHTML = isDayPR
+    ? `<div class="finish-pr-badge">⚡ Neuer Bestwert für ${session.dayName}!</div>` : '';
   document.getElementById('finish-sub').textContent = workoutState.dayName + ' · ' + new Date().toLocaleDateString('de-AT', { day: 'numeric', month: 'long' });
   document.getElementById('finish-stats').innerHTML = `
     <div class="finish-stat"><div class="finish-stat-num">${totalSets}</div><div class="finish-stat-label">Sets</div></div>
@@ -1295,7 +1442,7 @@ function renderHistory(filter) {
   if (navTabs) {
     const days = db.plan.days;
     navTabs.innerHTML = `<div class="nav-tab ${filter === 'all' ? 'active' : ''}" onclick="filterHistory('all', this)">Alle</div>` +
-      days.map(d => `<div class="nav-tab ${filter === d.id ? 'active' : ''}" onclick="filterHistory('${d.id}', this)">${d.emoji || ''} ${d.name.split(' ')[0]}</div>`).join('');
+      days.map(d => `<div class="nav-tab ${filter === d.id ? 'active' : ''}" onclick="filterHistory('${d.id}', this)">${d.name.split(' ')[0]}</div>`).join('');
   }
 
   if (!sessions.length) {
@@ -1434,7 +1581,8 @@ function renderPlan(expandDayId) {
     return `
       <div class="plan-day-block">
         <div class="plan-day-header" onclick="togglePlanDay('pd-${day.id}')">
-          <div class="plan-day-name">${day.emoji || ''} ${day.name}</div>
+          <div class="plan-day-name">${day.name}</div>
+          <button onclick="event.stopPropagation();showEditDayModal('${day.id}')" style="background:none;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;padding:0 8px">✏️</button>
           <button onclick="event.stopPropagation();deletePlanDay('${day.id}')" style="background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:0 8px">✕</button>
           <div class="plan-day-toggle" id="pdt-${day.id}">▼</div>
         </div>
@@ -1468,6 +1616,7 @@ function showAddExerciseModal(dayId) {
   document.getElementById('ex-sets-input').value = '';
   document.getElementById('ex-reps-input').value = '';
   document.getElementById('ex-step-input').value = '';
+  document.getElementById('ex-rest-input').value = '';
   openModal('modal-exercise');
 }
 
@@ -1480,6 +1629,7 @@ function showEditExerciseModal(dayId, exIdx) {
   document.getElementById('ex-sets-input').value = ex.sets;
   document.getElementById('ex-reps-input').value = ex.targetReps;
   document.getElementById('ex-step-input').value = ex.weightStep;
+  document.getElementById('ex-rest-input').value = ex.restSeconds || '';
   openModal('modal-exercise');
 }
 
@@ -1488,6 +1638,7 @@ function saveExerciseModal() {
   const setsRaw = document.getElementById('ex-sets-input').value.trim();
   const targetReps = document.getElementById('ex-reps-input').value.trim();
   const weightStep = parseFloat(document.getElementById('ex-step-input').value) || 2.5;
+  const restSeconds = parseInt(document.getElementById('ex-rest-input').value) || 90;
 
   if (!name) { showToast('Name ist Pflichtfeld'); return; }
   if (!setsRaw) { showToast('Sets ist Pflichtfeld'); return; }
@@ -1498,9 +1649,9 @@ function saveExerciseModal() {
   if (!day) return;
 
   if (editingExercise.exIdx !== null) {
-    day.exercises[editingExercise.exIdx] = { ...day.exercises[editingExercise.exIdx], name, sets, targetReps, weightStep };
+    day.exercises[editingExercise.exIdx] = { ...day.exercises[editingExercise.exIdx], name, sets, targetReps, weightStep, restSeconds };
   } else {
-    day.exercises.push({ id: 'e' + Date.now(), name, sets, targetReps, weightStep });
+    day.exercises.push({ id: 'e' + Date.now(), name, sets, targetReps, weightStep, restSeconds });
   }
 
   saveDB();
@@ -1529,21 +1680,43 @@ function deletePlanDay(dayId) {
   });
 }
 
+let editingDayId = null;
+
 function showAddDayModal() {
+  editingDayId = null;
+  document.getElementById('modal-day-title').textContent = 'Trainingstag hinzufügen';
+  document.getElementById('day-modal-save-btn').textContent = 'Hinzufügen';
   document.getElementById('day-name-input').value = '';
-  document.getElementById('day-emoji-input').value = '';
+  openModal('modal-day');
+}
+
+function showEditDayModal(dayId) {
+  const day = db.plan.days.find(d => d.id === dayId);
+  if (!day) return;
+  editingDayId = dayId;
+  document.getElementById('modal-day-title').textContent = 'Trainingstag bearbeiten';
+  document.getElementById('day-modal-save-btn').textContent = 'Speichern';
+  document.getElementById('day-name-input').value = day.name;
   openModal('modal-day');
 }
 
 function saveDayModal() {
   const name = document.getElementById('day-name-input').value.trim();
-  const emoji = document.getElementById('day-emoji-input').value.trim() || '💪';
   if (!name) { showToast('Bitte Name eingeben'); return; }
-  db.plan.days.push({ id: 'd' + Date.now(), name, emoji, exercises: [] });
-  saveDB();
-  closeModal('modal-day');
-  renderPlan();
-  showToast('Tag hinzugefügt');
+  if (editingDayId !== null) {
+    const day = db.plan.days.find(d => d.id === editingDayId);
+    if (day) day.name = name;
+    saveDB();
+    closeModal('modal-day');
+    renderPlan();
+    showToast('Tag aktualisiert');
+  } else {
+    db.plan.days.push({ id: 'd' + Date.now(), name, exercises: [] });
+    saveDB();
+    closeModal('modal-day');
+    renderPlan();
+    showToast('Tag hinzugefügt');
+  }
 }
 
 function activateNewPlan() {
@@ -1701,9 +1874,9 @@ function onValChangedWithPR(ei, si) {
   prCheckTimers[`${ei}-${si}`] = setTimeout(() => checkSetAndExPR(ei, si), 600);
 }
 
-function checkSessionPR(totalVol) {
-  if (!db.history.length || totalVol <= 0) return false;
-  const prevBest = Math.max(...db.history.slice(1).map(s =>
+function checkDayPR(dayId, totalVol) {
+  if (totalVol <= 0) return false;
+  const prevBest = Math.max(...db.history.slice(1).filter(s => s.dayId === dayId).map(s =>
     s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (+st.reps||0)*(+st.weight||0), 0), 0)
   ), 0);
   return totalVol > prevBest;
@@ -1881,25 +2054,49 @@ function renderKonsistenzHTML() {
   // Total sessions
   const total = sessions.length;
 
-  // Heatmap: last 16 weeks × 7 days
+  // Heatmap: last 16 weeks × 7 days, color-coded by training day type
   const weeks = 16;
   const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
   const todayMs = startOfToday.getTime();
   const heatmapStart = todayMs - (weeks * 7 - 1) * msDay;
-  const sessionDates = new Set(sessions.map(s => {
-    const d = new Date(s.date); d.setHours(0,0,0,0); return d.getTime();
-  }));
+
+  const palette = ['#c8f135','#7ec8e3','#ff8a5c','#c77dff','#ffb84d','#4caf50','#ff6b9d'];
+  const restColor = '#666';
+  const dayColor = new Map(db.plan.days.map((d, i) => [d.id, palette[i % palette.length]]));
+
+  const sessionsByDate = new Map();
+  sessions.forEach(s => {
+    const d = new Date(s.date); d.setHours(0,0,0,0);
+    const key = d.getTime();
+    if (!sessionsByDate.has(key)) sessionsByDate.set(key, []);
+    sessionsByDate.get(key).push(s);
+  });
+
   let heatHTML = '';
   for (let w = 0; w < weeks; w++) {
     heatHTML += '<div class="heatmap-week">';
     for (let d = 0; d < 7; d++) {
       const dayMs = heatmapStart + (w * 7 + d) * msDay;
-      const active = sessionDates.has(dayMs);
-      const future = dayMs > todayMs;
-      heatHTML += `<div class="heatmap-day${active ? ' active' : future ? '' : ''}"></div>`;
+      const daySessions = sessionsByDate.get(dayMs);
+      let cellColor = '';
+      if (daySessions) {
+        let bestIdx = Infinity, best = null;
+        daySessions.forEach(s => {
+          const idx = db.plan.days.findIndex(pd => pd.id === s.dayId);
+          if (idx !== -1 && idx < bestIdx) { bestIdx = idx; best = dayColor.get(s.dayId); }
+        });
+        cellColor = best || restColor;
+      }
+      heatHTML += `<div class="heatmap-day"${cellColor ? ` style="background:${cellColor}"` : ''}></div>`;
     }
     heatHTML += '</div>';
   }
+
+  const hasRestEntries = sessions.some(s => !s.dayId);
+  const legendHTML = `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">
+    ${db.plan.days.map(d => `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${dayColor.get(d.id)};display:inline-block;flex-shrink:0"></span>${d.name}</div>`).join('')}
+    ${hasRestEntries ? `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${restColor};display:inline-block;flex-shrink:0"></span>Aktive Erholung</div>` : ''}
+  </div>`;
 
   return `<div style="padding:16px">
     <div class="stat-row">
@@ -1910,12 +2107,13 @@ function renderKonsistenzHTML() {
     <div class="section-title">Letzte 16 Wochen</div>
     <div class="heatmap">${heatHTML}</div>
     <div style="font-size:11px;color:var(--text-muted);margin-top:8px">← älter · neuer →</div>
+    ${legendHTML}
   </div>`;
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
-renderHome();
+renderFocusHome();
 </script>
 </body>
 </html>

@@ -61,16 +61,18 @@
   /* SCROLL AREA */
   .scroll-area { flex: 1; overflow-y: auto; padding: 12px 16px 88px; }
 
+  /* margin:auto statt justify-content:center — zentriert bei kurzem Inhalt,
+     schneidet aber bei langem Inhalt nicht den oberen Rand ab. */
   #screen-home .scroll-area {
-    padding-bottom: 24px;
-    display: flex; align-items: center; justify-content: center;
+    padding: 16px 16px 28px;
+    display: flex; flex-direction: column;
   }
 
   /* FOCUS VIEW */
-  .focus-card { width: 100%; text-align: center; padding: 0 8px; }
+  .focus-card { width: 100%; margin: auto 0; text-align: center; padding: 0 4px; }
   .focus-eyebrow {
     font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 10px;
+    color: var(--text-muted); margin-bottom: 8px;
   }
   .focus-eyebrow.draft { color: var(--accent); }
   .focus-name { font-size: 34px; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
@@ -82,81 +84,123 @@
   }
   .focus-link:active { color: var(--accent); }
 
-  /* DAY CARDS */
-  .day-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  #screen-home .day-grid { grid-auto-rows: 160px; }
-  .day-card {
-    background: #111;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px;
-    padding: 16px 14px 14px;
-    cursor: pointer;
-    transition: border-color 0.18s, transform 0.12s;
-    display: flex; flex-direction: column;
-    overflow: hidden; position: relative;
+  /* FOCUS VIEW — READY STATE */
+  .focus-alert {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    color: #ffb84d; background: rgba(255,184,77,0.1);
+    border: 1px solid rgba(255,184,77,0.25);
+    padding: 4px 11px; border-radius: 20px; margin-bottom: 14px;
   }
-  .day-card:active { border-color: var(--accent); transform: scale(0.97); }
-  .day-card.has-history { border-color: rgba(200,241,53,0.2); }
-  .day-card.has-history::before {
-    content: ''; position: absolute; top: 0; left: 14px; right: 14px;
-    height: 2px; background: var(--accent); opacity: 0.7;
-    border-radius: 0 0 3px 3px;
+  .focus-meta-row {
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 7px;
+    font-size: 14px; color: var(--text-dim);
+  }
+  .focus-preview {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-top: 18px;
+    overflow: hidden; text-align: left;
+  }
+  .focus-preview-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .focus-preview-row:last-child { border-bottom: none; }
+  .focus-preview-name {
+    flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .focus-preview-sets { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+  .focus-preview-more {
+    padding: 9px 14px; font-size: 12px; color: var(--text-muted);
+    background: rgba(255,255,255,0.02);
   }
 
-  .card-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-    text-transform: uppercase; color: var(--text-muted);
+  /* WOCHENSTREIFEN */
+  .week-strip-wrap { margin-top: 24px; }
+  .week-strip-title {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 10px;
   }
-  .card-body {
-    flex: 1; display: flex; flex-direction: column; justify-content: center;
-    padding: 2px 0 6px;
+  .week-strip { display: flex; gap: 6px; }
+  .week-strip-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .week-strip-label { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+  .week-strip-cell {
+    width: 100%; height: 30px; border-radius: 7px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
   }
-  .card-vol-row { display: flex; align-items: flex-end; gap: 4px; }
-  .card-vol {
-    font-size: 36px; font-weight: 800;
-    letter-spacing: -2px; line-height: 1;
-    color: var(--text);
+  .week-strip-day.future .week-strip-cell { background: rgba(255,255,255,0.022); }
+  .week-strip-day.today .week-strip-label { color: var(--text); }
+  .week-strip-day.today .week-strip-cell { border-color: rgba(255,255,255,0.3); }
+
+  /* TAGESSTATUS (statt still verschwindendem Link) */
+  .focus-status {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 16px; padding: 8px 15px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+    color: var(--green); background: rgba(76,175,80,0.1);
+    border: 1px solid rgba(76,175,80,0.28);
   }
-  .day-card.has-history .card-vol { color: var(--accent); }
-  .card-vol-unit { font-size: 13px; color: var(--text-dim); font-weight: 500; padding-bottom: 4px; }
+  .focus-status.trained {
+    color: var(--accent); background: var(--accent-dim);
+    border-color: rgba(200,241,53,0.28);
+  }
+
+  /* DAY LIST (ÜBERSICHT) */
+  .day-list { display: flex; flex-direction: column; gap: 8px; }
+  .day-row {
+    display: flex; align-items: center; gap: 10px;
+    background: #111;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-left: 3px solid rgba(255,255,255,0.13);
+    border-radius: 14px;
+    padding: 13px 12px 12px 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.12s;
+  }
+  .day-row:active { transform: scale(0.985); background: #171717; }
+
+  .day-row-main { flex: 1; min-width: 0; }
+  /* flex-wrap: der Badge sitzt IM Textfluss und kann den Namen nie überlappen —
+     bei langen Namen bricht er einfach in die nächste Zeile. */
+  .day-row-head {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 5px;
+  }
+  .day-row-name { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .day-row-badge {
+    font-size: 9px; font-weight: 800; letter-spacing: 0.7px; text-transform: uppercase;
+    color: var(--accent); background: var(--accent-dim);
+    border: 1px solid rgba(200,241,53,0.3);
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap;
+  }
+  .day-row-meta {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    font-size: 13px; color: var(--text-dim); margin-bottom: 9px;
+  }
+  .day-row-meta.empty { color: rgba(255,255,255,0.42); }
+  .day-row-vol { color: var(--text); font-weight: 600; }
+  .day-row-dots { display: flex; align-items: center; gap: 5px; }
+  .day-row-dots-label {
+    font-size: 10px; color: var(--text-muted);
+    margin-left: 5px; letter-spacing: 0.2px;
+  }
+  .day-row-chevron { color: var(--text-muted); font-size: 20px; flex-shrink: 0; }
+
+  .week-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.11);
+  }
+  .week-dot.active { background: var(--dot-color, var(--accent)); }
+
   .vol-trend {
     font-size: 10px; font-weight: 700;
-    padding: 2px 5px; border-radius: 4px; margin-bottom: 4px;
+    padding: 2px 5px; border-radius: 4px;
   }
   .vol-trend.up { color: var(--accent); background: var(--accent-dim); }
   .vol-trend.down { color: var(--red); background: rgba(255,68,68,0.1); }
-  .card-meta { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
-  .day-card:not(.has-history) {
-    border: 1px dashed rgba(255,255,255,0.28);
-    background: #191919;
-  }
-  .day-card:not(.has-history) .card-label {
-    color: rgba(255,255,255,0.6);
-  }
-  .card-empty-label {
-    font-size: 12px; color: rgba(255,255,255,0.55);
-    letter-spacing: 0.3px; text-align: center; width: 100%;
-  }
-  .suggested-tag {
-    position: absolute; top: 10px; right: 12px;
-    font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
-    color: var(--accent); background: var(--accent-dim);
-    border: 1px solid rgba(200,241,53,0.3);
-    padding: 3px 7px; border-radius: 20px;
-  }
-
-  .card-footer {
-    display: flex; align-items: center;
-    padding-top: 10px; margin-top: 4px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-  }
-  .card-weeks-row { display: flex; align-items: center; gap: 5px; }
-  .week-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-  }
-  .week-dot.active { background: var(--accent); box-shadow: 0 0 5px rgba(200,241,53,0.45); }
-  .day-card.has-history .card-footer { border-top-color: rgba(200,241,53,0.18); }
 
   /* PREVIEW SCREEN */
   .preview-hero {
@@ -177,10 +221,6 @@
   .preview-ex-name { font-size: 14px; font-weight: 600; flex: 1; }
   .preview-ex-meta { font-size: 12px; color: var(--text-muted); }
   .preview-ex-last { font-size: 11px; color: var(--text-dim); text-align: right; }
-
-  .day-arrow { display: none; }
-  .day-info { display: none; }
-  .day-meta { display: none; }
 
   /* EXERCISE LIST IN WORKOUT */
   .exercise-block {
@@ -208,21 +248,21 @@
 
   /* SET COLUMN HEADERS */
   .set-cols-header {
-    display: flex; align-items: center; gap: 4px;
-    padding: 6px 8px 4px;
+    display: flex; align-items: center; gap: 3px;
+    padding: 6px 6px 4px;
     border-bottom: 1px solid rgba(255,255,255,0.04);
   }
   .set-col-label {
     font-size: 10px; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.8px; text-align: center;
   }
-  .set-col-label.reps-col { flex: 0 0 132px; text-align: center; }
+  .set-col-label.reps-col { flex: 0 0 112px; text-align: center; }
   .set-col-label.weight-col { flex: 1; text-align: center; }
 
   /* SET ROWS */
   .set-row {
-    display: flex; align-items: center; gap: 4px;
-    padding: 6px 8px;
+    display: flex; align-items: center; gap: 3px;
+    padding: 6px;
     border-bottom: 1px solid rgba(255,255,255,0.04);
     transition: background 0.2s;
   }
@@ -239,10 +279,10 @@
     background: var(--surface2); border-radius: var(--radius-sm);
     border: 1px solid var(--border); overflow: hidden;
   }
-  .num-widget.reps-widget { flex: 0 0 132px; }
-  .num-widget.weight-widget { flex: 1; }
+  .num-widget.reps-widget { flex: 0 0 112px; }
+  .num-widget.weight-widget { flex: 1; min-width: 0; }
   .num-btn {
-    width: 44px; height: 48px; border: none; background: transparent;
+    width: 38px; height: 48px; border: none; background: transparent;
     color: var(--text-dim); font-size: 22px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; transition: color 0.1s, background 0.1s;
@@ -252,9 +292,13 @@
   .num-input {
     flex: 1; min-width: 0; text-align: center;
     background: transparent; border: none; outline: none;
-    color: var(--text); font-size: 20px; font-weight: 700;
+    color: var(--text); font-size: 19px; font-weight: 700;
     font-family: inherit; padding: 0; height: 48px;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.4px;
+    -moz-appearance: textfield;
   }
+  .num-input::-webkit-outer-spin-button,
+  .num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
   /* CHECK BUTTON */
   .set-check {
@@ -430,17 +474,6 @@
     animation: sessionPRPulse 0.6s ease 0.3s 2;
   }
 
-  /* WEEK DOT TOOLTIP */
-  .week-dots-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; cursor: default; }
-  .week-dots-wrap:hover .week-tooltip, .week-dots-wrap:active .week-tooltip { opacity: 1; pointer-events: auto; }
-  .week-tooltip {
-    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 5px 10px; font-size: 11px; color: var(--text-dim);
-    white-space: nowrap; opacity: 0; pointer-events: none;
-    transition: opacity 0.15s; z-index: 20;
-  }
-
   /* ANALYTICS SCREEN */
   .analytics-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
   .analytics-tab {
@@ -486,7 +519,7 @@
 
   /* REST TIMER */
   .rest-btn {
-    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
     background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
     font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
@@ -614,7 +647,7 @@
     <div class="header-title">Alle Tage</div>
   </div>
   <div class="scroll-area">
-    <div class="day-grid" id="day-grid"></div>
+    <div class="day-list" id="day-list"></div>
   </div>
 </div>
 
@@ -896,13 +929,83 @@ function calcSessionVol(s) {
   return s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (parseFloat(st.reps)||0) * (parseFloat(st.weight)||0), 0), 0);
 }
 
+// ─── TAGESFARBEN ──────────────────────────────────────────────────────────────
+// Eine Quelle für Übersichtsliste, Wochenstreifen und Heatmap — damit ein
+// Trainingstag überall in derselben Farbe auftaucht.
+
+const DAY_PALETTE = ['#c8f135','#7ec8e3','#ff8a5c','#c77dff','#ffb84d','#4caf50','#ff6b9d'];
+const REST_COLOR = '#666';
+
+function getDayColor(dayId) {
+  const i = db.plan.days.findIndex(d => d.id === dayId);
+  return i === -1 ? REST_COLOR : DAY_PALETTE[i % DAY_PALETTE.length];
+}
+
+// ─── DATUM ────────────────────────────────────────────────────────────────────
+// Alles Datums-Rechnen läuft über Kalendertage (lokale Mitternacht), NICHT über
+// abgelaufene 24h-Blöcke. Sonst wird "vorgestern 20:00" um 10:00 zu "Gestern".
+
+function startOfDay(ts) {
+  const d = new Date(ts); d.setHours(0,0,0,0); return d.getTime();
+}
+
+// Kalendertage zwischen ts und heute. Math.round federt DST-Sprünge ab
+// (ein Tag kann 23 oder 25 Stunden haben).
+function calendarDaysAgo(ts) {
+  return Math.round((startOfDay(Date.now()) - startOfDay(ts)) / 86400000);
+}
+
 function hasEntryToday() {
-  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-  const todayMs = todayStart.getTime();
-  return db.history.some(h => {
-    const d = new Date(h.date); d.setHours(0,0,0,0);
-    return d.getTime() === todayMs;
+  const todayMs = startOfDay(Date.now());
+  return db.history.some(h => startOfDay(h.date) === todayMs);
+}
+
+function getTodayEntries() {
+  const todayMs = startOfDay(Date.now());
+  return db.history.filter(h => startOfDay(h.date) === todayMs);
+}
+
+// Kalendertage seit dem letzten echten Training (Aktive Erholung zählt nicht).
+function daysSinceLastTraining() {
+  const trainings = db.history.filter(h => h.dayId);
+  if (!trainings.length) return null;
+  return calendarDaysAgo(Math.max(...trainings.map(t => t.date)));
+}
+
+// Mo–So der laufenden Woche, eingefärbt nach Tagestyp.
+function renderWeekStrip() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayMs = today.getTime();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Mo=0 … So=6
+
+  const byDate = new Map();
+  db.history.forEach(s => {
+    const k = startOfDay(s.date);
+    if (!byDate.has(k)) byDate.set(k, []);
+    byDate.get(k).push(s);
   });
+
+  const cells = ['Mo','Di','Mi','Do','Fr','Sa','So'].map((label, i) => {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const key = d.getTime();
+    const entries = byDate.get(key);
+    let style = '';
+    if (entries) {
+      const training = entries.find(e => e.dayId); // Training schlägt Erholung
+      style = ` style="background:${training ? getDayColor(training.dayId) : REST_COLOR}"`;
+    }
+    const cls = key === todayMs ? 'today' : (key > todayMs ? 'future' : '');
+    return `<div class="week-strip-day ${cls}">
+        <div class="week-strip-label">${label}</div>
+        <div class="week-strip-cell"${style}></div>
+      </div>`;
+  }).join('');
+
+  return `<div class="week-strip-wrap">
+      <div class="week-strip-title">Diese Woche</div>
+      <div class="week-strip">${cells}</div>
+    </div>`;
 }
 
 function renderFocusHome() {
@@ -935,19 +1038,72 @@ function renderFocusHome() {
 
   const suggestedDayId = getSuggestedDayId();
   const day = days.find(d => d.id === suggestedDayId) || days[0];
-  const lastSession = getLastSession(day.id);
-  const metaLine = lastSession
-    ? `Zuletzt ${formatDate(lastSession.date)} · ${Math.round(calcSessionVol(lastSession)).toLocaleString('de')} kg`
-    : 'Erstes Mal';
+
+  // Letzte Session dieses Tages + Trend gegen die vorletzte
+  const sessions = db.history.filter(h => h.dayId === day.id).sort((a, b) => b.date - a.date);
+  const last = sessions[0] || null;
+  const prev = sessions[1] || null;
+
+  let metaHTML;
+  if (!last) {
+    metaHTML = `<div class="focus-meta-row">Erstes Mal</div>`;
+  } else {
+    const lastVol = calcSessionVol(last);
+    const prevVol = prev ? calcSessionVol(prev) : null;
+    const trend = (prevVol && prevVol > 0) ? Math.round((lastVol - prevVol) / prevVol * 100) : null;
+    const lastSets = last.exercises.reduce((a, ex) => a + ex.sets.length, 0);
+    const volLabel = lastVol > 0
+      ? `${Math.round(lastVol).toLocaleString('de')} kg`
+      : `${lastSets} Sets`;
+    metaHTML = `
+      <div class="focus-meta-row">
+        <span>Zuletzt ${formatDate(last.date)}</span><span>·</span><span>${volLabel}</span>
+        ${trend !== null ? `<span class="vol-trend ${trend >= 0 ? 'up' : 'down'}">${trend >= 0 ? '↑' : '↓'}${Math.abs(trend)}%</span>` : ''}
+      </div>`;
+  }
+
+  // Nudge nur, wenn die Pause auffällig lang ist — sonst still bleiben.
+  const gap = daysSinceLastTraining();
+  const alertHTML = (gap !== null && gap >= 3)
+    ? `<div class="focus-alert">⏳ Seit ${gap} Tagen nicht trainiert</div>`
+    : '';
+
+  const shown = day.exercises.slice(0, 3);
+  const more = day.exercises.length - shown.length;
+  const previewHTML = shown.length ? `
+    <div class="focus-preview">
+      ${shown.map(ex => `
+        <div class="focus-preview-row">
+          <div class="focus-preview-name">${ex.name}</div>
+          <div class="focus-preview-sets">${ex.sets}×${ex.targetReps}</div>
+        </div>`).join('')}
+      ${more > 0 ? `<div class="focus-preview-more">+${more} weitere Übung${more > 1 ? 'en' : ''}</div>` : ''}
+    </div>` : '';
+
+  // Heutiger Status sichtbar machen, statt den Link stumm auszublenden.
+  const todayEntries = getTodayEntries();
+  const restToday = todayEntries.find(h => h.type === 'activeRest');
+  const trainedToday = todayEntries.find(h => h.dayId);
+  let statusHTML;
+  if (restToday) {
+    statusHTML = `<div class="focus-status">✓ Aktive Erholung heute geloggt</div>`;
+  } else if (trainedToday) {
+    statusHTML = `<div class="focus-status trained">✓ Heute trainiert: ${trainedToday.dayName}</div>`;
+  } else {
+    statusHTML = `<button class="focus-link" onclick="logActiveRest()">...oder Aktive Erholung loggen</button>`;
+  }
 
   body.innerHTML = `
     <div class="focus-card">
+      ${alertHTML}
       <div class="focus-eyebrow">Nächstes Training</div>
       <div class="focus-name">${day.name}</div>
-      <div class="focus-meta">${metaLine}</div>
-      <button class="btn-primary" style="width:100%;margin-top:20px" onclick="startWorkoutForDay('${day.id}')">Training starten ▶</button>
-      <button class="focus-link" onclick="showScreen('screen-overview')">Alle Tage anzeigen</button>
-      ${hasEntryToday() ? '' : `<button class="focus-link" onclick="logActiveRest()">...oder Aktive Erholung loggen</button>`}
+      ${metaHTML}
+      ${previewHTML}
+      <button class="btn-primary" style="width:100%;margin-top:18px" onclick="startWorkoutForDay('${day.id}')">Training starten ▶</button>
+      ${renderWeekStrip()}
+      <button class="focus-link" style="margin-top:20px" onclick="showScreen('screen-overview')">Alle Tage anzeigen</button>
+      ${statusHTML}
     </div>
   `;
 }
@@ -960,31 +1116,32 @@ function startWorkoutForDay(dayId) {
 // ─── OVERVIEW ─────────────────────────────────────────────────────────────────
 
 function renderOverview() {
-  const grid = document.getElementById('day-grid');
+  const list = document.getElementById('day-list');
   const days = db.plan.days;
 
   if (!days.length) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Noch kein Plan. Tippe ⚙️ um einen Plan zu erstellen.</div></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Noch kein Plan. Tippe ⚙️ um einen Plan zu erstellen.</div></div>`;
     return;
   }
 
   const suggestedDayId = getSuggestedDayId();
 
-  grid.innerHTML = days.map(day => {
+  list.innerHTML = days.map(day => {
+    const color = getDayColor(day.id);
     const sessions = db.history.filter(h => h.dayId === day.id).sort((a, b) => b.date - a.date);
-    const now = Date.now();
 
-    const weekDots = [0,1,2,3].map(w => {
+    // Links = vor 4 Wochen, rechts = diese Woche (liest sich als Zeitstrahl).
+    const weekDots = [3,2,1,0].map(w => {
       const hit = sessions.some(s => {
-        const ago = (now - new Date(s.date).getTime()) / 86400000;
+        const ago = calendarDaysAgo(s.date);
         return ago >= w * 7 && ago < (w + 1) * 7;
       });
       return `<div class="week-dot ${hit ? 'active' : ''}"></div>`;
     }).join('');
 
-    let bodyHTML;
+    let metaHTML;
     if (!sessions.length) {
-      bodyHTML = `<span class="card-empty-label">Noch kein Training</span>`;
+      metaHTML = `<div class="day-row-meta empty">Noch kein Training</div>`;
     } else {
       const last = sessions[0];
       const prev = sessions[1] || null;
@@ -993,36 +1150,47 @@ function renderOverview() {
       const trend = (prevVol && prevVol > 0) ? Math.round((lastVol - prevVol) / prevVol * 100) : null;
       const lastSets = last.exercises.reduce((a, ex) => a + ex.sets.length, 0);
       const lastMin = Math.floor((last.duration || 0) / 60);
+      const volLabel = lastVol > 0
+        ? `${Math.round(lastVol).toLocaleString('de')} kg`
+        : `${lastSets} Sets`;
       const trendHTML = trend !== null
         ? `<span class="vol-trend ${trend >= 0 ? 'up' : 'down'}">${trend >= 0 ? '↑' : '↓'}${Math.abs(trend)}%</span>`
         : '';
-      bodyHTML = `
-        <div class="card-vol-row">
-          <span class="card-vol">${lastVol > 0 ? Math.round(lastVol).toLocaleString('de') : lastSets}</span>
-          <span class="card-vol-unit">${lastVol > 0 ? 'kg' : 'Sets'}</span>
-          ${trendHTML}
-        </div>
-        <div class="card-meta">${formatDate(last.date)}${lastMin ? ' · ' + lastMin + ' min' : ''}</div>
-      `;
+      metaHTML = `
+        <div class="day-row-meta">
+          <span>${formatDate(last.date)}</span><span>·</span>
+          <span class="day-row-vol">${volLabel}</span>${trendHTML}
+          ${lastMin ? `<span>· ${lastMin} min</span>` : ''}
+        </div>`;
     }
 
+    const rowStyle = `--dot-color:${color}` + (sessions.length ? `;border-left-color:${color}` : '');
+
     return `
-      <div class="day-card ${sessions.length ? 'has-history' : ''}" onclick="previewDay('${day.id}')">
-        ${day.id === suggestedDayId ? '<div class="suggested-tag">Empfohlen</div>' : ''}
-        <div class="card-label">${day.name}</div>
-        <div class="card-body">${bodyHTML}</div>
-        <div class="card-footer">
-          <div class="week-dots-wrap card-weeks-row">
-            ${weekDots}
-            <div class="week-tooltip">Trainings in den letzten 4 Wochen</div>
+      <div class="day-row" style="${rowStyle}" onclick="previewDay('${day.id}')">
+        <div class="day-row-main">
+          <div class="day-row-head">
+            <span class="day-row-name">${day.name}</span>
+            ${day.id === suggestedDayId ? '<span class="day-row-badge">Empfohlen</span>' : ''}
+          </div>
+          ${metaHTML}
+          <div class="day-row-dots">
+            ${weekDots}<span class="day-row-dots-label">letzte 4 Wochen</span>
           </div>
         </div>
+        <div class="day-row-chevron">›</div>
       </div>
     `;
   }).join('');
 }
 
 function logActiveRest() {
+  // Schutz gegen doppelte Einträge, falls die Ansicht veraltet ist.
+  if (hasEntryToday()) {
+    renderFocusHome();
+    showToast('Für heute gibt es schon einen Eintrag');
+    return;
+  }
   showConfirm(
     'Aktive Erholung loggen?',
     'Heute wird als Erholungstag festgehalten — zählt für Streak & Heatmap, aber nicht als Training.',
@@ -1056,13 +1224,12 @@ function getLastSession(dayId) {
 }
 
 function formatDate(ts) {
-  const d = new Date(ts);
-  const now = new Date();
-  const diff = Math.floor((now - d) / 86400000);
-  if (diff === 0) return 'Heute';
+  const diff = calendarDaysAgo(ts);
+  if (diff <= 0) return 'Heute';
   if (diff === 1) return 'Gestern';
+  if (diff === 2) return 'Vorgestern';
   if (diff < 7) return `vor ${diff} Tagen`;
-  return d.toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
+  return new Date(ts).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
 }
 
 // ─── WORKOUT ──────────────────────────────────────────────────────────────────
@@ -1243,7 +1410,11 @@ function releaseWakeLock() {
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (workoutState && document.visibilityState === 'visible') requestWakeLock();
+  if (document.visibilityState !== 'visible') return;
+  if (workoutState) { requestWakeLock(); return; }
+  // Datumswechsel abfangen: liegt die App über Mitternacht im Hintergrund,
+  // muss der Startscreen neu bewerten, ob heute schon etwas geloggt ist.
+  if (document.getElementById('screen-home').classList.contains('active')) renderFocusHome();
 });
 
 function renderWorkout() {
@@ -1821,12 +1992,21 @@ function getExBests(exId) {
   return { bestWeight, bestSetVol, bestSessionVol };
 }
 
+// Anzahl vergangener Sessions mit echten Sets für diese Übung.
+// 0 = Erstes Mal → es gibt nichts zu schlagen, also kein PR.
+function getExSessionCount(exId) {
+  return db.history.filter(s => s.exercises.some(e => e.exId === exId && e.sets.length)).length;
+}
+
 function checkSetAndExPR(ei, si) {
   const ex = workoutState.exercises[ei];
   const set = ex.sets[si];
   const reps = +set.reps || 0;
   const weight = +set.weight || 0;
   if (!reps && !weight) return;
+
+  // PR-Feature aktiviert sich erst, wenn ein Vergleichswert existiert.
+  if (getExSessionCount(ex.exId) === 0) return;
 
   const bests = getExBests(ex.exId);
   const setVol = reps * weight;
@@ -1877,7 +2057,10 @@ function onValChangedWithPR(ei, si) {
 
 function checkDayPR(dayId, totalVol) {
   if (totalVol <= 0) return false;
-  const prevBest = Math.max(...db.history.slice(1).filter(s => s.dayId === dayId).map(s =>
+  // slice(1) überspringt die gerade gespeicherte Session.
+  const prior = db.history.slice(1).filter(s => s.dayId === dayId && s.exercises.length);
+  if (!prior.length) return false; // Erstes Mal für diesen Tag → kein Bestwert möglich
+  const prevBest = Math.max(...prior.map(s =>
     s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (+st.reps||0)*(+st.weight||0), 0), 0)
   ), 0);
   return totalVol > prevBest;
@@ -2057,13 +2240,13 @@ function renderKonsistenzHTML() {
 
   // Heatmap: last 16 weeks × 7 days, color-coded by training day type
   const weeks = 16;
-  const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
-  const todayMs = startOfToday.getTime();
-  const heatmapStart = todayMs - (weeks * 7 - 1) * msDay;
-
-  const palette = ['#c8f135','#7ec8e3','#ff8a5c','#c77dff','#ffb84d','#4caf50','#ff6b9d'];
-  const restColor = '#666';
-  const dayColor = new Map(db.plan.days.map((d, i) => [d.id, palette[i % palette.length]]));
+  // Zellen über echte Kalendertage aufbauen, nicht über ms-Addition —
+  // sonst verschiebt sich das Raster bei der Zeitumstellung um einen Tag.
+  const cellMs = n => {
+    const d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - (weeks * 7 - 1) + n);
+    return d.getTime();
+  };
 
   const sessionsByDate = new Map();
   sessions.forEach(s => {
@@ -2077,16 +2260,16 @@ function renderKonsistenzHTML() {
   for (let w = 0; w < weeks; w++) {
     heatHTML += '<div class="heatmap-week">';
     for (let d = 0; d < 7; d++) {
-      const dayMs = heatmapStart + (w * 7 + d) * msDay;
+      const dayMs = cellMs(w * 7 + d);
       const daySessions = sessionsByDate.get(dayMs);
       let cellColor = '';
       if (daySessions) {
         let bestIdx = Infinity, best = null;
         daySessions.forEach(s => {
           const idx = db.plan.days.findIndex(pd => pd.id === s.dayId);
-          if (idx !== -1 && idx < bestIdx) { bestIdx = idx; best = dayColor.get(s.dayId); }
+          if (idx !== -1 && idx < bestIdx) { bestIdx = idx; best = getDayColor(s.dayId); }
         });
-        cellColor = best || restColor;
+        cellColor = best || REST_COLOR;
       }
       heatHTML += `<div class="heatmap-day"${cellColor ? ` style="background:${cellColor}"` : ''}></div>`;
     }
@@ -2095,8 +2278,8 @@ function renderKonsistenzHTML() {
 
   const hasRestEntries = sessions.some(s => !s.dayId);
   const legendHTML = `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">
-    ${db.plan.days.map(d => `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${dayColor.get(d.id)};display:inline-block;flex-shrink:0"></span>${d.name}</div>`).join('')}
-    ${hasRestEntries ? `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${restColor};display:inline-block;flex-shrink:0"></span>Aktive Erholung</div>` : ''}
+    ${db.plan.days.map(d => `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${getDayColor(d.id)};display:inline-block;flex-shrink:0"></span>${d.name}</div>`).join('')}
+    ${hasRestEntries ? `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${REST_COLOR};display:inline-block;flex-shrink:0"></span>Aktive Erholung</div>` : ''}
   </div>`;
 
   return `<div style="padding:16px">

@@ -227,7 +227,6 @@
     background: rgba(255,255,255,0.05);
     border: 1px solid transparent;
   }
-  .week-strip-day.future .week-strip-cell { background: rgba(255,255,255,0.022); }
   .week-strip-day.today .week-strip-label { color: var(--text); }
   .week-strip-day.today .week-strip-cell { border-color: rgba(255,255,255,0.3); }
 
@@ -1164,10 +1163,11 @@ function daysSinceLastTraining() {
 
 // Mo–So der laufenden Woche, eingefärbt nach Tagestyp.
 function renderWeekStrip() {
+  // Rollierendes 7-Tage-Fenster: linke Zelle = vor 6 Tagen, rechte = heute.
+  // Immer gefüllt, statt am Wochenanfang leer wie ein fixes Mo–So-Raster.
   const today = new Date(); today.setHours(0,0,0,0);
   const todayMs = today.getTime();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Mo=0 … So=6
+  const wd = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 
   const byDate = new Map();
   db.history.forEach(s => {
@@ -1176,8 +1176,9 @@ function renderWeekStrip() {
     byDate.get(k).push(s);
   });
 
-  const cells = ['Mo','Di','Mi','Do','Fr','Sa','So'].map((label, i) => {
-    const d = new Date(monday); d.setDate(monday.getDate() + i);
+  const cells = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
     const key = d.getTime();
     const entries = byDate.get(key);
     let style = '';
@@ -1185,14 +1186,14 @@ function renderWeekStrip() {
       const training = entries.find(e => e.dayId); // Training schlägt Erholung
       style = ` style="background:${training ? getDayColor(training.dayId) : REST_COLOR}"`;
     }
-    const cls = key === todayMs ? 'today' : (key > todayMs ? 'future' : '');
-    return `<div class="week-strip-day ${cls}">
-        <div class="week-strip-label">${label}</div>
+    const cls = key === todayMs ? 'today' : '';
+    cells.push(`<div class="week-strip-day ${cls}">
+        <div class="week-strip-label">${wd[d.getDay()]}</div>
         <div class="week-strip-cell"${style}></div>
-      </div>`;
-  }).join('');
+      </div>`);
+  }
 
-  return `<div class="week-strip-wrap"><div class="week-strip">${cells}</div></div>`;
+  return `<div class="week-strip-wrap"><div class="week-strip">${cells.join('')}</div></div>`;
 }
 
 // Wie viele Übungszeilen und wie hoch der Wochenstreifen — beides richtet sich

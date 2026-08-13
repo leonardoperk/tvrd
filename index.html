@@ -122,15 +122,20 @@
   /* SCROLL AREA */
   .scroll-area { flex: 1; overflow-y: auto; padding: 12px 16px 88px; }
 
-  /* Oben verankert statt vertikal zentriert — die Zentrierung hat im oberen
-     Drittel eine tote Zone erzeugt. Restraum landet jetzt unten. */
+  /* Karte füllt die volle Höhe. Restraum wird über gewichtete Lücken
+     zwischen den Blöcken verteilt, statt an einem Ende zu liegen. */
   #screen-home .scroll-area {
-    padding: 20px 16px 28px;
+    padding: 0 16px calc(18px + env(safe-area-inset-bottom));
     display: flex; flex-direction: column;
   }
 
   /* FOCUS VIEW */
-  .focus-card { width: 100%; text-align: center; padding: 0 2px; }
+  .focus-card {
+    width: 100%; text-align: center; padding: 18px 2px 0;
+    flex: 1 0 auto; display: flex; flex-direction: column;
+  }
+  .focus-gap { flex: 1 1 0; min-height: 14px; }
+  .focus-gap.sm { flex: 0.55 1 0; min-height: 10px; }
   .focus-eyebrow {
     font-size: var(--fs-micro); font-weight: 700;
     letter-spacing: var(--tr-label); text-transform: uppercase;
@@ -162,12 +167,13 @@
 
   .focus-preview {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); margin-top: 18px;
+    border-radius: var(--radius);
     overflow: hidden; text-align: left;
   }
   .focus-preview-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: var(--row-pad, 11px) 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
   }
   .focus-preview-name {
     flex: 1; min-width: 0; font-size: var(--fs-sm); font-weight: 600;
@@ -194,7 +200,7 @@
   .focus-preview.expanded .focus-preview-chevron { transform: rotate(180deg); }
 
   /* Sekundäre Aktionen — echte Buttons, bewusst grau statt Akzentfarbe */
-  .focus-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .focus-actions { display: flex; gap: 8px; margin-top: 8px; }
   .btn-ghost {
     flex: 1; height: 44px; border-radius: var(--radius);
     background: var(--surface2); border: 1px solid var(--border);
@@ -210,7 +216,6 @@
 
   /* WOCHENSTREIFEN — sitzt jetzt direkt unter dem Hero und füllt das
      obere Drittel, statt ganz unten zu hängen. */
-  .week-strip-wrap { margin-top: 18px; }
   .week-strip { display: flex; gap: 6px; }
   .week-strip-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
   .week-strip-label {
@@ -218,7 +223,7 @@
     letter-spacing: 0.04em; color: var(--text-muted); line-height: 1;
   }
   .week-strip-cell {
-    width: 100%; height: 26px; border-radius: 7px;
+    width: 100%; height: var(--week-cell-h, 34px); border-radius: 7px;
     background: rgba(255,255,255,0.05);
     border: 1px solid transparent;
   }
@@ -1190,15 +1195,92 @@ function renderWeekStrip() {
   return `<div class="week-strip-wrap"><div class="week-strip">${cells}</div></div>`;
 }
 
+// Wie viele Übungszeilen und wie hoch der Wochenstreifen — beides richtet sich
+// nach der tatsächlich freien Höhe, statt fix verdrahtet zu sein. Damit füllt
+// der Startscreen jedes Gerät aus, ohne dass Restraum an einem Ende liegen bleibt.
+const FOCUS_MIN_ROWS = 3;
+const WEEK_CELL_MIN = 34, WEEK_CELL_MAX = 54;
+const ROW_PAD_MIN = 11, ROW_PAD_MAX = 18;
+
+function fitFocusPreview() {
+  const card = document.getElementById('focus-card');
+  const area = document.querySelector('#screen-home .scroll-area');
+  if (!card || !area) return;
+
+  const preview = document.getElementById('focus-preview');
+  const rows = preview ? [...preview.querySelectorAll('.focus-preview-row')] : [];
+
+  // Ausgangszustand: Minimum sichtbar, Streifen flach, Zeilen kompakt
+  card.style.setProperty('--week-cell-h', WEEK_CELL_MIN + 'px');
+  card.style.setProperty('--row-pad', ROW_PAD_MIN + 'px');
+  rows.forEach((r, i) => r.classList.toggle('extra', i >= FOCUS_MIN_ROWS));
+
+  // Natürliche Höhe = Blöcke + Lücken auf Minimum
+  const naturalHeight = () => {
+    card.style.flex = '0 0 auto';
+    const h = card.getBoundingClientRect().height;
+    card.style.flex = '';
+    return h;
+  };
+
+  let free = area.clientHeight - naturalHeight();
+
+  // 1. Freien Platz zuerst in Übungszeilen stecken — die tragen Information.
+  if (rows.length > FOCUS_MIN_ROWS && free > 0) {
+    const rowH = rows[0].getBoundingClientRect().height;
+    const extra = Math.min(rows.length - FOCUS_MIN_ROWS, Math.floor(free / rowH));
+    if (extra > 0) {
+      rows.forEach((r, i) => r.classList.toggle('extra', i >= FOCUS_MIN_ROWS + extra));
+      free -= extra * rowH;
+    }
+  }
+
+  // 2. Ein Teil des Rests macht den Wochenstreifen höher (gedeckelt).
+  if (free > 0) {
+    const grow = Math.min(WEEK_CELL_MAX - WEEK_CELL_MIN, Math.floor(free * 0.4));
+    if (grow > 0) { card.style.setProperty('--week-cell-h', (WEEK_CELL_MIN + grow) + 'px'); free -= grow; }
+  }
+
+  // 3. Danach dürfen die Übungszeilen luftiger werden, statt dass der Platz
+  //    als Lücke liegen bleibt.
+  const visibleRows = rows.length - rows.filter(r => r.classList.contains('extra')).length;
+  if (free > 0 && visibleRows > 0) {
+    const perRow = Math.min(ROW_PAD_MAX - ROW_PAD_MIN, Math.floor(free * 0.5 / (visibleRows * 2)));
+    if (perRow > 0) { card.style.setProperty('--row-pad', (ROW_PAD_MIN + perRow) + 'px'); free -= perRow * visibleRows * 2; }
+  }
+  // 4. Was dann noch übrig ist, verteilen die .focus-gap-Elemente gleichmäßig.
+
+  const hidden = rows.filter(r => r.classList.contains('extra')).length;
+  const toggle = preview && preview.querySelector('.focus-preview-toggle');
+  const label = document.getElementById('focus-preview-label');
+  if (toggle) {
+    toggle.style.display = hidden === 0 ? 'none' : '';
+    if (hidden > 0 && label) {
+      const txt = `+${hidden} weitere Übung${hidden > 1 ? 'en' : ''}`;
+      label.dataset.more = txt;
+      label.textContent = txt;
+    }
+  }
+}
+
 function toggleFocusPreview() {
   const el = document.getElementById('focus-preview');
   if (!el) return;
-  el.classList.toggle('expanded');
+  const expanding = !el.classList.contains('expanded');
+  el.classList.toggle('expanded', expanding);
   const label = document.getElementById('focus-preview-label');
-  if (label) label.textContent = el.classList.contains('expanded')
-    ? 'Weniger anzeigen'
-    : label.dataset.more;
+  if (expanding) {
+    if (label) label.textContent = 'Weniger anzeigen';
+  } else {
+    fitFocusPreview(); // stellt die eingepasste Zeilenzahl wieder her
+  }
 }
+
+// Drehen des Geräts oder Tastatur-Einblendung ändert die freie Höhe.
+window.addEventListener('resize', () => {
+  if (document.getElementById('screen-home').classList.contains('active')
+      && !document.querySelector('.focus-preview.expanded')) fitFocusPreview();
+});
 
 function renderFocusHome() {
   const dateEl = document.getElementById('home-date');
@@ -1309,17 +1391,24 @@ function renderFocusHome() {
   }
 
   body.innerHTML = `
-    <div class="focus-card">
+    <div class="focus-card" id="focus-card">
       ${alertHTML}
       <div class="focus-eyebrow">Nächstes Training</div>
       <div class="focus-name">${day.name}</div>
       ${metaHTML}
+      <div class="focus-gap sm"></div>
       ${renderWeekStrip()}
+      <div class="focus-gap"></div>
       ${previewHTML}
-      <button class="btn-primary" style="width:100%;margin-top:14px" onclick="startWorkoutForDay('${day.id}')">Training starten ▶</button>
-      ${actionsHTML}
+      <div class="focus-gap"></div>
+      <div>
+        <button class="btn-primary" style="width:100%" onclick="startWorkoutForDay('${day.id}')">Training starten ▶</button>
+        ${actionsHTML}
+      </div>
     </div>
   `;
+
+  fitFocusPreview();
 }
 
 function startWorkoutForDay(dayId) {

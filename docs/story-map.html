@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
+<title>TVRD — User Story Map</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --card: #181818;
+    --border: rgba(255,255,255,0.07);
+    --accent: #c8f135;
+    --accent-dim: rgba(200,241,53,0.09);
+    --accent-border: rgba(200,241,53,0.28);
+    --built-bg: rgba(34,197,94,0.07);
+    --built-border: rgba(34,197,94,0.25);
+    --built-text: #4ade80;
+    --partial-bg: rgba(245,158,11,0.08);
+    --partial-border: rgba(245,158,11,0.28);
+    --partial-text: #fbbf24;
+    --gap-border: rgba(255,255,255,0.13);
+    --design-bg: rgba(255,255,255,0.025);
+    --design-border: rgba(255,255,255,0.1);
+    --design-text: #888;
+    --text: #f0f0f0;
+    --text-muted: #444;
+    --text-dim: #777;
+    --story-bg: rgba(255,255,255,0.03);
+    --story-border: rgba(255,255,255,0.1);
+  }
+  @media (prefers-color-scheme: light) { :root {
+    --bg:#f4f4f1; --surface:#fff; --card:#fafaf8; --border:rgba(0,0,0,0.07);
+    --accent:#6b9a00; --accent-dim:rgba(107,154,0,0.07); --accent-border:rgba(107,154,0,0.28);
+    --built-bg:rgba(22,163,74,0.07); --built-border:rgba(22,163,74,0.22); --built-text:#15803d;
+    --partial-bg:rgba(217,119,6,0.07); --partial-border:rgba(217,119,6,0.25); --partial-text:#b45309;
+    --gap-border:rgba(0,0,0,0.15); --design-bg:rgba(0,0,0,0.02); --design-border:rgba(0,0,0,0.12); --design-text:#666;
+    --text:#111; --text-muted:#ccc; --text-dim:#888;
+    --story-bg:rgba(0,0,0,0.02); --story-border:rgba(0,0,0,0.1);
+  } }
+  :root[data-theme="light"] { --bg:#f4f4f1; --surface:#fff; --card:#fafaf8; --border:rgba(0,0,0,0.07); --accent:#6b9a00; --accent-dim:rgba(107,154,0,0.07); --accent-border:rgba(107,154,0,0.28); --built-bg:rgba(22,163,74,0.07); --built-border:rgba(22,163,74,0.22); --built-text:#15803d; --partial-bg:rgba(217,119,6,0.07); --partial-border:rgba(217,119,6,0.25); --partial-text:#b45309; --gap-border:rgba(0,0,0,0.15); --design-bg:rgba(0,0,0,0.02); --design-border:rgba(0,0,0,0.12); --design-text:#666; --text:#111; --text-muted:#ccc; --text-dim:#888; --story-bg:rgba(0,0,0,0.02); --story-border:rgba(0,0,0,0.1); }
+  :root[data-theme="dark"] { --bg:#0a0a0a; --surface:#111; --card:#181818; --border:rgba(255,255,255,0.07); --accent:#c8f135; --accent-dim:rgba(200,241,53,0.09); --accent-border:rgba(200,241,53,0.28); --built-bg:rgba(34,197,94,0.07); --built-border:rgba(34,197,94,0.25); --built-text:#4ade80; --partial-bg:rgba(245,158,11,0.08); --partial-border:rgba(245,158,11,0.28); --partial-text:#fbbf24; --gap-border:rgba(255,255,255,0.13); --design-bg:rgba(255,255,255,0.025); --design-border:rgba(255,255,255,0.1); --design-text:#888; --text:#f0f0f0; --text-muted:#444; --text-dim:#777; --story-bg:rgba(255,255,255,0.03); --story-border:rgba(255,255,255,0.1); }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif; font-size: 13px; line-height: 1.5; }
+
+  .page-header { padding: 24px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .page-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); }
+  .page-sub { font-size: 12px; color: var(--text-dim); }
+
+  .principle-bar {
+    padding: 12px 24px; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--text-dim); line-height: 1.6;
+  }
+  .principle-bar b { color: var(--text); }
+
+  .legend { display: flex; align-items: center; gap: 14px; padding: 10px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .legend-label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; text-transform: uppercase; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text-dim); }
+  .ldot { width: 7px; height: 7px; border-radius: 50%; }
+  .ldot.built { background: var(--built-text); }
+  .ldot.partial { background: var(--partial-text); }
+  .ldot.gap { background: transparent; border: 1px dashed var(--gap-border); }
+  .ldot.design { background: var(--design-text); opacity: 0.4; }
+
+  .map-scroll { overflow-x: auto; padding: 20px 24px 40px; }
+  .map-inner { display: flex; gap: 10px; min-width: 1200px; align-items: flex-start; }
+
+  .col { flex: 1; min-width: 178px; display: flex; flex-direction: column; gap: 6px; }
+
+  .act-head {
+    background: var(--accent-dim); border: 1px solid var(--accent-border);
+    border-radius: 8px; padding: 9px 11px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent);
+  }
+  .act-head-note {
+    font-size: 9px; color: var(--text-dim); text-transform: none; letter-spacing: 0.3px;
+    font-weight: 500; margin-top: 3px; line-height: 1.4; opacity: 0.9;
+  }
+
+  .main-story {
+    background: var(--story-bg); border: 1px solid var(--story-border);
+    border-radius: 8px; padding: 10px 11px;
+  }
+  .story-eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; }
+  .story-text { font-size: 11px; color: var(--text); line-height: 1.55; }
+  .story-text em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+  .sub-block { display: flex; flex-direction: column; gap: 4px; padding: 8px 0 0; border-top: 1px solid var(--border); margin-top: 2px; }
+  .sub-story-text { font-size: 10px; color: var(--text-dim); line-height: 1.5; font-style: italic; padding: 0 1px 4px; }
+
+  .fc {
+    border-radius: 5px; padding: 5px 9px;
+    font-size: 10px; line-height: 1.4;
+  }
+  .fc.built { background: var(--built-bg); border: 1px solid var(--built-border); color: var(--text); }
+  .fc.partial { background: var(--partial-bg); border: 1px solid var(--partial-border); color: var(--text); }
+  .fc.gap { background: transparent; border: 1px dashed var(--gap-border); color: var(--text-dim); }
+  .fc.design { background: var(--design-bg); border: 1px dashed var(--design-border); color: var(--design-text); }
+  .fc .tag { font-size: 8px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+  .fc.partial .tag { color: var(--partial-text); }
+  .fc.gap .tag { color: var(--text-dim); }
+  .fc.design .tag { color: var(--design-text); }
+</style>
+</head>
+<body>
+<h2 class="sr-only">TVRD User Story Map — user needs and how the app addresses them across the full journey</h2>
+
+<div class="page-header">
+  <span class="page-title">TVRD — Story Map</span>
+  <span class="page-sub">User perspective · Aug 2026</span>
+</div>
+
+<div class="principle-bar">
+  <b>Design principle:</b> Execution mode (Start Training → Log Training → Finish &amp; Review) is optimized for zero friction and minimal decisions — tracking is a cost, not the goal. Plan mode (Set Up Plan, Track Progress, Manage Data) is deliberately rougher: I rarely reconfigure, so it gets built out only as real needs surface.
+</div>
+
+<div class="legend">
+  <span class="legend-label">Legend</span>
+  <span class="legend-item"><span class="ldot built"></span>Solved</span>
+  <span class="legend-item"><span class="ldot partial"></span>Partially solved / bug</span>
+  <span class="legend-item"><span class="ldot gap"></span>Not yet</span>
+  <span class="legend-item"><span class="ldot design"></span>By design: not built</span>
+</div>
+
+<div class="map-scroll">
+<div class="map-inner">
+
+  <!-- 1. SET UP PLAN -->
+  <div class="col">
+    <div class="act-head">
+      1 · Set Up Plan
+      <div class="act-head-note">Deliberately rough — expert-tier planning lives here as gaps</div>
+    </div>
+
+    <div class="main-story">
+      <div class="story-eyebrow">Main story</div>
+      <div class="story-text">As a user, I want to <em>set up a training plan</em> in order to structure my workouts.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to configure a day — add exercises, name it, tweak the details."</div>
+      <div class="fc built">Create / rename / delete training day</div>
+      <div class="fc built">Add exercise with sets, target reps, weight step &amp; rest duration</div>
+      <div class="fc built">Edit or delete any exercise</div>
+      <div class="fc built">Drag to reorder exercises within a day</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to activate a new plan when my focus changes, without losing old history."</div>
+      <div class="fc built">Activate new plan (stamps new ID, history stays intact)</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Multiple active-swappable plans + long-term periodization — how plans build on each other over months. Expert-tier feature that assumes the user plans across cycles, not week-to-week.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to duplicate or template a day instead of re-entering everything."</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Copy / duplicate a training day</div>
+    </div>
+  </div>
+
+  <!-- 2. START TRAINING -->
+  <div class="col">
+    <div class="act-head">2 · Start Training</div>
+
+    <div class="main-story">
+      <div class="story-eyebrow">Main story</div>
+      <div class="story-text">As a user, I want to <em>know what's next and get moving with zero decisions</em> in order to not lose time or momentum.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I don't want to pick a day every time — just tell me what's next and let me start."</div>
+      <div class="fc built">Focus View (Home): shows the next suggested day directly — no picking required</div>
+      <div class="fc built">Suggestion is self-healing — recomputed from whichever day was actually last trained, no manual reset</div>
+      <div class="fc built">Direct "Training starten" from Focus View — skips the preview screen entirely</div>
+      <div class="fc built">Rolling 7-day activity strip — colored by training day type, always filled (never blank at week start)</div>
+      <div class="fc built">Today's status on home — "trained" or "active rest logged" chip when applicable</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"If I want to see everything or train something different, that should be one tap away."</div>
+      <div class="fc built">Overview screen ("Alle Tage"): last volume, trend, 4-week activity dots, "Empfohlen" tag</div>
+      <div class="fc built">Day preview (exercise list + last weights) shown when manually picking a day</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Training reminders / push notifications</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to pick up where I left off if I had to stop mid-session."</div>
+      <div class="fc built">Draft-resume takes priority on Focus View whenever an interrupted workout exists</div>
+      <div class="fc built">Resume restores timer + all entered values</div>
+      <div class="fc built">Discard option to start fresh</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"Some days I'm not training — I still want that to count without pretending it was a workout."</div>
+      <div class="fc built">Active Rest: log today as recovery from Focus View — counts for streak/heatmap, excluded from PR/progression</div>
+    </div>
+  </div>
+
+  <!-- 3. LOG TRAINING -->
+  <div class="col">
+    <div class="act-head">3 · Log Training</div>
+
+    <div class="main-story">
+      <div class="story-eyebrow">Main story</div>
+      <div class="story-text">As a user, I want to <em>log every set quickly and accurately, with minimal friction</em> in order to have a reliable record without it feeling like a chore.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to know what I lifted last time — without a separate reference line, just already in the field."</div>
+      <div class="fc built">Inputs pre-filled with last session's values on start — reference and starting point in one</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to enter reps and weight fast — tapping +/- is easier than typing during a workout."</div>
+      <div class="fc built">Reps ±1 stepper — standard input for every exercise, no special-cased modes</div>
+      <div class="fc built">Weight stepper (exercise-defined increment, e.g. 2.5 kg for dumbbells, 5 kg for cables)</div>
+      <div class="fc built">Direct numeric input also available</div>
+      <div class="fc built">Entering a value commits the set — no explicit "done" checkmark</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to rest between sets without losing my phone or my train of thought."</div>
+      <div class="fc built">Manual rest timer per set (⏱ button) — duration configurable per exercise</div>
+      <div class="fc built">Vibration + visual alert at zero, tap to cancel early</div>
+      <div class="fc built">Screen stays awake during the workout (Wake Lock, re-engages after backgrounding)</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to know instantly when I hit a personal record."</div>
+      <div class="fc built">⚡ Weight PR badge on set (debounced, auto-removes)</div>
+      <div class="fc built">⚡ Volume PR badge on set</div>
+      <div class="fc built">🏆 Exercise session PR glow on the whole block</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I don't want to lose everything if I accidentally close the app mid-workout."</div>
+      <div class="fc built">Auto-save draft on every value change</div>
+      <div class="fc built">Self-correcting timer (survives backgrounding)</div>
+      <div class="fc built">Abandon confirmation if sets have been logged</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Notes per session or per exercise</div>
+      <div class="fc design"><span class="tag">By design</span>RPE (Rate of Perceived Exertion) — standard in strength apps, not needed for how I train. Might add later.</div>
+    </div>
+  </div>
+
+  <!-- 4. FINISH & REVIEW -->
+  <div class="col">
+    <div class="act-head">4 · Finish &amp; Review</div>
+
+    <div class="main-story">
+      <div class="story-eyebrow">Main story</div>
+      <div class="story-text">As a user, I want to <em>end my session and see a summary</em> in order to feel the satisfaction of what I just did.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to see the key numbers — time, volume, sets — in one clean view."</div>
+      <div class="fc built">Summary card: sets, duration, exercises, total volume</div>
+      <div class="fc built">Uncommitted sets filtered out — only real work is counted</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to know if today was my best session ever for THIS training day — not some global number."</div>
+      <div class="fc built">Per-day PR detection (best session ever for this day — replaces the old global all-time comparison)</div>
+      <div class="fc built">🏆 icon + pulsing badge naming the day if it's a per-day PR</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to share my session or save a screenshot to show progress."</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Share / export session summary</div>
+    </div>
+  </div>
+
+  <!-- 5. TRACK PROGRESS -->
+  <div class="col">
+    <div class="act-head">5 · Track Progress</div>
+
+    <div class="main-story">
+      <div class="story-eyebrow">Main story</div>
+      <div class="story-text">As a user, I want to <em>see if I'm getting stronger over time</em> in order to stay motivated and train with purpose.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to look back at past sessions to remember what I did."</div>
+      <div class="fc built">Full session history (collapsible, set pills per exercise)</div>
+      <div class="fc built">Filter history by training day</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to know my all-time best weight and volume per exercise."</div>
+      <div class="fc built">PRs tab: max weight + best volume per exercise</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want a chart that shows whether my lifts are going up over time."</div>
+      <div class="fc built">Progression tab: weight over time + volume over time (hand-rolled SVG charts)</div>
+      <div class="fc built">Exercise selector to switch between movements</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to see how consistently I'm training, broken down by day, so I stay accountable."</div>
+      <div class="fc built">Konsistenz: 16-week heatmap, color-coded by training day type with a legend</div>
+      <div class="fc built">Distinct neutral color for Aktive Erholung entries</div>
+      <div class="fc built">Avg sessions/week · current streak · total sessions</div>
+      <div class="fc partial"><span class="tag">⚠ Partial</span><code>planId</code> saved per session but never used in queries — cross-plan history mixing is silent</div>
+    </div>
+  </div>
+
+  <!-- 6. MANAGE DATA -->
+  <div class="col">
+    <div class="act-head">6 · Manage Data</div>
+
+    <div class="main-story">
+      <div class="story-eyebrow">Main story</div>
+      <div class="story-text">As a user, I want my <em>training history to always be there</em> in order to never lose months of logged workouts.</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want the app to save everything automatically — I shouldn't have to think about it."</div>
+      <div class="fc built">Auto-save to localStorage on every change (stable key: <code>tvrd_db</code>, never changes)</div>
+      <div class="fc built">DB versioning + migration scaffold for future schema updates</div>
+      <div class="fc built">Custom domain <code>tvrd.app</code> — bookmark / URL changes no longer look like data loss</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to back up my data and restore it if something goes wrong."</div>
+      <div class="fc built">JSON export (dated backup file)</div>
+      <div class="fc built">JSON import with validation + migration</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Auto-backup reminder after N sessions</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want my data to follow me if I get a new phone."</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Cloud sync — data tied to account, not device (e.g. Supabase)</div>
+      <div class="fc design"><span class="tag">By design</span>User management &amp; accounts — I'm the only user. Would add if a friend wants to try it.</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+</body>
+</html>

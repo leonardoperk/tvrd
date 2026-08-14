@@ -78,11 +78,11 @@ That's the loop: I bring the ground truth and the judgment, the AI brings the im
 
 The full picture of what the app is trying to do for the user, broken down across the whole training journey — solved, partial, deliberately not built, still on the list.
 
-<a href="https://claude.ai/code/artifact/3bbbfd10-5845-4ea4-922f-476f639ccad9">
+<a href="https://tvrd.app/docs/story-map.html">
   <img src="docs/story-map.png" alt="TVRD user story map: six activity columns from Set Up Plan through Manage Data, each with a main user story, sub-stories, and cards showing what's solved, partial, not yet built, or deliberately left out">
 </a>
 
-→ **[Open the interactive story map](https://claude.ai/code/artifact/3bbbfd10-5845-4ea4-922f-476f639ccad9)**
+→ **[Open the interactive story map](https://tvrd.app/docs/story-map.html)**
 
 ---
 

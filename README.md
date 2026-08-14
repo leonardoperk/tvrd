@@ -85,4 +85,5 @@ Stated plainly, because a tool you use daily has real edges:
 
 <p>
   <img src="docs/overview.png" width="270" alt="Overview: all training days with last volume, trend, and a four-week activity trail">
+  <img src="docs/workout.png" width="270" alt="Workout mode: minimal per-set reps and weight input, with a rest timer running">
 </p>

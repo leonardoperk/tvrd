@@ -123,7 +123,7 @@ Stated plainly, because a tool you use daily has real edges:
 flowchart LR
   subgraph Client["🖥️  Client (Browser / installed PWA)"]
     direction TB
-    HTML["Single HTML file<br/>~2,300 lines<br/>inline CSS + vanilla JS<br/>Inter font as base64"]
+    HTML["Single HTML file<br/>~2,700 lines<br/>inline CSS + vanilla JS<br/>Archivo variable font as base64"]
     LS[("localStorage<br/>key: tvrd_db<br/>versioned schema")]
     APIs["Platform APIs<br/>Wake Lock · Vibration<br/>PWA install"]
     HTML <--> LS
@@ -145,7 +145,7 @@ flowchart LR
   Client -.-> Auth
 ```
 
-- **One HTML file.** ~2,300 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Inter font is embedded as base64, so there isn't even a network request for it.
+- **One HTML file.** ~2,700 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Archivo variable font is embedded as base64 — subset to Latin + umlauts + digits, axes trimmed to what's used (weight 400–900, width 100–125%) — so there isn't even a network request for it.
 - **Persistence:** `localStorage`, versioned schema with a migration scaffold. Backup and restore via JSON file (manual).
 - **Charts:** hand-rolled inline SVG, no charting library.
 - **Platform APIs:** Wake Lock (screen stays on mid-workout), Vibration (rest-timer alert), installable PWA (standalone, custom home-screen icon).

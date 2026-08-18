@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TVRD — Design-Prototyp (Referenz, nicht die App)</title>
+<meta name="color-scheme" content="dark">
+<style>
+/* ══════════════ SCHRIFTEN ══════════════
+   Beide subsettet auf das, was TVRD braucht (Latein + Umlaute + Ziffern +
+   Sonderzeichen), Variable Fonts mit erhaltenem tnum für Tabellenziffern.
+   font-display:swap — lieber kurz die Systemschrift sehen als gar nichts. */
+/* Achsen auf den genutzten Bereich eingegrenzt: Gewicht 400–900,
+   Breite 100–125%. Spart 25 KB gegenüber der vollen Datei, ohne dass
+   irgendetwas verlorengeht, was TVRD tatsächlich verwendet. */
+@font-face {
+  font-family: "Archivo";
+  src: url("../fonts/archivo-var.woff2") format("woff2");
+  font-weight: 400 900;
+  font-stretch: 100% 125%;
+  font-display: swap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TVRD 2026 — Design-Prototyp
+   Nur Optik. Keine Logik, keine Daten, kein State. Inhalte sind aus den
+   Screenshots in docs/ abgetippt, damit du echte Zeilenlängen siehst.
+
+   Alles Visuelle hängt an den Tokens unten — beim Portieren nach
+   index.html wandern genau die rüber.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Grund ── */
+  --bg:            #07090a;
+  --bg-deep:       #040605;
+
+  /* ── Akzent: Lime bleibt, wird Verlaufsbasis ── */
+  --lime:          #c8f135;
+  --lime-hi:       #e2ff5c;   /* Verlauf hell */
+  --lime-lo:       #9ec91a;   /* Verlauf dunkel */
+  --lime-glow:     rgba(200,241,53,.34);
+
+  /* ── Tagesfarben (bleiben) ── */
+  --d-lime:        #c8f135;
+  --d-blue:        #5ac8f0;
+  --d-orange:      #ff8a4c;
+  --d-purple:      #b07cf0;
+
+  /* ── Glas: DUNKEL transparent, nicht weiß ──
+     Weißes Glas ist eine Hell-Technik. Auf dunklem Grund hellt es den
+     Untergrund auf und zerstört den Kontrast für hellen Text (gemessen:
+     Nebentext fiel auf 2.15:1). Dunkles Glas verdunkelt den Untergrund,
+     lässt den Verlauf aber weiter durchscheinen — der Glaseindruck kommt
+     ohnehin aus dem Blur und der oberen Lichtkante, nicht aus der Füllung. */
+  --glass-1:       linear-gradient(158deg, rgba(30,36,32,.70), rgba(16,20,18,.80));
+  --glass-2:       linear-gradient(158deg, rgba(24,29,26,.66), rgba(13,17,15,.78));
+  --glass-3:       linear-gradient(158deg, rgba(20,25,22,.55), rgba(11,15,13,.68));
+  --glass-nav:     linear-gradient(158deg, rgba(28,33,30,.86), rgba(12,15,14,.92));
+
+  --edge:          rgba(255,255,255,.085);
+  --edge-soft:     rgba(255,255,255,.055);
+  --edge-hi:       rgba(255,255,255,.16);   /* obere Lichtkante */
+
+  --blur:          blur(22px) saturate(1.5);
+
+  /* ── Text ── */
+  /* Werte gemessen gegen den hellsten Punkt der Verlaufsfläche (unter dem
+     Lime-Leuchten), nicht gegen den dunkelsten — sonst passt es oben nicht. */
+  --text:          #f2f5f0;   /* ~17:1 */
+  --text-dim:      #b9c1b6;   /* ~8:1  */
+  --text-muted:    #8b948a;   /* ~4.9:1 — vorher #6d766c mit 2.15:1 */
+
+  --green:         #6ee787;
+  --red:           #ff5c5c;
+
+  /* ── Tiefe ── */
+  --lift-1:        0 1px 2px rgba(0,0,0,.55), 0 8px 20px -8px rgba(0,0,0,.65);
+  --lift-2:        0 2px 4px rgba(0,0,0,.5), 0 18px 40px -12px rgba(0,0,0,.8);
+  --lift-nav:      0 2px 6px rgba(0,0,0,.5), 0 20px 48px -12px rgba(0,0,0,.9);
+  --glow-lime:     0 6px 26px -4px var(--lime-glow);
+
+  /* ── Radien: deutlich größer als die alten 12px ── */
+  --r-card:        22px;
+  --r-inner:       15px;
+  --r-pill:        999px;
+
+  --ease:          cubic-bezier(.32,.72,0,1);
+}
+
+/* ══════════════ TYPO-HIERARCHIE ══════════════
+   Entschieden: „Hart" — maximaler Gewichtskontrast. Display fett und eng,
+   Fließtext normal. Die Spannung entsteht aus dem Sprung dazwischen.
+   (Die Alternative „Ruhig" mit leichtem, großem Display wurde verworfen.) */
+:root {
+  --t-display-size: 48px;  --t-display-w: 900;  --t-display-tr: -.045em;
+  --t-hd-w: 800;           --t-hd-tr: -.032em;
+  --t-card-w: 750;         --t-row-w: 500;
+  --t-label-w: 800;        --t-label-tr: .17em;
+  --t-body-lh: 1.45;
+}
+
+/* Zahlen sind in einer Trainings-App der Inhalt — überall Tabellenziffern,
+   damit beim Hochzählen nichts springt. */
+.row-m, .step-v, .rest-n, .day-m b, .hd-s { font-variant-numeric: tabular-nums; }
+
+/* ══════════════ SCHRIFT ══════════════
+   Entschieden: Archivo. Die Breitenachse bis 125% macht den athletischen
+   Charakter — das Display läuft auf 116%. Systemschrift bleibt als
+   Rückfall, falls die Datei mal nicht lädt. */
+:root {
+  --ff: "Archivo", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  --t-display-wd: 116%;
+  --t-display-adj: -1px;
+}
+.phone { font-family: var(--ff); font-optical-sizing: auto; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg-deep);
+  color: var(--text);
+  font: 400 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ═══ Bühne: zeigt eine Telefon-Attrappe am Desktop, Vollbild am Handy ═══ */
+.stage {
+  height: 100%;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(1000px 700px at 50% -10%, rgba(200,241,53,.07), transparent 60%),
+    var(--bg-deep);
+  padding: 20px;
+}
+.phone {
+  width: 100%; max-width: 400px; height: 100%; max-height: 860px;
+  position: relative; overflow: hidden;
+  border-radius: 42px;
+  background: var(--bg);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.07), 0 40px 90px -20px rgba(0,0,0,.9);
+}
+@media (max-width: 460px) {
+  .stage { padding: 0; }
+  .phone { max-height: none; border-radius: 0; box-shadow: none; }
+}
+
+/* ═══ Die Verlaufsfläche: das ist die „color transition" ═══
+   Liegt fix hinter dem Inhalt, scrollt nicht mit. Zwei Lichtquellen —
+   Lime oben (die Marke), ein kühler Gegenpol unten links für Tiefe. */
+.ambient {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(800px 500px at 80% -12%, rgba(200,241,53,.24), transparent 64%),
+    radial-gradient(560px 420px at 8% 22%,   rgba(120,220,255,.075), transparent 60%),
+    radial-gradient(700px 560px at 20% 104%, rgba(140,110,255,.10), transparent 62%),
+    linear-gradient(180deg, #0d1409 0%, #090c08 44%, var(--bg-deep) 100%);
+}
+/* Feines Korn — nimmt dem Verlauf das Banding auf OLED */
+.ambient::after {
+  content: ""; position: absolute; inset: 0; opacity: .5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+}
+
+.screen {
+  position: absolute; inset: 0; z-index: 1;
+  display: none; flex-direction: column;
+}
+.screen.on { display: flex; }
+
+/* ═══ Kopf ═══ */
+.hd {
+  padding: 54px 20px 14px;
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.hd-t { font-size: 25px; font-weight: var(--t-hd-w); letter-spacing: var(--t-hd-tr); line-height: 1.1; }
+/* Text, der direkt auf der Verlaufsfläche sitzt, ist eine Stufe heller als
+   Text auf Glas — die Fläche ist heller als eine Karte. */
+.hd-s { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; letter-spacing: -.01em; }
+
+/* ═══ Scrollfläche ═══ */
+.body {
+  flex: 1; overflow-y: auto; overscroll-behavior: contain;
+  padding: 6px 20px 132px;
+}
+.body.flow { padding-bottom: 116px; }
+.body::-webkit-scrollbar { display: none; }
+
+/* ═══ Glas-Bausteine ═══
+   Die obere Lichtkante (::before) ist das, was Glas von „dunkles Rechteck"
+   unterscheidet — sie simuliert eine Kante, die Licht fängt. */
+.glass {
+  position: relative;
+  background: var(--glass-2);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-card);
+  box-shadow: var(--lift-1);
+}
+.glass::before {
+  content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge-hi), transparent);
+  border-radius: 1px; pointer-events: none;
+}
+.glass-hi { background: var(--glass-1); box-shadow: var(--lift-2); }
+
+/* ═══ Buttons ═══ */
+.btn {
+  appearance: none; border: 0; cursor: pointer; font: inherit;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: var(--r-pill);
+  font-weight: 700; letter-spacing: -.01em;
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), filter .18s var(--ease);
+}
+.btn:active { transform: scale(.965); }
+
+/* Primär: Verlauf + farbiger Schein darunter + innere Lichtkante oben */
+.btn-primary {
+  position: relative;
+  padding: 17px 26px; font-size: 16.5px;
+  color: #0a0f00;
+  background: linear-gradient(168deg, var(--lime-hi) 0%, var(--lime) 46%, var(--lime-lo) 100%);
+  box-shadow: var(--glow-lime), inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(0,0,0,.14);
+}
+.btn-primary:active { box-shadow: 0 3px 14px -4px var(--lime-glow), inset 0 1px 0 rgba(255,255,255,.4); }
+
+/* Sekundär: Glas */
+.btn-ghost {
+  padding: 15px 22px; font-size: 14.5px; font-weight: 600;
+  color: var(--text-dim);
+  background: var(--glass-3);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge-soft);
+  box-shadow: var(--lift-1), inset 0 1px 0 rgba(255,255,255,.06);
+}
+.btn-ico {
+  width: 44px; height: 44px; flex-shrink: 0; padding: 0; font-size: 17px;
+  color: var(--text-dim);
+  background: var(--glass-3);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge-soft);
+  box-shadow: var(--lift-1), inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* ═══ HOME ═══ */
+.kicker {
+  text-align: center; font-size: 10.5px; font-weight: var(--t-label-w);
+  letter-spacing: var(--t-label-tr); text-transform: uppercase;
+  color: var(--text-dim); margin: 16px 0 8px;
+}
+/* Der Verlauf im Text ist raus — er hat die wichtigste Zeile weichgezeichnet.
+   Größe, Gewicht und Laufweite kommen jetzt aus der Typo-Variante. */
+.focus-name {
+  text-align: center; color: #fff;
+  font-size: calc(var(--t-display-size) + var(--t-display-adj, 0px));
+  font-weight: var(--t-display-w);
+  font-stretch: var(--t-display-wd, 100%);
+  letter-spacing: var(--t-display-tr);
+  line-height: 1.02;
+}
+.focus-meta {
+  text-align: center; font-size: 13px; color: var(--text-dim);
+  margin-top: 9px; display: flex; align-items: center; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+.pill-stat {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 4px 10px; border-radius: var(--r-pill);
+  font-size: 11.5px; font-weight: 700; color: var(--green);
+  background: linear-gradient(160deg, rgba(110,231,135,.20), rgba(110,231,135,.07));
+  border: 1px solid rgba(110,231,135,.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09);
+}
+
+/* Wochenstreifen */
+.week { display: grid; grid-template-columns: repeat(7,1fr); gap: 7px; margin: 22px 0 20px; }
+.wd { text-align: center; }
+.wd-l { font-size: 10.5px; color: var(--text-dim); margin-bottom: 6px; font-weight: 600; }
+.wd-b {
+  height: 54px; border-radius: 13px;
+  background: var(--glass-3);
+  border: 1px solid var(--edge-soft);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* Kein farbiger Schlagschatten mehr — der hat die Tagesfarbe in den
+   Hintergrund ausbluten lassen. Die Farbe bleibt jetzt im Block. */
+.wd-b.f  { border: 0; box-shadow: 0 4px 12px -5px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.42);
+           background: linear-gradient(168deg, var(--tint) 0%, var(--tint-lo) 100%); }
+.wd.today .wd-l { color: var(--text); }
+.wd.today .wd-b { border-color: rgba(255,255,255,.3); }
+
+/* Übungsliste */
+.list { padding: 5px 0; }
+.row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 15px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.055);
+}
+.row:last-child { border-bottom: 0; }
+.row-n { font-size: 15.5px; font-weight: var(--t-row-w); letter-spacing: -.012em; }
+.row-m { font-size: 12.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+
+.cta { margin-top: 22px; display: grid; gap: 10px; }
+.cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ═══ ALLE TAGE ═══
+   Statt Farbstreifen links: die Tagesfarbe färbt die ganze Karte leicht ein
+   und leuchtet aus der oberen Kante — das ist der Flächenverlauf. */
+.day {
+  position: relative; overflow: hidden;
+  padding: 17px 18px; margin-bottom: 13px;
+  background:
+    linear-gradient(158deg, color-mix(in srgb, var(--tint) 13%, transparent), transparent 58%),
+    var(--glass-2);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge);
+  border-radius: var(--r-card);
+  box-shadow: var(--lift-1);
+  transition: transform .18s var(--ease);
+}
+.day:active { transform: scale(.985); }
+.day::before {
+  content: ""; position: absolute; left: 16px; right: 16px; top: 0; height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--tint), transparent);
+  opacity: .75;
+}
+.day-h { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
+.day-n { font-size: 18px; font-weight: var(--t-card-w); letter-spacing: -.022em; }
+/* Vorher gefüllte Lime-Pille mit Glow — wirkte als Fremdkörper. Jetzt
+   dieselbe Machart wie die ↑%-Badges, nur in Lime: getönt statt gefüllt.
+   Damit sitzt der Sticker in derselben Sprache wie der Rest der Karte. */
+.tag {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+  padding: 4px 9px; border-radius: var(--r-pill);
+  color: var(--lime);
+  background: linear-gradient(160deg, rgba(200,241,53,.20), rgba(200,241,53,.06));
+  border: 1px solid rgba(200,241,53,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.day-m { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.day-m b { color: var(--text-dim); font-weight: 600; }
+.dots { display: flex; gap: 5px; margin-top: 11px; align-items: center; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.14); }
+.dot.on { background: var(--tint); box-shadow: 0 0 9px var(--tint); }
+.dots span { font-size: 10.5px; color: var(--text-muted); margin-left: 5px; }
+
+/* ═══ WORKOUT ═══ */
+.ex { padding: 16px 16px 8px; margin-bottom: 13px; }
+.ex-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+.ex-n { font-size: 16.5px; font-weight: var(--t-card-w); letter-spacing: -.02em; }
+.ex-r { font-size: 12.5px; font-weight: 700; color: var(--lime); }
+.bar { height: 4px; border-radius: 4px; background: rgba(255,255,255,.07); overflow: hidden; margin-bottom: 15px; }
+.bar i {
+  display: block; height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--lime-lo), var(--lime-hi));
+  box-shadow: 0 0 12px var(--lime-glow);
+}
+/* Ohne S1/S2/S3-Spalte: die 32px wandern in die Stepper, damit haben
+   Werte wie „52,5" endlich genug Platz neben den Knöpfen. */
+.slabels { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 8px; margin-bottom: 7px; }
+.slabels div { font-size: 9.5px; font-weight: var(--t-label-w); letter-spacing: var(--t-label-tr); color: var(--text-muted); text-align: center; }
+.set { display: grid; grid-template-columns: 1fr 1fr 44px; gap: 8px; align-items: center; margin-bottom: 9px; }
+.step {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--glass-3);
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--r-inner);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
+  overflow: hidden;
+}
+.step button {
+  position: relative;
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  width: 40px; height: 48px; font-size: 19px; font-weight: 500;
+  color: var(--text-muted); transition: color .15s, background .15s;
+}
+.step button:active { color: var(--lime); background: rgba(200,241,53,.09); }
+/* Trefferfläche über die sichtbare Größe hinaus. In 303px Kartenbreite
+   passen keine 44px breiten Buttons neben zwei Werten und der Timer-Spalte
+   — der Knopf bleibt also optisch 40px, ist aber 52×48 antippbar. Der Wert
+   dazwischen ist nicht interaktiv, es überlappt also nichts Klickbares. */
+.step button::after { content: ""; position: absolute; inset: 0 -6px; }
+.step-v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.set-t {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 15px;
+  background: var(--glass-3); border: 1px solid var(--edge-soft);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+/* Pausen-Banner: schwebt über der Leiste, Lime-Rand mit Schein */
+.rest {
+  position: absolute; left: 16px; right: 16px; bottom: 96px; z-index: 6;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-radius: var(--r-card);
+  background: linear-gradient(158deg, rgba(200,241,53,.15), rgba(200,241,53,.05));
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid rgba(200,241,53,.34);
+  box-shadow: 0 10px 34px -10px var(--lime-glow), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.rest-l { font-size: 12.5px; color: var(--text-dim); }
+.rest-n { font-size: 26px; font-weight: 800; color: var(--lime); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+
+/* ═══ Untere Leiste im Flow (kein Tab-Bar-Screen) ═══ */
+.bar-b {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;
+  display: flex; gap: 10px; padding: 14px 16px 30px;
+  background: linear-gradient(180deg, transparent, rgba(4,6,5,.9) 42%);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.bar-b .btn-primary { flex: 1.6; }
+.bar-b .btn-ghost { flex: 1; }
+
+/* ═══ Tab-Bar: schwebende Pille ═══ */
+.tabs {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: 26px; z-index: 8;
+  display: flex; gap: 3px; padding: 6px;
+  border-radius: var(--r-pill);
+  background: var(--glass-nav);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge);
+  box-shadow: var(--lift-nav), inset 0 1px 0 rgba(255,255,255,.11);
+}
+.tab {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 9px 17px; border-radius: var(--r-pill);
+  color: var(--text-muted); font: inherit; font-size: 10px; font-weight: 700;
+  letter-spacing: -.005em;
+  transition: color .2s var(--ease), background .2s var(--ease);
+}
+.tab svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tab.on {
+  color: #0a0f00;
+  background: linear-gradient(168deg, var(--lime-hi), var(--lime-lo));
+  box-shadow: 0 5px 18px -5px var(--lime-glow), inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+/* ═══ Umschalter für dich (gehört nicht zur App) ═══ */
+.dev {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 99;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; padding: 5px;
+  max-width: calc(100vw - 16px);
+  background: rgba(20,22,20,.9); backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,.1); border-radius: var(--r-pill);
+  font-size: 11px;
+}
+.dev button {
+  appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 700;
+  padding: 7px 13px; border-radius: var(--r-pill);
+  background: transparent; color: #8b938a;
+}
+.dev button.on { background: var(--lime); color: #0a0f00; }
+.dev-sep { width: 1px; background: rgba(255,255,255,.16); margin: 4px 3px; }
+@media (max-width: 460px) { .dev { top: 6px; } }
+</style>
+</head>
+<body>
+
+<div class="dev">
+  <button data-g="screen" class="on" onclick="go('home',this)">Start</button>
+  <button data-g="screen" onclick="go('days',this)">Alle Tage</button>
+  <button data-g="screen" onclick="go('workout',this)">Training</button>
+</div>
+
+<div class="stage">
+<div class="phone" id="phone">
+  <div class="ambient"></div>
+
+  <!-- ══════════ START ══════════ -->
+  <section class="screen on" id="s-home">
+    <div class="hd">
+      <div style="flex:1">
+        <div class="hd-t">TVRD</div>
+        <div class="hd-s">Donnerstag, 13. August</div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="kicker">Nächstes Training</div>
+      <div class="focus-name">Rücken</div>
+      <div class="focus-meta">
+        <span>Zuletzt 6. Aug.</span><span>·</span><span>5.830 kg</span>
+        <span class="pill-stat">↑ 30%</span>
+      </div>
+
+      <div class="week">
+        <div class="wd"><div class="wd-l">Fr</div><div class="wd-b f" style="--tint:#c8f135;--tint-lo:#9ec91a"></div></div>
+        <div class="wd"><div class="wd-l">Sa</div><div class="wd-b"></div></div>
+        <div class="wd"><div class="wd-l">So</div><div class="wd-b"></div></div>
+        <div class="wd"><div class="wd-l">Mo</div><div class="wd-b f" style="--tint:#5ac8f0;--tint-lo:#2fa4d0"></div></div>
+        <div class="wd"><div class="wd-l">Di</div><div class="wd-b f" style="--tint:#ff8a4c;--tint-lo:#e0632a"></div></div>
+        <div class="wd"><div class="wd-l">Mi</div><div class="wd-b f" style="--tint:#7a8478;--tint-lo:#525a51"></div></div>
+        <div class="wd today"><div class="wd-l">Do</div><div class="wd-b"></div></div>
+      </div>
+
+      <div class="glass list">
+        <div class="row"><span class="row-n">Reverse Hyper</span><span class="row-m">3×15-20</span></div>
+        <div class="row"><span class="row-n">Kettle Swing</span><span class="row-m">3×15-20</span></div>
+        <div class="row"><span class="row-n">Pulldown Front</span><span class="row-m">3×12-15</span></div>
+        <div class="row"><span class="row-n">Cable Row</span><span class="row-m">3×15-20</span></div>
+        <div class="row"><span class="row-n">Klimmzüge</span><span class="row-m">3×8-10</span></div>
+        <div class="row"><span class="row-n">Smith Row</span><span class="row-m">3×12-15</span></div>
+        <div class="row"><span class="row-n">Lower Back Row</span><span class="row-m">3×12-15</span></div>
+      </div>
+
+      <div class="cta">
+        <button class="btn btn-primary" style="width:100%">Training starten ▶</button>
+        <div class="cta-row">
+          <button class="btn btn-ghost">Alle Tage</button>
+          <button class="btn btn-ghost">Aktive Erholung</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ ALLE TAGE ══════════ -->
+  <section class="screen" id="s-days">
+    <div class="hd"><div class="hd-t">Alle Tage</div></div>
+    <div class="body">
+
+      <div class="day" style="--tint:#c8f135">
+        <div class="day-h"><span class="day-n">Brust &amp; Arme</span></div>
+        <div class="day-m">vor 6 Tagen<span>·</span><b>5.709 kg</b>
+          <span class="pill-stat">↑ 61%</span><span>·</span>68 min</div>
+        <div class="dots"><i class="dot"></i><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><span>letzte 4 Wochen</span></div>
+      </div>
+
+      <div class="day" style="--tint:#5ac8f0">
+        <div class="day-h"><span class="day-n">Beine</span></div>
+        <div class="day-m">vor 3 Tagen<span>·</span><b>8.192 kg</b>
+          <span class="pill-stat">↑ 15%</span><span>·</span>103 min</div>
+        <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><span>letzte 4 Wochen</span></div>
+      </div>
+
+      <div class="day" style="--tint:#ff8a4c">
+        <div class="day-h"><span class="day-n">Schulter &amp; Arme</span></div>
+        <div class="day-m">Vorgestern<span>·</span><b>4.678 kg</b>
+          <span class="pill-stat">↑ 30%</span><span>·</span>81 min</div>
+        <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><span>letzte 4 Wochen</span></div>
+      </div>
+
+      <div class="day" style="--tint:#b07cf0">
+        <div class="day-h"><span class="day-n">Rücken</span><span class="tag">Empfohlen</span></div>
+        <div class="day-m">6. Aug.<span>·</span><b>5.830 kg</b>
+          <span class="pill-stat">↑ 30%</span><span>·</span>128 min</div>
+        <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><i class="dot"></i><span>letzte 4 Wochen</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════ TRAINING (Flow — keine Tab-Bar) ══════════ -->
+  <section class="screen" id="s-workout">
+    <div class="hd">
+      <button class="btn btn-ico">←</button>
+      <div style="flex:1">
+        <div class="hd-t" style="font-size:21px">Beine</div>
+        <div class="hd-s">6 / 26 Sets</div>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums">0:40</div>
+    </div>
+
+    <div class="body flow">
+      <div class="glass ex">
+        <div class="ex-h"><span class="ex-n">Leg Extension</span><span class="ex-r">12-15 reps</span></div>
+        <div class="bar"><i style="width:100%"></i></div>
+        <div class="slabels"><div>Reps</div><div>KG</div><div></div></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">45</span><button>+</button></div>
+          <div class="set-t">⏱</div></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">52,5</span><button>+</button></div>
+          <div class="set-t">⏱</div></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">52,5</span><button>+</button></div>
+          <div class="set-t">⏱</div></div>
+      </div>
+
+      <div class="glass ex">
+        <div class="ex-h"><span class="ex-n">Front Squat</span><span class="ex-r">12-15 reps</span></div>
+        <div class="bar"><i style="width:66%"></i></div>
+        <div class="slabels"><div>Reps</div><div>KG</div><div></div></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">10</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">40</span><button>+</button></div>
+          <div class="set-t">⏱</div></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">10</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">60</span><button>+</button></div>
+          <div class="set-t">⏱</div></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">8</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">70</span><button>+</button></div>
+          <div class="set-t">⏱</div></div>
+      </div>
+
+      <div class="glass ex">
+        <div class="ex-h"><span class="ex-n">Hacksquat</span><span class="ex-r">10-12 reps</span></div>
+        <div class="bar"><i style="width:0%"></i></div>
+      </div>
+    </div>
+
+    <div class="rest">
+      <span class="rest-l">Pause · antippen zum Abbrechen</span>
+      <span class="rest-n">1:22</span>
+    </div>
+
+    <div class="bar-b">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-primary">Training beenden ✓</button>
+    </div>
+  </section>
+
+  <!-- ══════════ TAB-BAR ══════════ -->
+  <nav class="tabs" id="tabs">
+    <button class="tab on" onclick="go('home',null,this)">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg>Start</button>
+    <button class="tab" onclick="go('days',null,this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9.5h18M8.5 2.5v3M15.5 2.5v3"/></svg>Tage</button>
+    <button class="tab" onclick="go('stats',null,this)">
+      <svg viewBox="0 0 24 24"><path d="M5 19V11M12 19V5M19 19v-5"/></svg>Statistik</button>
+    <button class="tab" onclick="go('plan',null,this)">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2.6"/></svg>Plan</button>
+  </nav>
+
+</div>
+</div>
+
+<script>
+// Nur der Umschalter für die Vorschau. Regel: in Flow-Screens (Training,
+// Tagesvorschau, Abschluss) ist die Tab-Bar weg.
+const FLOW = ['workout'];
+
+function go(name, devBtn, tabBtn) {
+  const map = { home: 's-home', days: 's-days', workout: 's-workout', stats: 's-home', plan: 's-home' };
+  const id = map[name] || 's-home';
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  document.getElementById('tabs').style.display = FLOW.includes(name) ? 'none' : 'flex';
+
+  if (devBtn) mark('screen', devBtn);
+  if (tabBtn) document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b === tabBtn));
+  document.querySelectorAll('.body').forEach(b => b.scrollTop = 0);
+}
+
+// Markiert den aktiven Knopf innerhalb einer Gruppe
+function mark(group, btn) {
+  document.querySelectorAll('.dev button[data-g="' + group + '"]')
+          .forEach(b => b.classList.toggle('on', b === btn));
+}
+</script>
+</body>
+</html>

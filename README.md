@@ -16,7 +16,7 @@ A training tracker I built for myself and use every session. Six workouts a week
 
 I tracked workouts in a Google Sheet. Entry was tedious. I tried the fitness apps and hit the same problem every time: none of them focus on the one thing I actually want to do, which is log a set as fast as possible and get back to the workout. Too many features I don't use, constant upselling, no respect for the fact that I open the app under load, not on the couch.
 
-**A second reason showed up during the build.** Halfway through I realized this could double as a portfolio piece: how do I actually work with AI, rather than just claim to. **Function stayed the priority** and got built first. For a long stretch the design was deliberately MVP-grade — clear enough to demo, nothing more.
+**A second reason showed up during the build.** Halfway through I realized this could double as a portfolio piece: how do I actually work with AI, rather than just claim to. **Function stayed the priority** and got built first. For a long stretch the design was deliberately MVP-grade: clear enough to demo, nothing more.
 
 That changed once the function was genuinely done. The app worked exactly how I wanted, and the look was the only thing still saying "side project, theme taken off the shelf." So I did a deliberate design pass. [What that was and how it went is its own section.](#the-design-overhaul)
 
@@ -28,7 +28,7 @@ Four principles set the direction from the beginning. Each one has a specific pl
 
 **Focus over features.** Only what supports the actual training. No social feed, no gamification loops, no muscle-group encyclopedia. The home screen has one primary action.
 
-**Function first, form second — in that order, not instead of.** Every hour spent on polish while the function still had friction would have been an hour spent wrong. So the design stayed MVP-grade on purpose until the app genuinely did its job. Then form got its own pass, with the same rule applied to it: nothing that costs a tap during a set.
+**Function first, form second, in that order, not instead of.** Every hour spent on polish while the function still had friction would have been an hour spent wrong. So the design stayed MVP-grade on purpose until the app genuinely did its job. Then form got its own pass, with the same rule applied to it: nothing that costs a tap during a set.
 
 **Good enough is perfect.** I build when a real need surfaces, not before. Cloud sync isn't there because I train on one device. Multi-plan switching isn't there because I run one plan at a time. Cost/benefit, not completeness.
 
@@ -66,7 +66,7 @@ Every decision below exists to reduce something specific I noticed getting in my
 
 For most of this project the design was a placeholder. It worked, it was legible, and it looked like every dark-mode template on the shelf: flat near-black, one accent colour, 12px corners, no depth. Once the function was genuinely done, that was the only thing left that still read "side project."
 
-So I set an explicit goal: **it should be obvious this is a 2026 design, not a 2019 one.** I collected two reference apps I liked and named what I liked about them — colour transitions, the buttons, and the shading. That was the whole brief.
+So I set an explicit goal: **it should be obvious this is a 2026 design, not a 2019 one.** I collected two reference apps I liked and named what I liked about them: colour transitions, the buttons, and the shading. That was the whole brief.
 
 ### What guided it
 
@@ -82,33 +82,33 @@ So I set an explicit goal: **it should be obvious this is a 2026 design, not a 2
 
 **A gradient surface instead of flat black.** A fixed backdrop with the accent lime glowing from the top right and a cool counterpoint below, plus fine grain so it doesn't band on OLED. Content scrolls over it; the surface stays put.
 
-**Dark glass.** Cards are translucent and blurred, with a light catch along the top edge — that edge is what separates "glass" from "dark rectangle." Three tonal steps, so a card, a stepper, and the nav read as different depths.
+**Dark glass.** Cards are translucent and blurred, with a light catch along the top edge. That edge is what separates "glass" from "dark rectangle." Three tonal steps, so a card, a stepper, and the nav read as different depths.
 
 **Pills with weight.** Buttons are fully rounded. The primary one carries a lime gradient, a coloured glow beneath it, and an inner highlight along the top, and it presses down when tapped.
 
 **Colour that stays put.** Each training day has a colour. It used to be a stripe on the left edge; now it tints the whole card and glows from its top edge, and it looks identical in the overview and the plan editor.
 
-**A floating tab bar.** Four destinations — Start, Days, Stats, Plan — in a glass pill at thumb height. It replaced two icons that used to sit in the top right corner, out of thumb reach. It disappears during a workout, day preview, and the finish screen: a running workout is a flow, not a place, and a mis-tap shouldn't drop me out of it.
+**A floating tab bar.** Four destinations (Start, Days, Stats, Plan) in a glass pill at thumb height. It replaced two icons that used to sit in the top right corner, out of thumb reach. It disappears during a workout, day preview, and the finish screen: a running workout is a flow, not a place, and a mis-tap shouldn't drop me out of it.
 
-**A typeface with a face.** Inter out, [Archivo](https://fonts.google.com/specimen/Archivo) in. Inter is the default UI font of the last decade — competent and completely anonymous, which was a large part of why the app looked generic. Archivo has a width axis, and the display runs at 116% width and weight 900. The result is unmistakably athletic in a way no weight of Inter gets to.
+**A typeface with a face.** Inter out, [Archivo](https://fonts.google.com/specimen/Archivo) in. Inter is the default UI font of the last decade, competent and completely anonymous, which was a large part of why the app looked generic. Archivo has a width axis, and the display runs at 116% width and weight 900. The result is unmistakably athletic in a way no weight of Inter gets to.
 
 ### How it was implemented
 
 **Prototype before production.** The app is a single 3,000-line file that deploys live on every push. Iterating on the real thing would have meant either a stream of live deploys or days of uncommitted work. So the design language was built and argued out in a [standalone prototype](https://tvrd.app/docs/design-prototype.html) covering three screens, and only ported once it was settled. Three rounds of feedback happened there, cheaply.
 
-**Tokens first, components second.** The existing CSS already referenced `--surface`, `--border`, `--radius` and friends throughout. Redefining those — including making the surface tokens gradients rather than flat colours — lifted all eight screens at once. Only what tokens can't express (backdrop blur, the light edge, the gradient button, the tab bar) needed real rules, and those sit in one clearly marked layer rather than scattered through the 175 existing ones.
+**Tokens first, components second.** The existing CSS already referenced `--surface`, `--border`, `--radius` and friends throughout. Redefining those (including making the surface tokens gradients rather than flat colours) lifted all eight screens at once. Only what tokens can't express (backdrop blur, the light edge, the gradient button, the tab bar) needed real rules, and those sit in one clearly marked layer rather than scattered through the 175 existing ones.
 
-**The font got subset and trimmed.** Full Archivo is 643 KB. Cut to Latin plus umlauts, digits and the punctuation the app actually uses, and with the variable axes clamped to the range in use (weight 400–900, width 100–125% instead of 62–125%), it lands at 50 KB. Embedded as base64 like Inter was, the swap cost 3.5 KB net. The `tnum` OpenType feature was explicitly preserved — without it, digits jump width while a rest timer counts down.
+**The font got subset and trimmed.** Full Archivo is 643 KB. Cut to Latin plus umlauts, digits and the punctuation the app actually uses, and with the variable axes clamped to the range in use (weight 400-900, width 100-125% instead of 62-125%), it lands at 50 KB. Embedded as base64 like Inter was, the swap cost 3.5 KB net. The `tnum` OpenType feature was explicitly preserved. Without it, digits jump width while a rest timer counts down.
 
 ### What the work actually turned up
 
 Three things worth recording, because none of them were visible at the start:
 
-**White glass doesn't work on dark.** The first build copied the references directly: translucent white cards. On a dark background that *lightens* what's behind it and eats exactly the contrast light text needs. Measured, secondary text had fallen to **2.15:1** — unreadable. Dark translucent glass darkens instead, still lets the gradient through, and the glass impression turns out to come from the blur and the light edge, not the fill. Rebuilt, it measures 5.1:1.
+**White glass doesn't work on dark.** The first build copied the references directly: translucent white cards. On a dark background that *lightens* what's behind it and eats exactly the contrast light text needs. Measured, secondary text had fallen to **2.15:1**. Unreadable. Dark translucent glass darkens instead, still lets the gradient through, and the glass impression turns out to come from the blur and the light edge, not the fill. Rebuilt, it measures 5.1:1.
 
-**The gradient has a hard ceiling.** I wanted it stronger. It can't go much further, because the eyebrow, date and weekday labels sit directly on that surface rather than on a card. At 0.24 accent strength they hold 5.3:1; at 0.30 they drop to 4.6, at 0.40 to 3.3. Going for saturation instead of brightness only buys about 3.6:1. The final answer was to push the surface to its limit *and* raise those four text colours a step — measured against the brightest point of the gradient, not the darkest.
+**The gradient has a hard ceiling.** I wanted it stronger. It can't go much further, because the eyebrow, date and weekday labels sit directly on that surface rather than on a card. At 0.24 accent strength they hold 5.3:1; at 0.30 they drop to 4.6, at 0.40 to 3.3. Going for saturation instead of brightness only buys about 3.6:1. The final answer was to push the surface to its limit *and* raise those four text colours a step, measured against the brightest point of the gradient, not the darkest.
 
-**Screenshots catch what assertions don't.** Every automated check passed — no clipping, no overflow, no small touch targets, contrast fine — while the resume button was rendering as a lime blob filling half the screen. `.btn-primary` carries `flex: 1`, which is right inside the bottom bar and wrong in a column, where it grows vertically; at 12px corners that was a tall rectangle, at pill radius it was a balloon. No property-level check would have flagged it. Looking at it did.
+**Screenshots catch what assertions don't.** Every automated check passed (no clipping, no overflow, no small touch targets, contrast fine) while the resume button was rendering as a lime blob filling half the screen. `.btn-primary` carries `flex: 1`, which is right inside the bottom bar and wrong in a column, where it grows vertically; at 12px corners that was a tall rectangle, at pill radius it was a balloon. No property-level check would have flagged it. Looking at it did.
 
 ---
 
@@ -142,7 +142,7 @@ The full picture of what the app is trying to do for the user, broken down acros
 
 Functionally rougher than execution mode, and deliberately so. I open it rarely, usually just to add or swap an exercise, so it hasn't earned the same depth of features. Same cost/benefit logic that runs the whole project: build when a real need shows up.
 
-It did inherit the full visual treatment, though — that fell out of doing the design work at the token layer instead of screen by screen.
+It did inherit the full visual treatment, though. That fell out of doing the design work at the token layer instead of screen by screen.
 
 The interesting thing this mode does *not* do yet: **multi-plan activation and long-term periodization.** Swap between several active plans, and see how they build on each other across months. It assumes the user plans across cycles, not week to week. On the list, not built.
 
@@ -199,7 +199,7 @@ flowchart LR
   Client -.-> Auth
 ```
 
-- **One HTML file.** ~2,700 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Archivo variable font is embedded as base64 — subset to Latin + umlauts + digits, axes trimmed to what's used (weight 400–900, width 100–125%) — so there isn't even a network request for it.
+- **One HTML file.** ~2,700 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Archivo variable font is embedded as base64, subset to Latin + umlauts + digits, with axes trimmed to what's used (weight 400-900, width 100-125%). No network request for it.
 - **Persistence:** `localStorage`, versioned schema with a migration scaffold. Backup and restore via JSON file (manual).
 - **Charts:** hand-rolled inline SVG, no charting library.
 - **Platform APIs:** Wake Lock (screen stays on mid-workout), Vibration (rest-timer alert), installable PWA (standalone, custom home-screen icon).

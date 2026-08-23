@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0a0a0a"/>
+  <g fill="#c8f135">
+    <!-- Hantelstange -->
+    <rect x="120" y="242" width="272" height="28" rx="14"/>
+    <!-- innere Scheiben -->
+    <rect x="150" y="196" width="34" height="120" rx="12"/>
+    <rect x="328" y="196" width="34" height="120" rx="12"/>
+    <!-- äußere Scheiben -->
+    <rect x="108" y="220" width="28" height="72" rx="10"/>
+    <rect x="376" y="220" width="28" height="72" rx="10"/>
+  </g>
+</svg>

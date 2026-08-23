@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TVRD">
 <meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon-180.png">
 <title>TVRD</title>
 <style>
   /* Archivo, Latin-Subset, variable Achsen Gewicht 400–900 + Breite 100–125%
@@ -315,6 +318,14 @@
   }
   .week-strip-day.today .week-strip-label { color: var(--text); }
   .week-strip-day.today .week-strip-cell { border-color: rgba(255,255,255,0.3); }
+  .week-strip-cell.clickable { cursor: pointer; transition: transform 0.12s var(--ease, ease); }
+  .week-strip-cell.clickable:active { transform: scale(0.92); }
+  /* Kurzer Ring, wenn eine Session per Streifen-Klick geöffnet wird. */
+  .history-session.session-flash { animation: sessionFlash 1.5s ease; }
+  @keyframes sessionFlash {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    12%      { box-shadow: 0 0 0 2px var(--accent); }
+  }
 
   /* TAGESSTATUS (statt still verschwindendem Link) */
   .focus-status {
@@ -575,13 +586,14 @@
   .plan-exercise-row {
     display: flex; align-items: center; gap: 8px;
     padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-    touch-action: none;
   }
   .plan-exercise-row:last-child { border-bottom: none; }
   .drag-handle {
     width: 22px; display: flex; align-items: center; justify-content: center;
     color: #3a3a3a; font-size: 17px; cursor: grab; flex-shrink: 0;
     letter-spacing: -2px;
+    /* Nur der Griff blockiert die Touch-Geste — der Rest der Zeile scrollt. */
+    touch-action: none;
   }
   .drag-ph {
     height: 44px; border-radius: var(--radius-sm);
@@ -1582,19 +1594,40 @@ function renderWeekStrip() {
     const d = new Date(today); d.setDate(today.getDate() - i);
     const key = d.getTime();
     const entries = byDate.get(key);
-    let style = '';
+    let style = '', cellCls = 'week-strip-cell', tap = '';
     if (entries) {
       const training = entries.find(e => e.dayId); // Training schlägt Erholung
       style = ` style="background:${training ? getDayColor(training.dayId) : REST_COLOR}"`;
+      // Nur echte Trainings sind anklickbar → springen in den Verlauf.
+      if (training) { cellCls += ' clickable'; tap = ` onclick="openSessionFromStrip('${training.id}')"`; }
     }
     const cls = key === todayMs ? 'today' : '';
     cells.push(`<div class="week-strip-day ${cls}">
         <div class="week-strip-label">${wd[d.getDay()]}</div>
-        <div class="week-strip-cell"${style}></div>
+        <div class="${cellCls}"${style}${tap}></div>
       </div>`);
   }
 
   return `<div class="week-strip-wrap"><div class="week-strip">${cells.join('')}</div></div>`;
+}
+
+// Klick auf eine Trainings-Zelle im Wochenstreifen → Verlauf öffnen und die
+// betreffende Session aufklappen. Nutzt dieselbe Karte wie Statistik → Verlauf.
+function openSessionFromStrip(sessionId) {
+  showScreen('screen-analytics');
+  const verlaufTab = document.querySelector('#screen-analytics .analytics-tab');
+  switchAnalyticsTab('verlauf', verlaufTab);
+  requestAnimationFrame(() => {
+    const body = document.getElementById('vs-' + sessionId);
+    if (!body) return;
+    body.classList.add('open');
+    const card = body.closest('.history-session');
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('session-flash');
+      setTimeout(() => card.classList.remove('session-flash'), 1500);
+    }
+  });
 }
 
 // Wie viele Übungszeilen und wie hoch der Wochenstreifen — beides richtet sich
@@ -1625,7 +1658,11 @@ function fitFocusPreview() {
     return h;
   };
 
-  let free = area.clientHeight - naturalHeight();
+  // clientHeight schließt die Paddings ein (u.a. der reservierte Platz für die
+  // schwebende Tabbar). Fürs Einpassen zählt nur die echte Content-Höhe.
+  const cs = getComputedStyle(area);
+  const avail = area.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  let free = avail - naturalHeight();
 
   // 1. Freien Platz zuerst in Übungszeilen stecken — die tragen Information.
   if (rows.length > FOCUS_MIN_ROWS && free > 0) {
@@ -2859,7 +2896,7 @@ function renderVerlaufHTML() {
           <div><div class="history-session-date">${session.dayName}</div><div class="history-session-meta">${dateStr} · ${totalSets} Sets${min ? ' · '+min+'min' : ''}</div></div>
           <div style="color:var(--text-muted);font-size:18px">›</div>
         </div>
-        <div class="history-session-body">${exHTML}</div>
+        <div class="history-session-body" id="vs-${session.id}">${exHTML}</div>
       </div>`;
   }).join('');
 }
@@ -3044,6 +3081,13 @@ function renderKonsistenzHTML() {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 renderFocusHome();
+
+// Service Worker registrieren → App läuft ohne Netz (Training inklusive).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

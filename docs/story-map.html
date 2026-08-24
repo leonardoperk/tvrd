@@ -102,6 +102,53 @@
   .fc.partial .tag { color: var(--partial-text); }
   .fc.gap .tag { color: var(--text-dim); }
   .fc.design .tag { color: var(--design-text); }
+
+  /* ── Interactive layer (2026-08) — collapse, filter, detail, tooltip ── */
+  .legend-item { cursor: pointer; user-select: none; padding: 3px 8px; border-radius: 999px;
+    border: 1px solid transparent; transition: background .15s, opacity .15s; }
+  .legend-item:hover { background: var(--accent-dim); }
+  .legend-item.off { opacity: 0.35; text-decoration: line-through; }
+  .legend-count { margin-left: 4px; font-variant-numeric: tabular-nums; opacity: 0.65; }
+  .legend-hint { font-size: 9px; color: var(--text-muted); margin-left: auto; letter-spacing: .3px; }
+
+  .act-head { cursor: pointer; user-select: none; position: relative; padding-right: 26px; }
+  .act-head::after { content: "▾"; position: absolute; right: 11px; top: 9px; font-size: 9px;
+    color: var(--accent); opacity: .7; transition: transform .2s; }
+  .col.collapsed .act-head::after { transform: rotate(-90deg); }
+  .col.collapsed .act-head-note,
+  .col.collapsed .main-story,
+  .col.collapsed .sub-block { display: none !important; }
+
+  .fc { cursor: pointer; transition: transform .1s, box-shadow .15s, opacity .15s; }
+  .fc:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,0.28); }
+  .fc.hidden, .sub-block.hidden, .col.hidden { display: none !important; }
+
+  #sm-tip { position: fixed; z-index: 200; pointer-events: none; background: var(--card);
+    color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px;
+    font-size: 10px; font-weight: 600; letter-spacing: .3px; box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    opacity: 0; transform: translate(-50%, -100%); transition: opacity .12s; white-space: nowrap; }
+  #sm-tip.show { opacity: 1; }
+
+  #sm-modal { position: fixed; inset: 0; z-index: 300; display: none; align-items: center;
+    justify-content: center; padding: 20px; background: rgba(0,0,0,0.6);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  #sm-modal.open { display: flex; }
+  .sm-modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    max-width: 460px; width: 100%; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .sm-modal-close { float: right; cursor: pointer; color: var(--text-dim); font-size: 16px;
+    line-height: 1; border: none; background: none; margin: -4px -4px 0 8px; }
+  .sm-modal-close:hover { color: var(--text); }
+  .sm-modal-crumb { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 8px; }
+  .sm-modal-status { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700;
+    letter-spacing: .8px; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .sm-modal-status.built { background: var(--built-bg); border: 1px solid var(--built-border); color: var(--built-text); }
+  .sm-modal-status.partial { background: var(--partial-bg); border: 1px solid var(--partial-border); color: var(--partial-text); }
+  .sm-modal-status.gap { background: transparent; border: 1px dashed var(--gap-border); color: var(--text-dim); }
+  .sm-modal-status.design { background: var(--design-bg); border: 1px dashed var(--design-border); color: var(--design-text); }
+  .sm-modal-sub { font-size: 11px; color: var(--text-dim); font-style: italic; margin-bottom: 10px; line-height: 1.5; }
+  .sm-modal-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .sm-modal-text code { background: var(--card); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -337,6 +384,133 @@
 
 </div>
 </div>
+
+<script>
+(function () {
+  const ORDER = ['built', 'partial', 'gap', 'design'];
+  const LABEL = { built: 'Solved', partial: 'Partial / bug', gap: 'Not yet', design: 'By design' };
+  const fcStatus = fc => ORDER.find(s => fc.classList.contains(s)) || 'built';
+  const active = new Set(ORDER);
+
+  // ── Persistence (guarded — artifact sandboxes may block localStorage) ──
+  const KEY = 'tvrd_storymap_ui';
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        collapsed: [...document.querySelectorAll('.col')].map(c => c.classList.contains('collapsed')),
+        active: [...active]
+      }));
+    } catch (e) {}
+  }
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (!s) return;
+      const cols = [...document.querySelectorAll('.col')];
+      (s.collapsed || []).forEach((v, i) => { if (v && cols[i]) cols[i].classList.add('collapsed'); });
+      if (Array.isArray(s.active) && s.active.length) { active.clear(); s.active.forEach(a => active.add(a)); }
+    } catch (e) {}
+  }
+
+  // ── Collapse columns (click the activity header) ──
+  document.querySelectorAll('.act-head').forEach(h => {
+    h.addEventListener('click', () => { h.parentElement.classList.toggle('collapsed'); save(); });
+  });
+
+  // ── Filter by status (legend chips, with counts) ──
+  const legendItems = [...document.querySelectorAll('.legend-item')];
+  legendItems.forEach(li => {
+    const dot = li.querySelector('.ldot');
+    const st = dot && ORDER.find(s => dot.classList.contains(s));
+    if (!st) return;
+    li.dataset.status = st;
+    const count = document.createElement('span');
+    count.className = 'legend-count';
+    count.textContent = '(' + document.querySelectorAll('.fc.' + st).length + ')';
+    li.appendChild(count);
+    li.addEventListener('click', () => {
+      if (active.has(st)) active.delete(st); else active.add(st);
+      if (active.size === 0) ORDER.forEach(s => active.add(s)); // empty selection = show all
+      applyFilter(); save();
+    });
+  });
+  const legend = document.querySelector('.legend');
+  if (legend) {
+    const hint = document.createElement('span');
+    hint.className = 'legend-hint';
+    hint.textContent = 'header = collapse · legend = filter · card = details';
+    legend.appendChild(hint);
+  }
+  function applyFilter() {
+    const all = active.size === ORDER.length;
+    document.querySelectorAll('.fc').forEach(fc =>
+      fc.classList.toggle('hidden', !all && !active.has(fcStatus(fc))));
+    document.querySelectorAll('.sub-block').forEach(sb =>
+      sb.classList.toggle('hidden', !all && ![...sb.querySelectorAll('.fc')].some(fc => !fc.classList.contains('hidden'))));
+    document.querySelectorAll('.col').forEach(col =>
+      col.classList.toggle('hidden', !all && ![...col.querySelectorAll('.fc')].some(fc => !fc.classList.contains('hidden'))));
+    legendItems.forEach(li => { if (li.dataset.status) li.classList.toggle('off', !active.has(li.dataset.status)); });
+  }
+
+  // ── Hover tooltip (status label) ──
+  const tip = document.createElement('div');
+  tip.id = 'sm-tip';
+  document.body.appendChild(tip);
+
+  // ── Detail modal (click a card) ──
+  const modal = document.createElement('div');
+  modal.id = 'sm-modal';
+  modal.innerHTML =
+    '<div class="sm-modal-card">' +
+      '<button class="sm-modal-close" aria-label="Close">✕</button>' +
+      '<div class="sm-modal-crumb"></div>' +
+      '<span class="sm-modal-status"></span>' +
+      '<div class="sm-modal-sub"></div>' +
+      '<div class="sm-modal-text"></div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  const mStatus = modal.querySelector('.sm-modal-status');
+  const mCrumb = modal.querySelector('.sm-modal-crumb');
+  const mSub = modal.querySelector('.sm-modal-sub');
+  const mText = modal.querySelector('.sm-modal-text');
+  function openModal(fc) {
+    const st = fcStatus(fc);
+    const col = fc.closest('.col');
+    const head = col && col.querySelector('.act-head');
+    mCrumb.textContent = head ? (head.childNodes[0].textContent || '').trim() : '';
+    mStatus.className = 'sm-modal-status ' + st;
+    mStatus.textContent = LABEL[st];
+    const subEl = fc.closest('.sub-block');
+    const story = subEl && subEl.querySelector('.sub-story-text');
+    mSub.textContent = story ? story.textContent : '';
+    const clone = fc.cloneNode(true);
+    const tag = clone.querySelector('.tag'); if (tag) tag.remove();
+    mText.innerHTML = clone.innerHTML.trim();
+    modal.classList.add('open');
+  }
+  function closeModal() { modal.classList.remove('open'); }
+  modal.addEventListener('click', e => {
+    if (e.target === modal || e.target.classList.contains('sm-modal-close')) closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Wire each card: hover = tooltip, click = detail
+  document.querySelectorAll('.fc').forEach(fc => {
+    fc.addEventListener('mouseenter', () => {
+      tip.textContent = LABEL[fcStatus(fc)] + ' · click for details';
+      const r = fc.getBoundingClientRect();
+      tip.style.left = (r.left + r.width / 2) + 'px';
+      tip.style.top = (r.top - 6) + 'px';
+      tip.classList.add('show');
+    });
+    fc.addEventListener('mouseleave', () => tip.classList.remove('show'));
+    fc.addEventListener('click', e => { e.stopPropagation(); tip.classList.remove('show'); openModal(fc); });
+  });
+
+  load();
+  applyFilter();
+})();
+</script>
 
 </body>
 </html>

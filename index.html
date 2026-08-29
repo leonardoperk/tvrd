@@ -136,9 +136,14 @@
     line-height: var(--lh-body);
     letter-spacing: var(--tr-base);
     -webkit-font-smoothing: antialiased;
-    min-height: 100dvh;
-    overflow-x: hidden;
+    /* App füllt exakt den Viewport, das Dokument selbst scrollt nie. Gescrollt
+       wird nur innen in der .scroll-area. Sonst bekam das Dokument ein paar
+       Pixel Spielraum, die sich je nach Fingerposition merkten, wo man losließ
+       (Übersicht wirkte dadurch verschoben und blieb nicht sauber zentriert). */
+    height: 100dvh;
+    overflow: hidden;
   }
+  html { height: 100dvh; }
 
   /* ─── VERLAUFSFLÄCHE ─────────────────────────────────────────────────
      Liegt fix hinter allem und scrollt nicht mit. Zwei Lichtquellen: das
@@ -146,15 +151,17 @@
 
      Die Stärke ist ausgereizt, nicht willkürlich: Kicker, Datum und
      Wochentage sitzen direkt auf dieser Fläche. Bei 0.24 Lime bleibt
-     --text-dim bei 5.3:1. Bei 0.30 fällt es auf 4.6, bei 0.40 auf 3.3.
-     Wer hier hochdreht, muss die Textfarben mit hochziehen. */
+     --text-dim bei 5.3:1, bei 0.28 rund 4.9:1, bei 0.30 auf 4.6, bei 0.40 auf 3.3.
+     Das Lime bleibt darum bei 0.28 (über dem Text). Der kühle und der
+     violette Pol tragen keinen Text und dürfen kräftiger sein, die geben dem
+     Verlauf auf dem Handy sichtbar mehr Farbe. */
   body::before {
     content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
     background:
-      radial-gradient(800px 500px at 80% -12%, rgba(200,241,53,0.24), transparent 64%),
-      radial-gradient(560px 420px at 8% 22%,   rgba(120,220,255,0.075), transparent 60%),
-      radial-gradient(700px 560px at 20% 104%, rgba(140,110,255,0.10), transparent 62%),
-      linear-gradient(180deg, #0d1409 0%, #090c08 44%, var(--bg-deep) 100%);
+      radial-gradient(820px 560px at 80% -12%, rgba(200,241,53,0.28), transparent 66%),
+      radial-gradient(620px 480px at 6% 20%,   rgba(120,220,255,0.15),  transparent 62%),
+      radial-gradient(760px 600px at 18% 104%, rgba(140,110,255,0.18),  transparent 64%),
+      linear-gradient(180deg, #101a0b 0%, #090c08 46%, var(--bg-deep) 100%);
   }
   /* Feines Korn gegen Banding — auf OLED sieht ein glatter Verlauf sonst
      streifig aus. */
@@ -180,7 +187,7 @@
   }
 
   /* SCREENS */
-  .screen { display: none; flex-direction: column; min-height: 100dvh; }
+  .screen { display: none; flex-direction: column; height: 100dvh; }
   .screen.active { display: flex; }
 
   /* HEADER */
@@ -209,7 +216,10 @@
   .btn-icon:active { background: var(--border); }
 
   /* SCROLL AREA */
-  .scroll-area { flex: 1; overflow-y: auto; padding: 12px 16px 88px; }
+  /* min-height:0 ist der Flex-Trick: ohne das behält der flex:1-Bereich seine
+     Content-Höhe, wächst über den Screen hinaus und das Dokument scrollt statt
+     der Fläche. Mit 0 darf er schrumpfen und scrollt sauber intern. */
+  .scroll-area { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 88px; }
 
   /* Karte füllt die volle Höhe. Restraum wird über gewichtete Lücken
      zwischen den Blöcken verteilt, statt an einem Ende zu liegen. */
@@ -239,13 +249,24 @@
   .focus-meta { font-size: var(--fs-sm); color: var(--text-dim); }
 
   /* FOCUS VIEW — READY STATE */
+  /* Sanfter Nudge, keine Warnung. Läuft im gleichen dunklen Glas wie die
+     Ghost-Buttons und Chips, statt als orange Fehlermeldung aus der Reihe zu
+     fallen. Ein kleiner Lime-Punkt trägt den Status, ohne Emoji. */
   .focus-alert {
-    display: inline-flex; align-items: center; gap: 6px;
+    display: inline-flex; align-items: center; gap: 7px;
     font-size: var(--fs-micro); font-weight: 700;
     letter-spacing: var(--tr-label); text-transform: uppercase;
-    color: #ffb84d; background: rgba(255,184,77,0.1);
-    border: 1px solid rgba(255,184,77,0.25);
-    padding: 5px 11px; border-radius: 20px; margin-bottom: 13px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--lift-1), inset 0 1px 0 rgba(255,255,255,0.06);
+    padding: 5px 12px 5px 10px; border-radius: var(--radius-pill); margin-bottom: 13px;
+  }
+  .focus-alert::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent-glow);
+    flex-shrink: 0;
   }
   .focus-meta-row {
     display: flex; align-items: center; justify-content: center;
@@ -320,6 +341,20 @@
   .week-strip-day.today .week-strip-cell { border-color: rgba(255,255,255,0.3); }
   .week-strip-cell.clickable { cursor: pointer; transition: transform 0.12s var(--ease, ease); }
   .week-strip-cell.clickable:active { transform: scale(0.92); }
+  /* Leere Zelle im 7-Tage-Fenster: antippbar, um Training oder Erholung
+     nachzutragen. Ein blasses Plus signalisiert, dass hier etwas reingeht. */
+  .week-strip-cell.backlog { cursor: pointer; position: relative; transition: transform 0.12s var(--ease, ease), background 0.15s; }
+  .week-strip-cell.backlog::after {
+    content: "+"; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; line-height: 1;
+    color: var(--text-muted); opacity: 0.4;
+  }
+  .week-strip-cell.backlog:active { transform: scale(0.92); background: rgba(255,255,255,0.09); }
+  /* Ghost-Buttons im Nachtrag-Modal stehen in einer Spalte. Ohne das erbt der
+     Button das flex:1 der Reihen-Variante, flex-basis:0 überschreibt in der
+     vertikalen Achse die height und der Button kollabiert auf Zeilenhöhe. */
+  #backlog-body .btn-ghost { flex: 0 0 auto; }
   /* Kurzer Ring, wenn eine Session per Streifen-Klick geöffnet wird. */
   .history-session.session-flash { animation: sessionFlash 1.5s ease; }
   @keyframes sessionFlash {
@@ -1017,7 +1052,9 @@
      und innerer Lichtkante oben. */
   .btn-primary {
     border-radius: var(--radius-pill);
-    background: linear-gradient(168deg, var(--accent-hi) 0%, var(--accent) 46%, var(--accent-lo) 100%);
+    /* Weiterer Hell-Dunkel-Bogen als vorher: die drei Lime-Töne lagen zu nah
+       beieinander, auf dem Handy war vom Verlauf fast nichts zu sehen. */
+    background: linear-gradient(165deg, #ecff7d 0%, var(--accent) 44%, #82ad12 100%);
     color: var(--on-accent);
     font-weight: var(--w-title);
     box-shadow: var(--glow-accent), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.14);
@@ -1381,6 +1418,15 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-backlog" onclick="closeModalIfBg(event, 'modal-backlog')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="backlog-title">Tag nachtragen</div>
+    <div style="color:var(--text-muted);font-size:14px;margin-bottom:18px" id="backlog-sub"></div>
+    <div id="backlog-body"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-confirm" onclick="closeModalIfBg(event, 'modal-confirm')">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1509,7 +1555,14 @@ const FLOW_SCREENS = ['screen-workout', 'screen-day-preview', 'screen-finish'];
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const screen = document.getElementById(id);
+  screen.classList.add('active');
+
+  // Jeder Screen startet oben. Sonst erbt die Scrollfläche die letzte
+  // Fingerposition vom vorigen Besuch (Übersicht wirkte dadurch verschoben
+  // und blieb je nach Daumenposition an anderer Stelle stehen).
+  const area = screen.querySelector('.scroll-area');
+  if (area) area.scrollTop = 0;
 
   const tabbar = document.getElementById('tabbar');
   if (tabbar) {
@@ -1598,8 +1651,12 @@ function renderWeekStrip() {
     if (entries) {
       const training = entries.find(e => e.dayId); // Training schlägt Erholung
       style = ` style="background:${training ? getDayColor(training.dayId) : REST_COLOR}"`;
-      // Nur echte Trainings sind anklickbar → springen in den Verlauf.
+      // Nur echte Trainings sind anklickbar, springen in den Verlauf.
       if (training) { cellCls += ' clickable'; tap = ` onclick="openSessionFromStrip('${training.id}')"`; }
+    } else {
+      // Leerer Tag: nachträglich Training oder Aktive Erholung eintragen.
+      cellCls += ' backlog';
+      tap = ` onclick="openBacklog(${key})"`;
     }
     const cls = key === todayMs ? 'today' : '';
     cells.push(`<div class="week-strip-day ${cls}">
@@ -1623,7 +1680,13 @@ function openSessionFromStrip(sessionId) {
     body.classList.add('open');
     const card = body.closest('.history-session');
     if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Kartenkopf (Tagesname) an die Oberkante der Scrollfläche holen, statt
+      // die Karte mittig zu zentrieren. Dabei rutschte der Kopf nach unten weg.
+      const area = card.closest('.scroll-area');
+      if (area) {
+        const delta = card.getBoundingClientRect().top - area.getBoundingClientRect().top;
+        area.scrollTo({ top: area.scrollTop + delta - 12, behavior: 'smooth' });
+      }
       card.classList.add('session-flash');
       setTimeout(() => card.classList.remove('session-flash'), 1500);
     }
@@ -1780,7 +1843,7 @@ function renderFocusHome() {
   // Nudge nur, wenn die Pause auffällig lang ist — sonst still bleiben.
   const gap = daysSinceLastTraining();
   const alertHTML = (gap !== null && gap >= 3)
-    ? `<div class="focus-alert">⏳ Seit ${gap} Tagen nicht trainiert</div>`
+    ? `<div class="focus-alert">Seit ${gap} Tagen nicht trainiert</div>`
     : '';
 
   // Erste 3 sichtbar, Rest hinter dem Toggle — Zeilen sind immer im DOM,
@@ -1952,6 +2015,76 @@ function logActiveRest() {
   );
 }
 
+// ─── NACHTRAGEN (BACKLOG) ─────────────────────────────────────────────────────
+// Leere Zelle im Wochenstreifen antippen, um einen vergessenen Tag nachzutragen:
+// entweder Aktive Erholung oder eine Trainings-Session (ohne Live-Timer, direkt
+// auf das vergangene Datum gespeichert).
+
+let backlogTargetDate = null;      // Mitternachts-ms des angetippten Tages
+let pendingBacklogDate = null;     // an startWorkout durchgereicht, sonst null
+
+function hasEntryOnDate(ms) {
+  const k = startOfDay(ms);
+  return db.history.some(h => startOfDay(h.date) === k);
+}
+
+// Eintrag mittags ablegen: klar innerhalb des Tages, unempfindlich gegen DST.
+function dayNoon(ms) {
+  const d = new Date(ms); d.setHours(12, 0, 0, 0); return d.getTime();
+}
+
+function backlogDateLabel(ms) {
+  const s = new Date(ms).toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function openBacklog(ms) {
+  if (hasEntryOnDate(ms)) { showToast('Für diesen Tag gibt es schon einen Eintrag'); return; }
+  if (!db.plan.days.length) { showToast('Erst einen Plan anlegen'); return; }
+  backlogTargetDate = ms;
+  document.getElementById('backlog-title').textContent = 'Tag nachtragen';
+  document.getElementById('backlog-sub').textContent = backlogDateLabel(ms);
+  document.getElementById('backlog-body').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn-primary" style="width:100%" onclick="backlogTrainingPicker()">Training nachtragen</button>
+      <button class="btn-ghost" style="width:100%;height:54px" onclick="backlogRest()">Aktive Erholung</button>
+    </div>`;
+  openModal('modal-backlog');
+}
+
+function backlogRest() {
+  if (hasEntryOnDate(backlogTargetDate)) { closeModal('modal-backlog'); showToast('Für diesen Tag gibt es schon einen Eintrag'); return; }
+  db.history.unshift({
+    id: Date.now().toString(), planId: db.plan.id, dayId: null, dayName: 'Aktive Erholung',
+    date: dayNoon(backlogTargetDate), duration: 0, type: 'activeRest', exercises: []
+  });
+  db.history.sort((a, b) => b.date - a.date);   // Verlauf bleibt neueste zuerst
+  saveDB();
+  closeModal('modal-backlog');
+  renderFocusHome();
+  showToast('Aktive Erholung nachgetragen ✓');
+}
+
+function backlogTrainingPicker() {
+  document.getElementById('backlog-title').textContent = 'Welches Training?';
+  document.getElementById('backlog-body').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${db.plan.days.map(d => `
+        <button class="btn-ghost" style="width:100%;height:50px;justify-content:flex-start;padding:0 16px" onclick="startBacklogWorkout('${d.id}')">
+          <span style="width:9px;height:9px;border-radius:50%;background:${getDayColor(d.id)};display:inline-block;flex-shrink:0"></span>${d.name}
+        </button>`).join('')}
+    </div>
+    <button class="btn-ghost" style="width:100%;height:44px;margin-top:12px" onclick="openBacklog(backlogTargetDate)">← Zurück</button>`;
+}
+
+function startBacklogWorkout(dayId) {
+  if (hasEntryOnDate(backlogTargetDate)) { closeModal('modal-backlog'); showToast('Für diesen Tag gibt es schon einen Eintrag'); return; }
+  closeModal('modal-backlog');
+  pendingDayId = dayId;
+  pendingBacklogDate = dayNoon(backlogTargetDate);
+  startWorkout();
+}
+
 function getSuggestedDayId() {
   const days = db.plan.days;
   if (!days.length) return null;
@@ -2028,11 +2161,14 @@ function startWorkout() {
 
   // Build workout state
   const lastSession = getLastSession(dayId);
+  const backlogDate = pendingBacklogDate;   // null = normales Live-Training
+  pendingBacklogDate = null;
 
   workoutState = {
     dayId: dayId,
     dayName: day.name,
     startTime: Date.now(),
+    backlogDate: backlogDate,
     exercises: day.exercises.map(ex => {
       // Find last values for this exercise
       let lastSets = [];
@@ -2062,8 +2198,15 @@ function startWorkout() {
   prShownForEx = new Set();
   renderWorkout();
   showScreen('screen-workout');
-  startTimer();
-  requestWakeLock();
+  const timerEl = document.getElementById('workout-timer');
+  if (backlogDate) {
+    // Nachtragen: kein laufender Timer, stattdessen das Datum im Kopf.
+    timerEl.textContent = new Date(backlogDate).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
+  } else {
+    timerEl.textContent = '0:00';
+    startTimer();
+    requestWakeLock();
+  }
 }
 
 function saveWorkoutDraft() {
@@ -2079,13 +2222,19 @@ function resumeWorkout() {
   const draft = db.draftWorkout;
   if (!draft) return;
   workoutState = draft.workoutState;
-  const totalElapsed = draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
-  workoutState.startTime = Date.now() - totalElapsed * 1000;
   prShownForEx = new Set();
   renderWorkout();
   showScreen('screen-workout');
-  startTimer();
-  requestWakeLock();
+  const timerEl = document.getElementById('workout-timer');
+  if (workoutState.backlogDate) {
+    // Nachtrag-Draft: kein Timer, Datum im Kopf wie beim Start.
+    timerEl.textContent = new Date(workoutState.backlogDate).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
+  } else {
+    const totalElapsed = draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
+    workoutState.startTime = Date.now() - totalElapsed * 1000;
+    startTimer();
+    requestWakeLock();
+  }
 }
 
 function discardDraft() {
@@ -2196,7 +2345,7 @@ function renderWorkout() {
               oninput="setVal(${ei},${si},'weight',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${ex.weightStep || 2.5})">+</button>
           </div>
-          <button class="rest-btn" onclick="startRestTimer(${ex.restSeconds || 90})" title="Pause starten">⏱</button>
+          ${workoutState.backlogDate ? '' : `<button class="rest-btn" onclick="startRestTimer(${ex.restSeconds || 90})" title="Pause starten">⏱</button>`}
         </div>
       `;
     }).join('');
@@ -2299,8 +2448,8 @@ function finishWorkout() {
     planId: db.plan.id,
     dayId: workoutState.dayId,
     dayName: workoutState.dayName,
-    date: Date.now(),
-    duration: timerSeconds,
+    date: workoutState.backlogDate || Date.now(),
+    duration: workoutState.backlogDate ? 0 : timerSeconds,
     exercises: workoutState.exercises.map(ex => ({
       exId: ex.exId,
       name: ex.name,
@@ -2309,6 +2458,8 @@ function finishWorkout() {
   };
 
   db.history.unshift(session);
+  // Nachtrag hat ein vergangenes Datum, darum den Verlauf wieder ordnen.
+  if (workoutState.backlogDate) db.history.sort((a, b) => b.date - a.date);
   saveDB();
 
   // Show finish screen
@@ -2320,7 +2471,7 @@ function finishWorkout() {
   document.getElementById('finish-icon').textContent = isDayPR ? '🏆' : '🏋️';
   document.getElementById('finish-pr-badge').innerHTML = isDayPR
     ? `<div class="finish-pr-badge">⚡ Neuer Bestwert für ${session.dayName}!</div>` : '';
-  document.getElementById('finish-sub').textContent = workoutState.dayName + ' · ' + new Date().toLocaleDateString('de-AT', { day: 'numeric', month: 'long' });
+  document.getElementById('finish-sub').textContent = workoutState.dayName + ' · ' + new Date(session.date).toLocaleDateString('de-AT', { day: 'numeric', month: 'long' });
   document.getElementById('finish-stats').innerHTML = `
     <div class="finish-stat"><div class="finish-stat-num">${totalSets}</div><div class="finish-stat-label">Sets</div></div>
     <div class="finish-stat"><div class="finish-stat-num">${min}m</div><div class="finish-stat-label">Dauer</div></div>

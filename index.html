@@ -1400,9 +1400,33 @@
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:8px">
-      <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-exercise')">← Zurück</button>
+      <button class="btn-secondary" style="flex:1" onclick="exModalBack()">← Zurück</button>
       <button class="btn-primary" style="flex:2" onclick="saveExerciseModal()">Speichern</button>
     </div>
+  </div>
+</div>
+
+<!-- Picker: bestehendes Modul in den Tag hängen, oder neue Übung anlegen -->
+<div class="modal-overlay" id="modal-pick-exercise" onclick="closeModalIfBg(event, 'modal-pick-exercise')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Übung hinzufügen</div>
+    <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="showCreateExerciseModal()">＋ Neue Übung erstellen</button>
+    <div style="font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:8px">Oder bestehende wiederverwenden (History läuft weiter):</div>
+    <div id="pick-ex-list" style="max-height:50vh;overflow-y:auto"></div>
+    <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeModal('modal-pick-exercise')">← Zurück</button>
+  </div>
+</div>
+
+<!-- Fork: geteiltes Modul editiert, für alle Tage oder nur hier? -->
+<div class="modal-overlay" id="modal-fork" onclick="closeModalIfBg(event, 'modal-fork')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">In mehreren Tagen</div>
+    <div id="fork-text" style="font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:16px;line-height:var(--lh-snug)"></div>
+    <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="forkApplyAll()">Für alle Tage ändern</button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="forkOnlyHere()">Nur hier (neue Übung)</button>
+    <button class="btn-secondary" style="width:100%" onclick="closeModal('modal-fork')">Abbrechen</button>
   </div>
 </div>
 
@@ -1445,18 +1469,35 @@
 // ─── STATE ────────────────────────────────────────────────────────────────────
 
 const DB_KEY = 'tvrd_db';         // stable forever — never change this key
-const CURRENT_VERSION = 1;        // bump when schema changes, add migration below
+const CURRENT_VERSION = 2;        // bump when schema changes, add migration below
 
 function migrateDB(db) {
   // Each block runs only once per user, in order.
   // Add new blocks here when the schema changes — never edit existing ones.
 
-  // if (db.version < 2) {
-  //   db.plan.days.forEach(day =>
-  //     day.exercises.forEach(ex => ex.someNewField ??= defaultValue)
-  //   );
-  //   db.version = 2;
-  // }
+  // v2: Übungen werden eigenständige Module. Was bisher eingebettet im Tag lag,
+  // wandert 1:1 in einen Katalog (db.exercises), der Tag hält nur noch IDs.
+  // Rein strukturelles Anheben, kein Mergen (namensgleiche Übungen mit anderen
+  // Params sind verschiedene Module und haben getrennte Historien). Idempotent:
+  // bereits als String vorliegende Referenzen bleiben unangetastet.
+  if (db.version < 2) {
+    db.exercises = db.exercises || {};
+    (db.plan.days || []).forEach(day => {
+      day.exercises = (day.exercises || []).map(ex => {
+        if (typeof ex === 'string') return ex;
+        const id = ex.id || ('e' + Date.now() + Math.random().toString(36).slice(2, 6));
+        db.exercises[id] = {
+          name: ex.name,
+          sets: ex.sets,
+          targetReps: ex.targetReps,
+          weightStep: ex.weightStep,
+          restSeconds: ex.restSeconds
+        };
+        return id;
+      });
+    });
+    db.version = 2;
+  }
 
   return db;
 }
@@ -1484,58 +1525,46 @@ function saveDB() {
 function getDefaultDB() {
   return {
     version: CURRENT_VERSION,
+    // Katalog: Übung = eigenständiges Modul, per ID referenziert. Tage halten
+    // nur die IDs (day.exercises), History schlüsselt ebenfalls nach exId.
+    exercises: {
+      e1:  { name: 'Seil-Crunch', sets: 3, targetReps: '12-15', weightStep: 5 },
+      e2:  { name: 'Trunk Swing (stand)', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e3:  { name: 'Fly high to low', sets: 3, targetReps: '15-20', weightStep: 1.25 },
+      e4:  { name: 'BB Curl', sets: 3, targetReps: '10-12', weightStep: 2.5 },
+      e5:  { name: 'Incline Press', sets: 3, targetReps: '10-12', weightStep: 2.5 },
+      e6:  { name: 'Seated Curl', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e7:  { name: 'Cable Pushdown', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e8:  { name: 'Liegestütze', sets: 3, targetReps: '8-12', weightStep: 0 },
+      e9:  { name: 'Sissy-Squat', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e10: { name: 'Nordic Curl', sets: 3, targetReps: '10', weightStep: 0 },
+      e11: { name: 'Reverse Hyper', sets: 3, targetReps: '10', weightStep: 5 },
+      e12: { name: 'Front Squat', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e13: { name: 'Walking Lunges', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e14: { name: 'Wadl Hack', sets: 3, targetReps: 'all out', weightStep: 5 },
+      e15: { name: 'Trunk Swing hinged', sets: 3, targetReps: '12-15', weightStep: 2.5 },
+      e16: { name: 'Ball Crunch', sets: 3, targetReps: '12-15', weightStep: 0 },
+      e17: { name: 'Standing Side Raise', sets: 3, targetReps: '15-20', weightStep: 1.25 },
+      e18: { name: 'Cable Pushdown', sets: 3, targetReps: '15-20', weightStep: 2.5 },
+      e19: { name: 'Front Raise', sets: 3, targetReps: '10-12', weightStep: 2.5 },
+      e20: { name: 'Bar Overhead Push', sets: 3, targetReps: '12-15', weightStep: 5 },
+      e21: { name: 'Shoulder Press', sets: 3, targetReps: '8-10', weightStep: 2.5 },
+      e22: { name: 'Single Arm Pushdown', sets: 3, targetReps: '10-12', weightStep: 2.5 },
+      e23: { name: 'Reverse Hyper', sets: 3, targetReps: '15-20', weightStep: 5 },
+      e24: { name: 'Kettle Swing', sets: 3, targetReps: '15-20', weightStep: 4 },
+      e25: { name: 'Pulldown Front', sets: 3, targetReps: '12-15', weightStep: 5 },
+      e26: { name: 'Cable Row', sets: 3, targetReps: '15-20', weightStep: 5 },
+      e27: { name: 'Klimmzüge', sets: 3, targetReps: '8-10', weightStep: 0 },
+      e28: { name: 'Smith Row', sets: 3, targetReps: '12-15', weightStep: 5 },
+      e29: { name: 'Lower Back Row', sets: 3, targetReps: '12-15', weightStep: 5 },
+    },
     plan: {
       id: Date.now(),
       days: [
-        {
-          id: 'd1', name: 'Brust & Arme', emoji: '💪',
-          exercises: [
-            { id: 'e1', name: 'Seil-Crunch', sets: 3, targetReps: '12-15', weightStep: 5 },
-            { id: 'e2', name: 'Trunk Swing (stand)', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e3', name: 'Fly high to low', sets: 3, targetReps: '15-20', weightStep: 1.25 },
-            { id: 'e4', name: 'BB Curl', sets: 3, targetReps: '10-12', weightStep: 2.5 },
-            { id: 'e5', name: 'Incline Press', sets: 3, targetReps: '10-12', weightStep: 2.5 },
-            { id: 'e6', name: 'Seated Curl', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e7', name: 'Cable Pushdown', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e8', name: 'Liegestütze', sets: 3, targetReps: '8-12', weightStep: 0 },
-          ]
-        },
-        {
-          id: 'd2', name: 'Beine', emoji: '🦵',
-          exercises: [
-            { id: 'e9',  name: 'Sissy-Squat', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e10', name: 'Nordic Curl', sets: 3, targetReps: '10', weightStep: 0 },
-            { id: 'e11', name: 'Reverse Hyper', sets: 3, targetReps: '10', weightStep: 5 },
-            { id: 'e12', name: 'Front Squat', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e13', name: 'Walking Lunges', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e14', name: 'Wadl Hack', sets: 3, targetReps: 'all out', weightStep: 5 },
-          ]
-        },
-        {
-          id: 'd3', name: 'Schulter & Arme', emoji: '🏋️',
-          exercises: [
-            { id: 'e15', name: 'Trunk Swing hinged', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-            { id: 'e16', name: 'Ball Crunch', sets: 3, targetReps: '12-15', weightStep: 0 },
-            { id: 'e17', name: 'Standing Side Raise', sets: 3, targetReps: '15-20', weightStep: 1.25 },
-            { id: 'e18', name: 'Cable Pushdown', sets: 3, targetReps: '15-20', weightStep: 2.5 },
-            { id: 'e19', name: 'Front Raise', sets: 3, targetReps: '10-12', weightStep: 2.5 },
-            { id: 'e20', name: 'Bar Overhead Push', sets: 3, targetReps: '12-15', weightStep: 5 },
-            { id: 'e21', name: 'Shoulder Press', sets: 3, targetReps: '8-10', weightStep: 2.5 },
-            { id: 'e22', name: 'Single Arm Pushdown', sets: 3, targetReps: '10-12', weightStep: 2.5 },
-          ]
-        },
-        {
-          id: 'd4', name: 'Rücken', emoji: '🔙',
-          exercises: [
-            { id: 'e23', name: 'Reverse Hyper', sets: 3, targetReps: '15-20', weightStep: 5 },
-            { id: 'e24', name: 'Kettle Swing', sets: 3, targetReps: '15-20', weightStep: 4 },
-            { id: 'e25', name: 'Pulldown Front', sets: 3, targetReps: '12-15', weightStep: 5 },
-            { id: 'e26', name: 'Cable Row', sets: 3, targetReps: '15-20', weightStep: 5 },
-            { id: 'e27', name: 'Klimmzüge', sets: 3, targetReps: '8-10', weightStep: 0 },
-            { id: 'e28', name: 'Smith Row', sets: 3, targetReps: '12-15', weightStep: 5 },
-            { id: 'e29', name: 'Lower Back Row', sets: 3, targetReps: '12-15', weightStep: 5 },
-          ]
-        },
+        { id: 'd1', name: 'Brust & Arme', emoji: '💪', exercises: ['e1','e2','e3','e4','e5','e6','e7','e8'] },
+        { id: 'd2', name: 'Beine', emoji: '🦵', exercises: ['e9','e10','e11','e12','e13','e14'] },
+        { id: 'd3', name: 'Schulter & Arme', emoji: '🏋️', exercises: ['e15','e16','e17','e18','e19','e20','e21','e22'] },
+        { id: 'd4', name: 'Rücken', emoji: '🔙', exercises: ['e23','e24','e25','e26','e27','e28','e29'] },
       ]
     },
     history: [], // { id, planId, dayId, dayName, date, exercises: [{exId, name, sets:[{reps,weight}]}] }
@@ -1544,6 +1573,45 @@ function getDefaultDB() {
 }
 
 let db = loadDB();
+
+// ─── ÜBUNGS-KATALOG (MODULE) ────────────────────────────────────────────────────
+// Eine Übung ist ein eigenständiges Modul in db.exercises, referenziert per ID.
+// Tage speichern nur IDs; diese Helfer lösen sie zu vollen Objekten auf, damit
+// die Render-Stellen wie bisher mit ex.name / ex.sets / ex.id arbeiten können.
+
+function getExDef(id) {
+  return (db.exercises && db.exercises[id]) || null;
+}
+
+function hydrateEx(id) {
+  const d = getExDef(id) || {};
+  return {
+    id,
+    name: d.name || '?',
+    sets: d.sets,
+    targetReps: d.targetReps,
+    weightStep: d.weightStep,
+    restSeconds: d.restSeconds
+  };
+}
+
+// Voll aufgelöste, geordnete Übungsliste eines Tages.
+function dayExercises(day) {
+  return (day.exercises || []).map(hydrateEx);
+}
+
+// Alle Tage, die ein bestimmtes Modul referenzieren (für Fork-Logik beim Editieren).
+function daysUsingEx(id) {
+  return db.plan.days.filter(d => (d.exercises || []).includes(id));
+}
+
+// Vergleicht zwei Parameter-Sätze eines Moduls. Gleich = dieselbe Übung (Fall b),
+// unterschiedlich = per Leos Regel ein anderes Modul (Fall c).
+function exParamsDiffer(a, b) {
+  return a.name !== b.name || String(a.sets) !== String(b.sets) ||
+         a.targetReps !== b.targetReps || a.weightStep !== b.weightStep ||
+         (a.restSeconds || 90) !== (b.restSeconds || 90);
+}
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
 
@@ -1849,11 +1917,12 @@ function renderFocusHome() {
   // Erste 3 sichtbar, Rest hinter dem Toggle — Zeilen sind immer im DOM,
   // damit das Aufklappen ohne Re-Render funktioniert.
   const VISIBLE = 3;
-  const more = Math.max(0, day.exercises.length - VISIBLE);
+  const exList = dayExercises(day);
+  const more = Math.max(0, exList.length - VISIBLE);
   const moreLabel = `+${more} weitere Übung${more > 1 ? 'en' : ''}`;
-  const previewHTML = day.exercises.length ? `
+  const previewHTML = exList.length ? `
     <div class="focus-preview" id="focus-preview">
-      ${day.exercises.map((ex, i) => `
+      ${exList.map((ex, i) => `
         <div class="focus-preview-row${i >= VISIBLE ? ' extra' : ''}">
           <div class="focus-preview-name">${ex.name}</div>
           <div class="focus-preview-sets">${ex.sets}×${ex.targetReps}</div>
@@ -2136,7 +2205,7 @@ function previewDay(dayId) {
       <div class="preview-hero-sub">${day.exercises.length} Übungen${lastDate ? ' · Zuletzt ' + lastDate : ' · Erstes Mal'}</div>
     </div>
     <div class="preview-ex-list">
-      ${day.exercises.map(ex => {
+      ${dayExercises(day).map(ex => {
         const lastEx = lastSession && lastSession.exercises.find(e => e.exId === ex.id);
         const lastLine = lastEx
           ? lastEx.sets.map(s => `${s.reps}×${s.weight}kg`).join(' ')
@@ -2169,7 +2238,7 @@ function startWorkout() {
     dayName: day.name,
     startTime: Date.now(),
     backlogDate: backlogDate,
-    exercises: day.exercises.map(ex => {
+    exercises: dayExercises(day).map(ex => {
       // Find last values for this exercise
       let lastSets = [];
       if (lastSession) {
@@ -2632,17 +2701,21 @@ function renderPlan(expandDayId) {
   const totalEx = days.reduce((a, d) => a + d.exercises.length, 0);
 
   const daysHTML = days.map((day) => {
-    const exHTML = day.exercises.map((ex, ei) => `
+    const exList = dayExercises(day);
+    const exHTML = exList.map((ex, ei) => {
+      const shared = daysUsingEx(ex.id).length > 1;
+      return `
       <div class="plan-exercise-row" id="pex-${day.id}-${ei}" data-ex-row data-ex-idx="${ei}">
         <div class="drag-handle" ontouchstart="onExDragStart(event,'${day.id}',${ei})">⠿</div>
-        <div class="plan-ex-name">${ex.name}</div>
+        <div class="plan-ex-name">${ex.name}${shared ? ' <span title="in mehreren Tagen" style="color:var(--accent);font-size:var(--fs-xs)">↔</span>' : ''}</div>
         <div class="plan-ex-meta">${ex.sets}×${ex.targetReps}</div>
         <button class="plan-ex-edit" onclick="showEditExerciseModal('${day.id}', ${ei})">✏️</button>
         <button class="plan-ex-delete" onclick="deleteExercise('${day.id}', ${ei})">✕</button>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
-    const sets = day.exercises.reduce((a, ex) => a + (parseInt(ex.sets) || 0), 0);
+    const sets = exList.reduce((a, ex) => a + (parseInt(ex.sets) || 0), 0);
     const meta = day.exercises.length
       ? `${day.exercises.length} Übungen · ${sets} Sets`
       : 'Noch keine Übungen';
@@ -2712,9 +2785,57 @@ function togglePlanDay(id) {
   if (toggle) toggle.classList.toggle('open');
 }
 
+// Einstiegspunkt "＋ Übung hinzufügen": Picker mit vorhandenen Modulen plus
+// dem Weg, eine ganz neue Übung anzulegen.
 function showAddExerciseModal(dayId) {
   editingExercise = { dayId, exIdx: null };
-  document.getElementById('modal-ex-title').textContent = 'Übung hinzufügen';
+  const day = db.plan.days.find(d => d.id === dayId);
+  if (!day) return;
+
+  // Kandidaten: alle Katalog-Module, die in diesem Tag noch nicht drin sind.
+  const inDay = new Set(day.exercises || []);
+  const candidates = Object.keys(db.exercises || {})
+    .filter(id => !inDay.has(id))
+    .map(hydrateEx)
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+
+  const listHTML = candidates.length
+    ? candidates.map(ex => `
+        <div onclick="addExistingExercise('${ex.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border);cursor:pointer">
+          <div style="font-weight:600">${ex.name}</div>
+          <div style="font-size:var(--fs-xs);color:var(--text-muted);white-space:nowrap">${ex.sets}×${ex.targetReps}</div>
+        </div>`).join('')
+    : `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:var(--fs-sm)">Keine weiteren Module vorhanden.</div>`;
+
+  document.getElementById('pick-ex-list').innerHTML = listHTML;
+  openModal('modal-pick-exercise');
+}
+
+// Bestehendes Modul in den Tag hängen (Fall b: geteilte Übung, geteilte History).
+function addExistingExercise(id) {
+  const day = db.plan.days.find(d => d.id === editingExercise.dayId);
+  if (!day || !getExDef(id)) return;
+  if ((day.exercises || []).includes(id)) { showToast('Schon in diesem Tag'); return; }
+  day.exercises.push(id);
+  saveDB();
+  closeModal('modal-pick-exercise');
+  renderPlan(editingExercise.dayId);
+  showToast('Übung hinzugefügt');
+}
+
+// "← Zurück" im Übungs-Formular: beim Erstellen zurück zum Picker, beim
+// Bearbeiten einfach schließen.
+function exModalBack() {
+  closeModal('modal-exercise');
+  if (editingExercise.exIdx === null && editingExercise.dayId) {
+    showAddExerciseModal(editingExercise.dayId);
+  }
+}
+
+// Formular für eine komplett neue Übung (neues Modul).
+function showCreateExerciseModal() {
+  closeModal('modal-pick-exercise');
+  document.getElementById('modal-ex-title').textContent = 'Neue Übung';
   document.getElementById('ex-name-input').value = '';
   document.getElementById('ex-sets-input').value = '';
   document.getElementById('ex-reps-input').value = '';
@@ -2726,7 +2847,8 @@ function showAddExerciseModal(dayId) {
 function showEditExerciseModal(dayId, exIdx) {
   editingExercise = { dayId, exIdx };
   const day = db.plan.days.find(d => d.id === dayId);
-  const ex = day.exercises[exIdx];
+  const ex = getExDef(day.exercises[exIdx]);
+  if (!ex) return;
   document.getElementById('modal-ex-title').textContent = 'Übung bearbeiten';
   document.getElementById('ex-name-input').value = ex.name;
   document.getElementById('ex-sets-input').value = ex.sets;
@@ -2751,10 +2873,26 @@ function saveExerciseModal() {
   const day = db.plan.days.find(d => d.id === editingExercise.dayId);
   if (!day) return;
 
+  const params = { name, sets, targetReps, weightStep, restSeconds };
+
   if (editingExercise.exIdx !== null) {
-    day.exercises[editingExercise.exIdx] = { ...day.exercises[editingExercise.exIdx], name, sets, targetReps, weightStep, restSeconds };
+    const id = day.exercises[editingExercise.exIdx];
+    const current = getExDef(id) || {};
+    const users = daysUsingEx(id);
+    // Liegt das Modul in mehreren Tagen und ändern sich Parameter, ist die Frage
+    // aus Leos Regel: derselbe Bewegungs-Eintrag für alle (Fall b) oder hier eine
+    // eigene Übung (Fall c)? Sonst still in place ändern.
+    if (users.length > 1 && exParamsDiffer(current, params)) {
+      pendingExEdit = { dayId: editingExercise.dayId, exIdx: editingExercise.exIdx, id, params, dayCount: users.length };
+      closeModal('modal-exercise');
+      openForkModal(users.length);
+      return;
+    }
+    db.exercises[id] = params;
   } else {
-    day.exercises.push({ id: 'e' + Date.now(), name, sets, targetReps, weightStep, restSeconds });
+    const id = 'e' + Date.now();
+    db.exercises[id] = params;
+    day.exercises.push(id);
   }
 
   saveDB();
@@ -2763,9 +2901,55 @@ function saveExerciseModal() {
   showToast(editingExercise.exIdx !== null ? 'Übung aktualisiert' : 'Übung hinzugefügt');
 }
 
+// ─── FORK BEIM EDITIEREN GETEILTER MODULE ───────────────────────────────────────
+// Wird ein Modul editiert, das in mehreren Tagen liegt, entscheidet der Nutzer,
+// ob die Änderung überall greift oder nur hier eine neue Übung entsteht (Fall c).
+
+let pendingExEdit = null;
+
+function openForkModal(dayCount) {
+  document.getElementById('fork-text').textContent =
+    `Diese Übung liegt in ${dayCount} Tagen. Soll die Änderung für alle gelten oder nur hier eine eigene Übung werden?`;
+  openModal('modal-fork');
+}
+
+function forkApplyAll() {
+  if (!pendingExEdit) return;
+  db.exercises[pendingExEdit.id] = pendingExEdit.params;
+  finishFork();
+  showToast('In allen Tagen aktualisiert');
+}
+
+function forkOnlyHere() {
+  if (!pendingExEdit) return;
+  const day = db.plan.days.find(d => d.id === pendingExEdit.dayId);
+  if (!day) { pendingExEdit = null; closeModal('modal-fork'); return; }
+  const newId = 'e' + Date.now();
+  db.exercises[newId] = pendingExEdit.params;   // neues Modul, eigene History ab jetzt
+  day.exercises[pendingExEdit.exIdx] = newId;   // nur dieser Tag zeigt drauf
+  finishFork();
+  showToast('Als eigene Übung angelegt');
+}
+
+function finishFork() {
+  const dayId = pendingExEdit.dayId;
+  pendingExEdit = null;
+  saveDB();
+  closeModal('modal-fork');
+  renderPlan(dayId);
+}
+
 function deleteExercise(dayId, exIdx) {
   const day = db.plan.days.find(d => d.id === dayId);
-  showConfirm('Übung löschen?', `"${day.exercises[exIdx].name}" wird aus dem Plan entfernt.`, () => {
+  const id = day.exercises[exIdx];
+  const ex = getExDef(id) || { name: '?' };
+  const elsewhere = daysUsingEx(id).length - 1;   // andere Tage, die dasselbe Modul nutzen
+  // Es wird nur die Referenz aus diesem Tag entfernt. Das Modul und seine
+  // komplette History bleiben erhalten (wiederverwendbar über "Übung hinzufügen").
+  const msg = elsewhere > 0
+    ? `"${ex.name}" wird aus diesem Tag entfernt (bleibt in ${elsewhere} ${elsewhere === 1 ? 'anderen Tag' : 'anderen Tagen'}).`
+    : `"${ex.name}" wird aus diesem Tag entfernt. Die History bleibt erhalten und die Übung ist über "Übung hinzufügen" wieder einsetzbar.`;
+  showConfirm('Übung entfernen?', msg, () => {
     day.exercises.splice(exIdx, 1);
     saveDB();
     closeModal('modal-confirm');
@@ -2878,7 +3062,10 @@ function importData(input) {
     try {
       const parsed = JSON.parse(e.target.result);
       if (!parsed.plan || !parsed.history) throw new Error('Ungültiges Format');
-      parsed.version = parsed.version || CURRENT_VERSION;
+      // Alte Backups ohne Version gelten als v1, damit die v2-Migration greift
+      // (Übungen aus den Tagen in den Katalog heben). Nicht auf CURRENT_VERSION
+      // heben, sonst würde die Migration übersprungen.
+      parsed.version = parsed.version || 1;
       const migrated = migrateDB(parsed);
       localStorage.setItem(DB_KEY, JSON.stringify(migrated));
       showToast('Import erfolgreich — App wird neu geladen…');

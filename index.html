@@ -710,7 +710,9 @@
   }
   .modal-title {
     font-size: var(--fs-lg); font-weight: 700; margin-bottom: 16px;
-    letter-spacing: var(--tr-title); line-height: var(--lh-snug);
+    letter-spacing: var(--tr-title); line-height: 1.4;
+    /* etwas Luft, damit Archivo-Unterlaengen (g/ü) nicht an der Kante clippen */
+    padding-bottom: 2px;
   }
   .form-field { margin-bottom: 14px; }
   .form-label {
@@ -1412,7 +1414,7 @@
     <div class="modal-handle"></div>
     <div class="modal-title">Übung hinzufügen</div>
     <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="showCreateExerciseModal()">＋ Neue Übung erstellen</button>
-    <div style="font-size:var(--fs-xs);color:var(--text-muted);margin-bottom:8px">Oder bestehende wiederverwenden (History läuft weiter):</div>
+    <input class="form-input" id="pick-ex-search" type="text" placeholder="Übung suchen…" oninput="renderPickList(this.value)" style="margin-bottom:8px">
     <div id="pick-ex-list" style="max-height:50vh;overflow-y:auto"></div>
     <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeModal('modal-pick-exercise')">← Zurück</button>
   </div>
@@ -2787,6 +2789,8 @@ function togglePlanDay(id) {
 
 // Einstiegspunkt "＋ Übung hinzufügen": Picker mit vorhandenen Modulen plus
 // dem Weg, eine ganz neue Übung anzulegen.
+let pickCandidates = [];   // wiederverwendbare Module, gefiltert per Suchleiste
+
 function showAddExerciseModal(dayId) {
   editingExercise = { dayId, exIdx: null };
   const day = db.plan.days.find(d => d.id === dayId);
@@ -2794,21 +2798,37 @@ function showAddExerciseModal(dayId) {
 
   // Kandidaten: alle Katalog-Module, die in diesem Tag noch nicht drin sind.
   const inDay = new Set(day.exercises || []);
-  const candidates = Object.keys(db.exercises || {})
+  pickCandidates = Object.keys(db.exercises || {})
     .filter(id => !inDay.has(id))
     .map(hydrateEx)
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 
-  const listHTML = candidates.length
-    ? candidates.map(ex => `
-        <div onclick="addExistingExercise('${ex.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border);cursor:pointer">
-          <div style="font-weight:600">${ex.name}</div>
-          <div style="font-size:var(--fs-xs);color:var(--text-muted);white-space:nowrap">${ex.sets}×${ex.targetReps}</div>
-        </div>`).join('')
-    : `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:var(--fs-sm)">Keine weiteren Module vorhanden.</div>`;
-
-  document.getElementById('pick-ex-list').innerHTML = listHTML;
+  const search = document.getElementById('pick-ex-search');
+  search.value = '';
+  search.hidden = pickCandidates.length === 0;   // ohne Module keine leere Suchleiste
+  renderPickList('');
   openModal('modal-pick-exercise');
+}
+
+// Liste der wiederverwendbaren Module, live gefiltert nach dem Suchbegriff
+// (Namens-Substring, case-insensitive).
+function renderPickList(query) {
+  const q = (query || '').trim().toLowerCase();
+  const rows = pickCandidates.filter(ex => ex.name.toLowerCase().includes(q));
+
+  let html;
+  if (!pickCandidates.length) {
+    html = `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:var(--fs-sm)">Keine weiteren Module vorhanden.</div>`;
+  } else if (!rows.length) {
+    html = `<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:var(--fs-sm)">Kein Treffer für „${q}".</div>`;
+  } else {
+    html = rows.map(ex => `
+      <div onclick="addExistingExercise('${ex.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border);cursor:pointer">
+        <div style="font-weight:600">${ex.name}</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);white-space:nowrap">${ex.sets}×${ex.targetReps}</div>
+      </div>`).join('');
+  }
+  document.getElementById('pick-ex-list').innerHTML = html;
 }
 
 // Bestehendes Modul in den Tag hängen (Fall b: geteilte Übung, geteilte History).

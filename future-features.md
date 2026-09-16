@@ -83,3 +83,28 @@ Auth/User Management zuerst, dann Backup (Stufe 1), dann Multi-Device-Sync (Stuf
 
 **Vorsicht Scope:** ändert tvrd vom persönlichen Tool zum Produkt. Nur angehen, wenn's
 wirklich mehr als einen Nutzer geben soll — sonst reine Komplexität ohne Gegenwert.
+
+---
+
+## Self-Healing: übersprungenes Training nachholen vs. chronologisch weiter
+
+**Idee:** Wenn ein Trainingstag ausgelassen wurde, gibt der Homescreen dem Nutzer die
+Wahl, statt stillschweigend eine Reihenfolge zu erzwingen:
+- **chronologisch weitermachen** (der Tag, der laut Rotation als nächstes dran wäre), oder
+- **das übersprungene Training nachholen**.
+
+**UI:** Der Homescreen zeigt dann **zwei Karten statt einer**, klar beschriftet — welche
+das übersprungene Training ist und welche chronologisch als nächstes käme. Nutzer tippt
+die an, die er machen will.
+
+**Warum:** Aktuell schlägt `getSuggestedDayId()` genau *einen* Tag vor und `renderFocusHome`
+rendert *eine* „Nächstes Training"-Karte. Bei einer Auslassung trifft die App die
+Entscheidung still für den Nutzer — dieses Feature macht die Wahl explizit und sichtbar.
+
+**Implementation notes:**
+- Auslassung erkennen: Soll-Rotation vs. tatsächliche History vergleichen (welcher Tag
+  wäre fällig gewesen, wurde aber nicht geloggt).
+- Nur zwei Karten zeigen, wenn wirklich eine Lücke existiert — sonst wie bisher eine Karte
+  (kein Dauer-Zwei-Karten-Zustand).
+- Zum bestehenden dynamischen Fit passen (`fitFocusPreview`): zwei Karten dürfen die
+  Buttons nicht wieder unter die Tabbar drücken.

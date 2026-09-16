@@ -933,15 +933,6 @@
   .preview-ex-meta { font-size: var(--fs-xs); color: var(--text-muted); }
   .preview-ex-last { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 6px; }
 
-  /* PROGRESS BARS */
-  .exercise-progress {
-    height: 3px; background: var(--border); border-radius: 2px; margin: 0 16px 2px;
-  }
-  .exercise-progress-fill {
-    height: 100%; background: var(--accent); border-radius: 2px;
-    transition: width 0.3s ease;
-  }
-
   /* NAV TABS */
   .nav-tabs {
     display: flex; background: var(--surface); border-bottom: 1px solid var(--border);
@@ -1185,13 +1176,6 @@
   }
   .rest-timer-num { font-weight: var(--w-display); letter-spacing: var(--tr-display); }
 
-  /* ─── FORTSCHRITT ─────────────────────────────────────────────────────*/
-  .exercise-progress { background: rgba(255,255,255,0.07); height: 4px; border-radius: 4px; }
-  .exercise-progress-fill {
-    background: linear-gradient(90deg, var(--accent-lo), var(--accent-hi));
-    box-shadow: 0 0 12px var(--accent-glow);
-    border-radius: 4px;
-  }
 
   /* ─── MODALS, EINGABEN, TOASTS ────────────────────────────────────────*/
   .modal { border-radius: 28px 28px 0 0; box-shadow: var(--lift-2); }
@@ -1293,7 +1277,6 @@
     <button class="btn-icon" onclick="confirmExitWorkout()">←</button>
     <div style="flex:1">
       <div class="header-title" id="workout-title"></div>
-      <div class="header-sub" id="workout-progress-text"></div>
     </div>
     <div id="workout-timer" style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums;">0:00</div>
   </div>
@@ -2255,11 +2238,16 @@ function startWorkout() {
         restSeconds: ex.restSeconds || 90,
         sets: Array.from({ length: ex.sets }, (_, i) => {
           const prev = lastSets[i];
-          return {
-            reps: prev ? prev.reps : '',
-            weight: prev ? prev.weight : '',
-            done: false
-          };
+          // GRUNDPRINZIP "minimal Input beim Loggen": commit-per-default.
+          // Vorwerte der letzten Session gelten sofort als geloggt (done=true):
+          // der User bestätigt nicht jeden Set, sondern korrigiert nur, was
+          // abweicht/nicht gemacht wurde. Progress-Bar startet daher voll.
+          // Bewusste Design-Entscheidung. TODO: im geplanten Onboarding wählbar
+          // machen (commit-per-default vs. commit-per-entry). Erster von mehreren
+          // Onboarding-Entscheidungspunkten.
+          const set = { reps: prev ? prev.reps : '', weight: prev ? prev.weight : '', done: false };
+          set.done = isSetCommitted(set);
+          return set;
         }),
         lastSets: lastSets
       };
@@ -2386,13 +2374,9 @@ document.addEventListener('visibilitychange', () => {
 function renderWorkout() {
   if (!workoutState) return;
   document.getElementById('workout-title').textContent = workoutState.dayName;
-  updateWorkoutProgress();
 
   const body = document.getElementById('workout-body');
   body.innerHTML = workoutState.exercises.map((ex, ei) => {
-    const doneSets = ex.sets.filter(s => s.done).length;
-    const progress = ex.sets.length ? (doneSets / ex.sets.length) * 100 : 0;
-
     const setsHTML = ex.sets.map((set, si) => {
       const prevSet = ex.lastSets[si];
       const repsWidget = `<div class="num-widget reps-widget">
@@ -2400,6 +2384,7 @@ function renderWorkout() {
             <input class="num-input" type="number" inputmode="numeric"
               value="${set.reps}"
               placeholder="${ex.targetReps.split('-')[0]}"
+              onfocus="setTimeout(() => this.select(), 0)"
               onchange="setVal(${ei},${si},'reps',this.value)"
               oninput="setVal(${ei},${si},'reps',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'reps',1)">+</button>
@@ -2412,6 +2397,7 @@ function renderWorkout() {
             <input class="num-input" type="number" inputmode="decimal"
               value="${set.weight}"
               placeholder="${prevSet ? prevSet.weight : '0'}"
+              onfocus="setTimeout(() => this.select(), 0)"
               onchange="setVal(${ei},${si},'weight',this.value)"
               oninput="setVal(${ei},${si},'weight',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${ex.weightStep || 2.5})">+</button>
@@ -2422,12 +2408,11 @@ function renderWorkout() {
     }).join('');
 
     return `
-      <div class="exercise-block">
+      <div class="exercise-block" id="ex-block-${ei}">
         <div class="exercise-header">
           <div class="exercise-name">${ex.name}</div>
           <div class="exercise-target">${ex.targetReps} reps</div>
         </div>
-        <div class="exercise-progress"><div class="exercise-progress-fill" id="prog-${ei}" style="width:${progress}%"></div></div>
         <div class="set-cols-header">
           <div class="set-col-label reps-col">reps</div>
           <div class="set-col-label weight-col">kg</div>
@@ -2436,13 +2421,6 @@ function renderWorkout() {
       </div>
     `;
   }).join('');
-}
-
-function updateWorkoutProgress() {
-  if (!workoutState) return;
-  const total = workoutState.exercises.reduce((a, ex) => a + ex.sets.length, 0);
-  const done = workoutState.exercises.reduce((a, ex) => a + ex.sets.filter(s => s.done).length, 0);
-  document.getElementById('workout-progress-text').textContent = `${done} / ${total} Sets`;
 }
 
 function isSetCommitted(set) {
@@ -2470,15 +2448,13 @@ function onValChanged(ei, si) {
   const set = workoutState.exercises[ei].sets[si];
   set.done = isSetCommitted(set);
 
+  // done-Styling pro Set-Zeile (leichter Lime-Hintergrund = geloggt). Die
+  // ehemalige Übungs-Progress-Bar wurde entfernt, weil sie bei commit-per-default
+  // strukturell fast immer voll war. Kommt mit dem Onboarding-Modus
+  // commit-per-entry zurueck (siehe Memory tvrd-minimal-input-principle).
   const row = document.getElementById(`set-${ei}-${si}`);
   row.classList.toggle('done', set.done);
 
-  const ex = workoutState.exercises[ei];
-  const doneSets = ex.sets.filter(s => s.done).length;
-  const progFill = document.getElementById(`prog-${ei}`);
-  if (progFill) progFill.style.width = `${(doneSets / ex.sets.length) * 100}%`;
-
-  updateWorkoutProgress();
   saveWorkoutDraft();
 }
 
@@ -3174,7 +3150,7 @@ function checkSetAndExPR(ei, si) {
   const sessionExVol = ex.sets.reduce((a, s) => a + (+s.reps||0)*(+s.weight||0), 0);
   if (sessionExVol > bests.bestSessionVol && sessionExVol > 0 && !prShownForEx.has(ei)) {
     prShownForEx.add(ei);
-    const block = document.getElementById(`prog-${ei}`)?.closest('.exercise-block');
+    const block = document.getElementById(`ex-block-${ei}`);
     if (block) {
       block.classList.remove('pr-ex-glow');
       void block.offsetWidth;

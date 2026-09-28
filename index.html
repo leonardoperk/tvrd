@@ -249,19 +249,15 @@
   .focus-meta { font-size: var(--fs-sm); color: var(--text-dim); }
 
   /* FOCUS VIEW — READY STATE */
-  /* Sanfter Nudge, keine Warnung. Läuft im gleichen dunklen Glas wie die
-     Ghost-Buttons und Chips, statt als orange Fehlermeldung aus der Reihe zu
-     fallen. Ein kleiner Lime-Punkt trägt den Status, ohne Emoji. */
+  /* Sanfter Nudge, keine Warnung. Sitzt ohne eigenen Kasten direkt auf dem
+     Hintergrund-Verlauf, statt als dunkle Pille darüber zu liegen. Ein kleiner
+     Lime-Punkt trägt den Status, ohne Emoji. */
   .focus-alert {
     display: inline-flex; align-items: center; gap: 7px;
     font-size: var(--fs-micro); font-weight: 700;
     letter-spacing: var(--tr-label); text-transform: uppercase;
     color: var(--text-muted);
-    background: var(--surface2);
-    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-    border: 1px solid var(--border-soft);
-    box-shadow: var(--lift-1), inset 0 1px 0 rgba(255,255,255,0.06);
-    padding: 5px 12px 5px 10px; border-radius: var(--radius-pill); margin-bottom: 13px;
+    padding: 0; margin-bottom: 13px;
   }
   .focus-alert::before {
     content: ""; width: 6px; height: 6px; border-radius: 50%;
@@ -1592,8 +1588,11 @@ function daysUsingEx(id) {
 
 // Vergleicht zwei Parameter-Sätze eines Moduls. Gleich = dieselbe Übung (Fall b),
 // unterschiedlich = per Leos Regel ein anderes Modul (Fall c).
-function exParamsDiffer(a, b) {
-  return a.name !== b.name || String(a.sets) !== String(b.sets) ||
+// Nur die Trainingsparameter, bewusst OHNE Namen. Ein reiner Rename ist dieselbe
+// Bewegung mit anderem Label und darf nie forken (sonst neue ID = History-Abriss).
+// Geforkt wird nur, wenn sich Sets/Reps/Step/Rest tatsächlich ändern.
+function exTrainingParamsDiffer(a, b) {
+  return String(a.sets) !== String(b.sets) ||
          a.targetReps !== b.targetReps || a.weightStep !== b.weightStep ||
          (a.restSeconds || 90) !== (b.restSeconds || 90);
 }
@@ -1896,7 +1895,7 @@ function renderFocusHome() {
   // Nudge nur, wenn die Pause auffällig lang ist — sonst still bleiben.
   const gap = daysSinceLastTraining();
   const alertHTML = (gap !== null && gap >= 3)
-    ? `<div class="focus-alert">Seit ${gap} Tagen nicht trainiert</div>`
+    ? `<div class="focus-alert">${gap}. Tag nicht trainiert</div>`
     : '';
 
   // Erste 3 sichtbar, Rest hinter dem Toggle — Zeilen sind immer im DOM,
@@ -2875,10 +2874,11 @@ function saveExerciseModal() {
     const id = day.exercises[editingExercise.exIdx];
     const current = getExDef(id) || {};
     const users = daysUsingEx(id);
-    // Liegt das Modul in mehreren Tagen und ändern sich Parameter, ist die Frage
-    // aus Leos Regel: derselbe Bewegungs-Eintrag für alle (Fall b) oder hier eine
-    // eigene Übung (Fall c)? Sonst still in place ändern.
-    if (users.length > 1 && exParamsDiffer(current, params)) {
+    // Liegt das Modul in mehreren Tagen und ändern sich Trainingsparameter, ist
+    // die Frage aus Leos Regel: derselbe Bewegungs-Eintrag für alle (Fall b) oder
+    // hier eine eigene Übung (Fall c)? Ein reiner Rename fällt hier bewusst nicht
+    // rein (Name ist ausgenommen) und wird immer in place für alle Tage übernommen.
+    if (users.length > 1 && exTrainingParamsDiffer(current, params)) {
       pendingExEdit = { dayId: editingExercise.dayId, exIdx: editingExercise.exIdx, id, params, dayCount: users.length };
       closeModal('modal-exercise');
       openForkModal(users.length);

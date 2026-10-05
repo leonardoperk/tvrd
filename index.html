@@ -965,6 +965,8 @@
     backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
     box-shadow: var(--lift-1);
   }
+  /* Banner und Toast sind fixed; die Gruppe oben darf sie nicht auf relative zurücksetzen */
+  .rest-timer-banner, .toast { position: fixed; }
   .focus-preview::before, .day-row::before, .exercise-block::before,
   .plan-day-block::before, .stat-card::before, .chart-wrap::before,
   .finish-stat::before, .history-session::before, .modal::before {

@@ -50,9 +50,11 @@ Every decision below exists to reduce something specific I noticed getting in my
 
 **Weight increments are preset per exercise.** Dumbbell exercises step in 2.5 kg. Cables step in 5 kg. I set this once when I built the plan, and from then on `+` moves by the right amount. No "which weight is next" math mid-set.
 
-**Entering a value commits the set.** There used to be a separate `✓` checkmark. It's gone. Typing or tapping a stepper marks the set as done. One less tap, every set, every workout.
+**Entering a value commits the set.** Typing or tapping a stepper marks the set as done and the row tints lime. No confirm step needed.
 
-**Rest timer is one tap per set.** A small ⏱ icon on each row, with a duration I configured once per exercise. Ticks down in a banner, vibrates and flashes at zero, tap anywhere on the banner to cancel.
+**The checkmark starts the rest.** Each row has a `✓`. It doesn't log anything, the values already did that. Tapping it confirms the set with a short animation and starts the rest timer, which slides open right under that set. Tap the `✓` again to stop it. Same single tap the old ⏱ button needed, it just feels better.
+
+**Supersets run as one block.** Two or more exercises back to back, no rest in between. In the workout they show up as rounds: every exercise of a round stacked, one `✓` per round, rest only after the round.
 
 **Screen stays awake mid-workout** (Wake Lock API), and re-engages automatically if I background the tab. My phone never locks in the middle of a set.
 
@@ -142,6 +144,8 @@ The full picture of what the app is trying to do for the user, broken down acros
 
 Functionally rougher than execution mode, and deliberately so. I open it rarely, usually just to add or swap an exercise, so it hasn't earned the same depth of features. Same cost/benefit logic that runs the whole project: build when a real need shows up.
 
+Supersets live here too. Long-press the drag handle of an exercise, check the ones that belong with it, done. If their sets or rest times differ, the app asks once which to use. A superset is its own module: reusable across days, and it keeps its own history. Curls in a superset put out less than curls on their own, so the numbers stay separate.
+
 It did inherit the full visual treatment, though. That fell out of doing the design work at the token layer instead of screen by screen.
 
 The interesting thing this mode does *not* do yet: **multi-plan activation and long-term periodization.** Swap between several active plans, and see how they build on each other across months. It assumes the user plans across cycles, not week to week. On the list, not built.
@@ -167,7 +171,6 @@ Stated plainly, because a tool you use daily has real edges:
 
 - **Data is device-bound.** `localStorage` lives in one browser on one device. The custom domain fixed the "bookmark change looks like data loss" problem, but it does **not** sync across devices. Backup and restore are manual JSON export/import.
 - **Cross-plan history mixes silently.** Each session stores its `planId`, but nothing filters on it yet. Activate a new plan and old sessions still count toward the stats.
-- **Migration scaffold, no migrations yet.** There's versioned-schema plumbing for zero-downtime data upgrades, but the app is still on v1, so it's untested in practice.
 
 ---
 
@@ -177,7 +180,7 @@ Stated plainly, because a tool you use daily has real edges:
 flowchart LR
   subgraph Client["🖥️  Client (Browser / installed PWA)"]
     direction TB
-    HTML["Single HTML file<br/>~2,700 lines<br/>inline CSS + vanilla JS<br/>Archivo variable font as base64"]
+    HTML["Single HTML file<br/>~4,200 lines<br/>inline CSS + vanilla JS<br/>Archivo variable font as base64"]
     LS[("localStorage<br/>key: tvrd_db<br/>versioned schema")]
     APIs["Platform APIs<br/>Wake Lock · Vibration<br/>PWA install"]
     HTML <--> LS
@@ -199,8 +202,8 @@ flowchart LR
   Client -.-> Auth
 ```
 
-- **One HTML file.** ~2,700 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Archivo variable font is embedded as base64, subset to Latin + umlauts + digits, with axes trimmed to what's used (weight 400-900, width 100-125%). No network request for it.
-- **Persistence:** `localStorage`, versioned schema with a migration scaffold. Backup and restore via JSON file (manual).
+- **One HTML file.** ~4,200 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Archivo variable font is embedded as base64, subset to Latin + umlauts + digits, with axes trimmed to what's used (weight 400-900, width 100-125%). No network request for it.
+- **Persistence:** `localStorage`, versioned schema with sequential migrations (currently v2, which turned exercises into shared modules). Backup and restore via JSON file (manual).
 - **Charts:** hand-rolled inline SVG, no charting library.
 - **Platform APIs:** Wake Lock (screen stays on mid-workout), Vibration (rest-timer alert), installable PWA (standalone, custom home-screen icon).
 - **Deploy:** GitHub Pages with a custom domain via `CNAME`. Push to `main` deploys.

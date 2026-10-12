@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a0a0a">
-<title>TVRD — User Story Map</title>
+<title>TVRD · User Story Map</title>
 <style>
   :root {
     --bg: #0a0a0a;
@@ -153,15 +153,15 @@
 </style>
 </head>
 <body>
-<h2 class="sr-only">TVRD User Story Map — user needs and how the app addresses them across the full journey</h2>
+<h2 class="sr-only">TVRD User Story Map: user needs and how the app addresses them across the full journey</h2>
 
 <div class="page-header">
-  <span class="page-title">TVRD — Story Map</span>
-  <span class="page-sub">User perspective · Aug 2026</span>
+  <span class="page-title">TVRD · Story Map</span>
+  <span class="page-sub">User perspective · Oct 2026</span>
 </div>
 
 <div class="principle-bar">
-  <b>Design principle:</b> Execution mode (Start Training → Log Training → Finish &amp; Review) is optimized for zero friction and minimal decisions — tracking is a cost, not the goal. Plan mode (Set Up Plan, Track Progress, Manage Data) is deliberately rougher: I rarely reconfigure, so it gets built out only as real needs surface.
+  <b>Design principle:</b> Execution mode (Start Training → Log Training → Finish &amp; Review) is optimized for zero friction and minimal decisions. Tracking is a cost, not the goal. Plan mode (Set Up Plan, Track Progress, Manage Data) is deliberately rougher: I rarely reconfigure, so it gets built out only as real needs surface.
 </div>
 
 <div class="legend">
@@ -179,7 +179,7 @@
   <div class="col">
     <div class="act-head">
       1 · Set Up Plan
-      <div class="act-head-note">Deliberately rough — expert-tier planning lives here as gaps</div>
+      <div class="act-head-note">Deliberately rough: expert-tier planning lives here as gaps</div>
     </div>
 
     <div class="main-story">
@@ -188,17 +188,31 @@
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I want to configure a day — add exercises, name it, tweak the details."</div>
+      <div class="sub-story-text">"I want to configure a day: add exercises, name it, tweak the details."</div>
       <div class="fc built">Create / rename / delete training day</div>
       <div class="fc built">Add exercise with sets, target reps, weight step &amp; rest duration</div>
-      <div class="fc built">Edit or delete any exercise</div>
-      <div class="fc built">Drag to reorder exercises within a day</div>
+      <div class="fc built">Edit or remove any exercise. Removing it from a day keeps its history</div>
+      <div class="fc built">Drag to reorder exercises within a day (a superset moves as one block, its exercises reorder only inside it)</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to reuse an exercise in another day without typing it in again."</div>
+      <div class="fc built">Exercises are modules: a searchable picker adds an existing one to another day, history stays shared</div>
+      <div class="fc built">↔ marks a module used in several days. Changing its sets, reps, step or rest asks: everywhere, or its own exercise here</div>
+      <div class="fc built">A pure rename applies everywhere and never splits the history</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to pair exercises I do back to back, without rest in between."</div>
+      <div class="fc built">Create a superset: long-press an exercise's drag handle, pick 2 or more. Differing sets or rest are asked once, bundled</div>
+      <div class="fc built">Superset is its own module: reusable across days (↔), fork question when edited while shared</div>
+      <div class="fc built">Superset shows as a box in the plan: tap to edit, add/remove exercises, dissolve</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to activate a new plan when my focus changes, without losing old history."</div>
       <div class="fc built">Activate new plan (stamps new ID, history stays intact)</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Multiple active-swappable plans + long-term periodization — how plans build on each other over months. Expert-tier feature that assumes the user plans across cycles, not week-to-week.</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Multiple active-swappable plans + long-term periodization: how plans build on each other over months. Expert-tier feature that assumes the user plans across cycles, not week to week.</div>
     </div>
 
     <div class="sub-block">
@@ -217,12 +231,14 @@
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I don't want to pick a day every time — just tell me what's next and let me start."</div>
-      <div class="fc built">Focus View (Home): shows the next suggested day directly — no picking required</div>
-      <div class="fc built">Suggestion is self-healing — recomputed from whichever day was actually last trained, no manual reset</div>
-      <div class="fc built">Direct "Training starten" from Focus View — skips the preview screen entirely</div>
-      <div class="fc built">Rolling 7-day activity strip — colored by training day type, always filled (never blank at week start)</div>
-      <div class="fc built">Today's status on home — "trained" or "active rest logged" chip when applicable</div>
+      <div class="sub-story-text">"I don't want to pick a day every time. Just tell me what's next and let me start."</div>
+      <div class="fc built">Focus View (Home): shows the next suggested day directly, no picking required</div>
+      <div class="fc built">Suggestion is self-healing: recomputed from whichever day was actually last trained, no manual reset</div>
+      <div class="fc built">Direct "Training starten" from Focus View, skips the preview screen entirely</div>
+      <div class="fc built">Day's exercises on home: first three visible, the rest behind a toggle. A superset is one line</div>
+      <div class="fc built">Rolling 7-day activity strip, colored by training day type, always filled (never blank at week start)</div>
+      <div class="fc built">Today's status on home: "trained" or "active rest logged" chip when applicable</div>
+      <div class="fc built">Nudge on home after 3 or more days without training</div>
     </div>
 
     <div class="sub-block">
@@ -233,6 +249,12 @@
     </div>
 
     <div class="sub-block">
+      <div class="sub-story-text">"I forgot to log a day and want to add it afterwards."</div>
+      <div class="fc built">Tap an empty day in the week strip: log a past training (no live timer, saved to that date) or Active Rest</div>
+      <div class="fc built">One entry per day: a day that already has one can't be backfilled twice</div>
+    </div>
+
+    <div class="sub-block">
       <div class="sub-story-text">"I want to pick up where I left off if I had to stop mid-session."</div>
       <div class="fc built">Draft-resume takes priority on Focus View whenever an interrupted workout exists</div>
       <div class="fc built">Resume restores timer + all entered values</div>
@@ -240,8 +262,8 @@
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"Some days I'm not training — I still want that to count without pretending it was a workout."</div>
-      <div class="fc built">Active Rest: log today as recovery from Focus View — counts for streak/heatmap, excluded from PR/progression</div>
+      <div class="sub-story-text">"Some days I'm not training. I still want that to count without pretending it was a workout."</div>
+      <div class="fc built">Active Rest: log today as recovery from Focus View. Counts for streak/heatmap, excluded from PR/progression</div>
     </div>
   </div>
 
@@ -255,23 +277,30 @@
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I want to know what I lifted last time — without a separate reference line, just already in the field."</div>
-      <div class="fc built">Inputs pre-filled with last session's values on start — reference and starting point in one</div>
+      <div class="sub-story-text">"I want to know what I lifted last time. No separate reference line, just already in the field."</div>
+      <div class="fc built">Inputs pre-filled with last session's values on start: reference and starting point in one</div>
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I want to enter reps and weight fast — tapping +/- is easier than typing during a workout."</div>
-      <div class="fc built">Reps ±1 stepper — standard input for every exercise, no special-cased modes</div>
+      <div class="sub-story-text">"I want to enter reps and weight fast. Tapping +/- is easier than typing during a workout."</div>
+      <div class="fc built">Reps ±1 stepper: standard input for every exercise, no special-cased modes</div>
       <div class="fc built">Weight stepper (exercise-defined increment, e.g. 2.5 kg for dumbbells, 5 kg for cables)</div>
       <div class="fc built">Direct numeric input also available</div>
-      <div class="fc built">Entering a value commits the set — no explicit "done" checkmark</div>
+      <div class="fc built">Entering a value commits the set. The ✓ only starts the rest, it logs nothing.</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to rest between sets without losing my phone or my train of thought."</div>
-      <div class="fc built">Manual rest timer per set (⏱ button) — duration configurable per exercise</div>
-      <div class="fc built">Vibration + visual alert at zero, tap to cancel early</div>
+      <div class="fc built">✓ per set confirms it with a short animation and starts the rest timer, inline under that set. Duration configurable per exercise.</div>
+      <div class="fc built">Vibration + visual alert at zero, tap the ✓ again to stop early</div>
+      <div class="fc built">No rest timer when backfilling a past day</div>
       <div class="fc built">Screen stays awake during the workout (Wake Lock, re-engages after backgrounding)</div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-story-text">"I want to run a superset as one flow."</div>
+      <div class="fc built">One block, rounds alternate the exercises, one ✓ per round, rest only after the round</div>
+      <div class="fc built">Superset exercises keep their own history, labelled "· Superset" in PRs and progression</div>
     </div>
 
     <div class="sub-block">
@@ -287,7 +316,7 @@
       <div class="fc built">Self-correcting timer (survives backgrounding)</div>
       <div class="fc built">Abandon confirmation if sets have been logged</div>
       <div class="fc gap"><span class="tag">Not yet</span>Notes per session or per exercise</div>
-      <div class="fc design"><span class="tag">By design</span>RPE (Rate of Perceived Exertion) — standard in strength apps, not needed for how I train. Might add later.</div>
+      <div class="fc design"><span class="tag">By design</span>RPE (Rate of Perceived Exertion): standard in strength apps, not needed for how I train. Might add later.</div>
     </div>
   </div>
 
@@ -301,14 +330,14 @@
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I want to see the key numbers — time, volume, sets — in one clean view."</div>
+      <div class="sub-story-text">"I want to see the key numbers (time, volume, sets) in one clean view."</div>
       <div class="fc built">Summary card: sets, duration, exercises, total volume</div>
-      <div class="fc built">Uncommitted sets filtered out — only real work is counted</div>
+      <div class="fc built">Uncommitted sets filtered out, only real work is counted</div>
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I want to know if today was my best session ever for THIS training day — not some global number."</div>
-      <div class="fc built">Per-day PR detection (best session ever for this day — replaces the old global all-time comparison)</div>
+      <div class="sub-story-text">"I want to know if today was my best session ever for THIS training day, not some global number."</div>
+      <div class="fc built">Per-day PR detection (best session ever for this day, replaces the old global all-time comparison)</div>
       <div class="fc built">🏆 icon + pulsing badge naming the day if it's a per-day PR</div>
     </div>
 
@@ -329,13 +358,14 @@
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to look back at past sessions to remember what I did."</div>
-      <div class="fc built">Full session history (collapsible, set pills per exercise)</div>
-      <div class="fc built">Filter history by training day</div>
+      <div class="fc built">Full session history under Statistik → Verlauf (collapsible, set pills per exercise)</div>
+      <div class="fc built">Tap a trained day in the home week strip to jump straight to that session</div>
+      <div class="fc partial"><span class="tag">⚠ Partial</span>Filter by training day exists in code, but the old history screen with the day tabs isn't reachable since the tab bar came in. Verlauf shows all sessions.</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to know my all-time best weight and volume per exercise."</div>
-      <div class="fc built">PRs tab: max weight + best volume per exercise</div>
+      <div class="fc built">PRs tab: max weight + best set volume per exercise</div>
     </div>
 
     <div class="sub-block">
@@ -349,7 +379,7 @@
       <div class="fc built">Konsistenz: 16-week heatmap, color-coded by training day type with a legend</div>
       <div class="fc built">Distinct neutral color for Aktive Erholung entries</div>
       <div class="fc built">Avg sessions/week · current streak · total sessions</div>
-      <div class="fc partial"><span class="tag">⚠ Partial</span><code>planId</code> saved per session but never used in queries — cross-plan history mixing is silent</div>
+      <div class="fc partial"><span class="tag">⚠ Partial</span><code>planId</code> saved per session but never used in queries, so cross-plan history mixing is silent</div>
     </div>
   </div>
 
@@ -363,26 +393,26 @@
     </div>
 
     <div class="sub-block">
-      <div class="sub-story-text">"I want the app to save everything automatically — I shouldn't have to think about it."</div>
+      <div class="sub-story-text">"I want the app to save everything automatically. I shouldn't have to think about it."</div>
       <div class="fc built">Auto-save to localStorage on every change (stable key: <code>tvrd_db</code>, never changes)</div>
-      <div class="fc built">DB versioning + migration scaffold for future schema updates</div>
-      <div class="fc built">Custom domain <code>tvrd.app</code> — bookmark / URL changes no longer look like data loss</div>
+      <div class="fc built">Versioned schema with sequential migrations. v2 moved exercises out of the days into a shared module catalog, old backups get migrated on import</div>
+      <div class="fc built">Custom domain <code>tvrd.app</code>: bookmark / URL changes no longer look like data loss</div>
+      <div class="fc built">Works offline (service worker: fresh page when online, last cached version when not)</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to back up my data and restore it if something goes wrong."</div>
-      <div class="fc built">JSON export (dated backup file)</div>
+      <div class="fc built">JSON export (dated backup file), tucked away under Plan → Erweitert</div>
       <div class="fc built">JSON import with validation + migration</div>
       <div class="fc gap"><span class="tag">Not yet</span>Auto-backup reminder after N sessions</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want my data to follow me if I get a new phone."</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Cloud sync — data tied to account, not device (e.g. Supabase)</div>
-      <div class="fc design"><span class="tag">By design</span>User management &amp; accounts — I'm the only user. Would add if a friend wants to try it.</div>
+      <div class="fc gap"><span class="tag">Not yet</span>Cloud sync: data tied to account, not device (e.g. Supabase)</div>
+      <div class="fc design"><span class="tag">By design</span>User management &amp; accounts: I'm the only user. Would add if a friend wants to try it.</div>
     </div>
   </div>
-
 </div>
 </div>
 

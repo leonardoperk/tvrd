@@ -28,6 +28,11 @@
 
    Alles Visuelle hängt an den Tokens unten — beim Portieren nach
    index.html wandern genau die rüber.
+
+   Ausnahme seit 2026-10: Haken, Inline-Pause und Supersets bringen ein
+   Minimum an Demo-Logik mit (Script unten), damit Animation, Long-Press
+   und die Sheets spürbar sind. Die Logik wird nicht portiert, die echte
+   entsteht in index.html.
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -102,7 +107,7 @@
 
 /* Zahlen sind in einer Trainings-App der Inhalt — überall Tabellenziffern,
    damit beim Hochzählen nichts springt. */
-.row-m, .step-v, .rest-n, .day-m b, .hd-s { font-variant-numeric: tabular-nums; }
+.row-m, .step-v, .rest-in-n, .day-m b, .hd-s { font-variant-numeric: tabular-nums; }
 
 /* ══════════════ SCHRIFT ══════════════
    Entschieden: Archivo. Die Breitenachse bis 125% macht den athletischen
@@ -384,25 +389,251 @@ body {
    dazwischen ist nicht interaktiv, es überlappt also nichts Klickbares. */
 .step button::after { content: ""; position: absolute; inset: 0 -6px; }
 .step-v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.set-t {
+.step-v.ph { color: var(--text-muted); font-weight: 500; }
+
+/* ── Set-Zeile: Lime-Tönung, sobald Werte drin sind (commit-per-default).
+   Der Haken ändert daran nichts, er startet nur die Pause. ── */
+.set, .round {
+  padding: 5px 6px; margin: 0 -6px 9px;
+  border-radius: 17px; transition: background .2s;
+}
+.set.done, .round.done { background: rgba(200,241,53,.05); }
+
+/* ── Haken (ersetzt ⏱): Tap = Set bestätigen + Pause starten.
+   Zweiter Tap nimmt den Haken zurück und stoppt die Pause. Archivo hat
+   kein ✓, deshalb SVG. ── */
+.chk {
+  appearance: none; cursor: pointer; padding: 0; position: relative;
   width: 44px; height: 44px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 15px;
+  display: grid; place-items: center;
+  color: rgba(255,255,255,.26);
   background: var(--glass-3); border: 1px solid var(--edge-soft);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+  transition: background .2s, color .2s, box-shadow .2s, border-color .2s;
 }
+.chk svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.chk.on {
+  color: #0a0f00; border-color: transparent;
+  background: linear-gradient(168deg, var(--lime-hi), var(--lime-lo));
+  box-shadow: var(--glow-lime), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* Erfolg: kurz eindrücken, überschwingen, Haken zeichnet sich, ein Ring läuft aus. ~400 ms */
+.chk.pop { animation: chk-pop .38s var(--ease); }
+.chk.pop svg path { stroke-dasharray: 22; animation: chk-draw .3s .07s ease-out both; }
+.chk.pop::after {
+  content: ""; position: absolute; inset: -1px; border-radius: 50%;
+  border: 2px solid var(--lime); pointer-events: none;
+  animation: chk-ring .5s ease-out forwards;
+}
+@keyframes chk-pop  { 0% { transform: scale(1); } 30% { transform: scale(.84); } 65% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes chk-draw { from { stroke-dashoffset: 22; } to { stroke-dashoffset: 0; } }
+@keyframes chk-ring { from { transform: scale(1); opacity: .7; } to { transform: scale(1.75); opacity: 0; } }
 
-/* Pausen-Banner: schwebt über der Leiste, Lime-Rand mit Schein */
-.rest {
-  position: absolute; left: 16px; right: 16px; bottom: 96px; z-index: 6;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-radius: var(--r-card);
-  background: linear-gradient(158deg, rgba(200,241,53,.15), rgba(200,241,53,.05));
-  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-  border: 1px solid rgba(200,241,53,.34);
-  box-shadow: 0 10px 34px -10px var(--lime-glow), inset 0 1px 0 rgba(255,255,255,.14);
+/* ── Pause inline: fährt direkt unter dem bestätigten Set auf. Es gibt
+   immer nur eine. Abgelaufen = kurz rot, dann fährt sie wieder zu. ── */
+.rest-in {
+  overflow: hidden; max-height: 0; opacity: 0; margin: 0;
+  transition: max-height .32s var(--ease), opacity .22s, margin .32s var(--ease);
 }
-.rest-l { font-size: 12.5px; color: var(--text-dim); }
-.rest-n { font-size: 26px; font-weight: 800; color: var(--lime); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.rest-in.open { max-height: 64px; opacity: 1; margin: -2px 0 11px; }
+.rest-in-box {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 14px; border-radius: var(--r-inner);
+  background: linear-gradient(158deg, rgba(200,241,53,.15), rgba(200,241,53,.05));
+  border: 1px solid rgba(200,241,53,.34);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  transition: background .2s, border-color .2s;
+}
+.rest-in-l { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.rest-in-n { font-size: 20px; font-weight: 800; color: var(--lime); letter-spacing: -.03em; }
+.rest-in-bar {
+  position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+  background: var(--lime); box-shadow: 0 0 8px var(--lime-glow);
+  transition: width .25s linear;
+}
+.rest-in.done .rest-in-box { border-color: var(--red); background: rgba(255,92,92,.1); }
+.rest-in.done .rest-in-n { color: var(--red); }
+
+/* ── Superset im Training: ein Block, Runden abwechselnd, ein Haken pro
+   Runde. Pause nur nach der Runde. ── */
+.ex.ss {
+  border-color: rgba(200,241,53,.26);
+  background: linear-gradient(158deg, rgba(200,241,53,.08), transparent 60%), var(--glass-2);
+}
+.ss-tag {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+  padding: 4px 9px; border-radius: var(--r-pill); color: var(--lime);
+  background: linear-gradient(160deg, rgba(200,241,53,.20), rgba(200,241,53,.06));
+  border: 1px solid rgba(200,241,53,.28);
+}
+.ss-names { font-size: 16.5px; font-weight: var(--t-card-w); letter-spacing: -.02em; margin: -2px 0 12px; }
+.round {
+  display: grid; grid-template-columns: 1fr 1fr 44px; column-gap: 8px; row-gap: 5px;
+  padding: 8px 6px; margin-bottom: 10px;
+  /* Feine Kontur hält die Übungen einer Runde als Paar zusammen */
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+/* Haken steht im DOM zuerst, damit die automatische Platzierung die
+   Labels und Stepper sauber links daneben stapelt. */
+.round .chk { grid-column: 3; grid-row: 1 / span 4; align-self: center; }
+.rl { grid-column: 1 / 3; font-size: 11.5px; font-weight: 700; color: var(--text-dim); padding-left: 2px; }
+.rl span { color: var(--text-muted); font-weight: 500; }
+
+/* ═══ PLAN ═══ */
+.pday {
+  overflow: hidden; margin-bottom: 13px;
+  background:
+    linear-gradient(158deg, color-mix(in srgb, var(--tint) 12%, transparent), transparent 55%),
+    var(--glass-2);
+}
+.pday::before { background: linear-gradient(90deg, transparent, var(--tint), transparent); opacity: .75; height: 1.5px; }
+.pday-h { display: flex; align-items: center; gap: 10px; padding: 15px 16px; }
+.pday.open .pday-h { border-bottom: 1px solid var(--edge-soft); }
+.pday-n { font-size: 17px; font-weight: var(--t-card-w); letter-spacing: -.02em; }
+.pday-m { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.pday-tg { color: var(--text-muted); font-size: 10px; }
+.pday-b { padding: 4px 14px 14px; }
+
+.pex {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 6px; margin: 0 -6px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  transition: background .45s linear;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+/* Long-Press-Rückmeldung: die Zeile füllt sich während der 450 ms */
+.pex.holding { background: rgba(200,241,53,.12); }
+.pex.holding .handle { color: var(--lime); }
+.handle {
+  width: 22px; height: 34px; flex-shrink: 0;
+  display: grid; place-items: center;
+  color: rgba(255,255,255,.30); cursor: grab; touch-action: none;
+  transition: color .2s;
+}
+.handle svg { width: 10px; height: 16px; fill: currentColor; }
+.pex-n { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 500; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pex-m { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.pex-btn {
+  appearance: none; border: 0; background: transparent; cursor: pointer; font: inherit;
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  color: var(--text-muted); font-size: 12px;
+}
+.pex-btn.del { color: var(--red); background: rgba(255,92,92,.1); }
+
+/* Superset im Plan: Kasten um die Übungen. Tap auf die Kopfzeile = bearbeiten.
+   Eigener Griff für den ganzen Block, Griffe innen nur für die Reihenfolge darin. */
+.ss-box {
+  margin: 8px 0; padding: 2px 10px 2px;
+  border-radius: var(--r-inner);
+  border: 1px solid rgba(200,241,53,.30);
+  background: linear-gradient(158deg, rgba(200,241,53,.09), rgba(200,241,53,.02));
+  transition: opacity .2s;
+}
+.ss-box-h { display: flex; align-items: center; gap: 9px; padding: 4px 0; cursor: pointer; border-bottom: 1px solid rgba(200,241,53,.14); }
+.ss-meta { flex: 1; min-width: 0; white-space: nowrap; font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.ss-edit { font-size: 12px; font-weight: 700; color: var(--lime); }
+.ss-box .pex:last-child { border-bottom: 0; }
+.ss-box .pex-btn { display: none; }
+
+/* Auswahlmodus: Haken statt Griff, Supersets sind nicht wählbar */
+.sel {
+  display: none; place-items: center; flex-shrink: 0;
+  width: 24px; height: 24px; margin: 5px -1px; border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,.28);
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+.sel svg { width: 14px; height: 14px; fill: none; stroke: #0a0f00; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+.pex.picked .sel {
+  border-color: transparent;
+  background: linear-gradient(168deg, var(--lime-hi), var(--lime-lo));
+  box-shadow: 0 3px 12px -3px var(--lime-glow);
+}
+.pex.picked .sel svg { opacity: 1; }
+.sel.pop { animation: chk-pop .34s var(--ease); }
+.selecting .pex.solo { cursor: pointer; }
+.selecting .pex.solo .handle { display: none; }
+.selecting .pex.solo .sel { display: grid; }
+.selecting .pex-btn { visibility: hidden; }
+.selecting .ss-box { opacity: .35; pointer-events: none; }
+.sel-hint { display: none; font-size: 12px; color: var(--lime); font-weight: 600; padding: 8px 0 4px; }
+.selecting .sel-hint { display: block; }
+
+.pday-foot { margin-top: 12px; }
+.pday-foot .btn { height: 46px; padding: 0 14px; font-size: 14px; }
+.add-ex { width: 100%; }
+.sel-actions { display: none; grid-template-columns: 1fr 1.5fr; gap: 10px; }
+.selecting .add-ex { display: none; }
+.selecting .sel-actions { display: grid; }
+.btn-primary:disabled {
+  cursor: default; transform: none;
+  color: var(--text-muted);
+  background: var(--glass-3);
+  box-shadow: inset 0 0 0 1px var(--edge-soft);
+}
+.btn-ghost.danger { color: var(--red); }
+
+/* ── Sheet (Superset erstellen / bearbeiten) ── */
+.sheet-ov {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: flex-end;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.sheet-ov.on { opacity: 1; pointer-events: auto; }
+.sheet {
+  width: 100%; padding: 10px 20px 34px;
+  border-radius: 28px 28px 0 0;
+  background: var(--glass-1);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge); border-bottom: 0;
+  box-shadow: var(--lift-2);
+  transform: translateY(100%); transition: transform .32s var(--ease);
+}
+.sheet-ov.on .sheet { transform: none; }
+.sheet-grab { width: 38px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.18); margin: 0 auto 16px; }
+.sheet-t { font-size: 19px; font-weight: 800; letter-spacing: -.025em; }
+.sheet-s { font-size: 13px; color: var(--text-dim); margin: 3px 0 18px; }
+.sheet-l { font-size: 9.5px; font-weight: var(--t-label-w); letter-spacing: var(--t-label-tr); text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.sheet-hint { font-size: 12.5px; color: var(--text-muted); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 9px 0 20px; }
+.chip {
+  appearance: none; cursor: pointer; font: inherit; text-align: left;
+  padding: 9px 15px; border-radius: 16px;
+  background: var(--glass-3); border: 1px solid var(--edge-soft);
+  color: var(--text-dim); font-size: 13.5px; font-weight: 600;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.chip b { color: var(--text); font-weight: 800; font-size: 15px; }
+.chip span { display: block; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+.chip.on { border-color: rgba(200,241,53,.55); background: linear-gradient(160deg, rgba(200,241,53,.20), rgba(200,241,53,.06)); color: var(--lime); }
+.chip.on b { color: var(--lime); }
+.sheet-btns { display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px; margin-top: 6px; }
+.sheet-btns .btn { height: 50px; padding: 0 14px; }
+.sm-list { margin-bottom: 10px; }
+.sm-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 14.5px; font-weight: 500; }
+.sm-row.gone span { color: var(--text-muted); text-decoration: line-through; }
+.sm-add { width: 100%; height: 44px; padding: 0; font-size: 14px; margin-bottom: 18px; }
+.sm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+
+/* ── Toast ── */
+.toast-p {
+  position: absolute; left: 50%; bottom: 104px; z-index: 30;
+  transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+  padding: 10px 18px; border-radius: var(--r-pill); white-space: nowrap;
+  background: var(--glass-nav); border: 1px solid var(--edge);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  font-size: 13px; font-weight: 600; box-shadow: var(--lift-2);
+  transition: opacity .25s, transform .25s var(--ease);
+}
+.toast-p.on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .chk.pop, .chk.pop svg path, .chk.pop::after, .sel.pop { animation: none; }
+  .chk.pop::after { display: none; }
+  .rest-in, .sheet, .pex { transition: none; }
+}
 
 /* ═══ Untere Leiste im Flow (kein Tab-Bar-Screen) ═══ */
 .bar-b {
@@ -465,6 +696,9 @@ body {
   <button data-g="screen" class="on" onclick="go('home',this)">Start</button>
   <button data-g="screen" onclick="go('days',this)">Alle Tage</button>
   <button data-g="screen" onclick="go('workout',this)">Training</button>
+  <button data-g="screen" onclick="go('plan',this)">Plan</button>
+  <span class="dev-sep"></span>
+  <button onclick="demoFast = !demoFast; this.classList.toggle('on', demoFast)">Pause 5 s</button>
 </div>
 
 <div class="stage">
@@ -559,58 +793,86 @@ body {
     <div class="hd">
       <button class="btn btn-ico">←</button>
       <div style="flex:1">
-        <div class="hd-t" style="font-size:21px">Beine</div>
-        <div class="hd-s">6 / 26 Sets</div>
+        <div class="hd-t" style="font-size:21px">Schulter &amp; Arme</div>
+        <div class="hd-s">6 / 16 Sets</div>
       </div>
-      <div style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums">0:40</div>
+      <div style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums">24:10</div>
     </div>
 
-    <div class="body flow">
+    <!-- Haken = Set bestätigen + Pause starten. Lime-Tönung kommt von den
+         Werten (commit-per-default), nicht vom Haken: Set 3 bei
+         Schulterdrücken hat Werte, aber keinen Haken. -->
+    <div class="body flow" id="wo-body">
       <div class="glass ex">
-        <div class="ex-h"><span class="ex-n">Leg Extension</span><span class="ex-r">12-15 reps</span></div>
-        <div class="bar"><i style="width:100%"></i></div>
+        <div class="ex-h"><span class="ex-n">Schulterdrücken</span><span class="ex-r">8-10 reps</span></div>
         <div class="slabels"><div>Reps</div><div>KG</div><div></div></div>
-        <div class="set">
-          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v">45</span><button>+</button></div>
-          <div class="set-t">⏱</div></div>
-        <div class="set">
-          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v">52,5</span><button>+</button></div>
-          <div class="set-t">⏱</div></div>
-        <div class="set">
-          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v">52,5</span><button>+</button></div>
-          <div class="set-t">⏱</div></div>
-      </div>
-
-      <div class="glass ex">
-        <div class="ex-h"><span class="ex-n">Front Squat</span><span class="ex-r">12-15 reps</span></div>
-        <div class="bar"><i style="width:66%"></i></div>
-        <div class="slabels"><div>Reps</div><div>KG</div><div></div></div>
-        <div class="set">
+        <div class="set done">
           <div class="step"><button>−</button><span class="step-v">10</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v">40</span><button>+</button></div>
-          <div class="set-t">⏱</div></div>
-        <div class="set">
-          <div class="step"><button>−</button><span class="step-v">10</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v">60</span><button>+</button></div>
-          <div class="set-t">⏱</div></div>
-        <div class="set">
+          <div class="step"><button>−</button><span class="step-v">22,5</span><button>+</button></div>
+          <button class="chk on" data-rest="120"></button></div>
+        <div class="set done">
+          <div class="step"><button>−</button><span class="step-v">9</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">22,5</span><button>+</button></div>
+          <button class="chk on" data-rest="120"></button></div>
+        <div class="set done">
           <div class="step"><button>−</button><span class="step-v">8</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v">70</span><button>+</button></div>
-          <div class="set-t">⏱</div></div>
+          <div class="step"><button>−</button><span class="step-v">22,5</span><button>+</button></div>
+          <button class="chk" data-rest="120"></button></div>
       </div>
 
       <div class="glass ex">
-        <div class="ex-h"><span class="ex-n">Hacksquat</span><span class="ex-r">10-12 reps</span></div>
-        <div class="bar"><i style="width:0%"></i></div>
+        <div class="ex-h"><span class="ex-n">Seitheben</span><span class="ex-r">12-15 reps</span></div>
+        <div class="slabels"><div>Reps</div><div>KG</div><div></div></div>
+        <div class="set done">
+          <div class="step"><button>−</button><span class="step-v">15</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">10</span><button>+</button></div>
+          <button class="chk on" data-rest="90"></button></div>
+        <div class="set done">
+          <div class="step"><button>−</button><span class="step-v">13</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">10</span><button>+</button></div>
+          <button class="chk on" data-rest="90" id="demo-chk"></button></div>
+        <div class="set">
+          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">10</span><button>+</button></div>
+          <button class="chk" data-rest="90"></button></div>
       </div>
-    </div>
 
-    <div class="rest">
-      <span class="rest-l">Pause · antippen zum Abbrechen</span>
-      <span class="rest-n">1:22</span>
+      <div class="glass ex ss">
+        <div class="ex-h"><span class="ss-tag">Superset</span><span class="ex-r">3 Sets · 60 s Pause</span></div>
+        <div class="ss-names">Standing Curl + Rope Pushdown</div>
+        <div class="slabels"><div>Reps</div><div>KG</div><div></div></div>
+        <div class="round done">
+          <button class="chk" data-rest="60"></button>
+          <div class="rl">Standing Curl <span>· 10-12</span></div>
+          <div class="step"><button>−</button><span class="step-v">12</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">12,5</span><button>+</button></div>
+          <div class="rl">Rope Pushdown <span>· 12-15</span></div>
+          <div class="step"><button>−</button><span class="step-v">14</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v">25</span><button>+</button></div>
+        </div>
+        <div class="round">
+          <button class="chk" data-rest="60"></button>
+          <div class="rl">Standing Curl <span>· 10-12</span></div>
+          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">12,5</span><button>+</button></div>
+          <div class="rl">Rope Pushdown <span>· 12-15</span></div>
+          <div class="step"><button>−</button><span class="step-v ph">14</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">25</span><button>+</button></div>
+        </div>
+        <div class="round">
+          <button class="chk" data-rest="60"></button>
+          <div class="rl">Standing Curl <span>· 10-12</span></div>
+          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">12,5</span><button>+</button></div>
+          <div class="rl">Rope Pushdown <span>· 12-15</span></div>
+          <div class="step"><button>−</button><span class="step-v ph">14</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">25</span><button>+</button></div>
+        </div>
+      </div>
+
+      <div class="glass ex">
+        <div class="ex-h"><span class="ex-n">Reverse Fly</span><span class="ex-r">12-15 reps</span></div>
+      </div>
     </div>
 
     <div class="bar-b">
@@ -618,6 +880,55 @@ body {
       <button class="btn btn-primary">Training beenden ✓</button>
     </div>
   </section>
+
+  <!-- ══════════ PLAN ══════════
+       Long-Press (450 ms) auf die 6 Punkte einer Einzelübung = Superset-Auswahl.
+       Vorher bewegt = normaler Drag (hier nicht verdrahtet, existiert in der App). -->
+  <section class="screen" id="s-plan">
+    <div class="hd">
+      <div style="flex:1">
+        <div class="hd-t">Plan</div>
+        <div class="hd-s">4 Trainingstage · 24 Übungen</div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="glass pday open" id="pday" style="--tint:#ff8a4c">
+        <div class="pday-h">
+          <div style="flex:1"><div class="pday-n">Schulter &amp; Arme</div><div class="pday-m">6 Übungen · 19 Sets</div></div>
+          <span class="pday-tg">▲</span>
+        </div>
+        <div class="pday-b" id="pday-b">
+          <div class="sel-hint">Übungen für das Superset auswählen</div>
+          <div class="pex solo" data-name="Schulterdrücken" data-sets="3" data-reps="8-10" data-rest="120"></div>
+          <div class="pex solo" data-name="Seitheben" data-sets="4" data-reps="12-15" data-rest="90"></div>
+          <div class="pex solo" data-name="Face Pull" data-sets="3" data-reps="15-20" data-rest="60"></div>
+          <div class="ss-box" data-sets="3" data-rest="60">
+            <div class="ss-box-h"><span class="handle"></span><span class="ss-tag">Superset</span><span class="ss-meta"></span><span class="ss-edit">Bearbeiten ›</span></div>
+            <div class="pex" data-name="Standing Curl" data-sets="3" data-reps="10-12" data-rest="60"></div>
+            <div class="pex" data-name="Rope Pushdown" data-sets="4" data-reps="12-15" data-rest="60"></div>
+          </div>
+          <div class="pex solo" data-name="Reverse Fly" data-sets="3" data-reps="12-15" data-rest="60"></div>
+          <div class="pday-foot">
+            <button class="btn btn-ghost add-ex">＋ Übung hinzufügen</button>
+            <div class="sel-actions">
+              <button class="btn btn-ghost" onclick="exitSelect()">Abbrechen</button>
+              <button class="btn btn-primary" id="ss-create" onclick="tryCreate()" disabled>Superset erstellen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass pday" style="--tint:#c8f135"><div class="pday-h"><div style="flex:1"><div class="pday-n">Brust &amp; Arme</div><div class="pday-m">7 Übungen · 21 Sets</div></div><span class="pday-tg">▼</span></div></div>
+      <div class="glass pday" style="--tint:#5ac8f0"><div class="pday-h"><div style="flex:1"><div class="pday-n">Beine</div><div class="pday-m">6 Übungen · 26 Sets</div></div><span class="pday-tg">▼</span></div></div>
+      <div class="glass pday" style="--tint:#b07cf0"><div class="pday-h"><div style="flex:1"><div class="pday-n">Rücken</div><div class="pday-m">7 Übungen · 21 Sets</div></div><span class="pday-tg">▼</span></div></div>
+    </div>
+  </section>
+
+  <!-- Sheet + Toast liegen über allem, auch über der Tab-Bar -->
+  <div class="sheet-ov" id="sheet-ov" onclick="if (event.target === this) closeSheet()">
+    <div class="sheet" id="sheet"></div>
+  </div>
+  <div class="toast-p" id="toast"></div>
 
   <!-- ══════════ TAB-BAR ══════════ -->
   <nav class="tabs" id="tabs">
@@ -640,7 +951,7 @@ body {
 const FLOW = ['workout'];
 
 function go(name, devBtn, tabBtn) {
-  const map = { home: 's-home', days: 's-days', workout: 's-workout', stats: 's-home', plan: 's-home' };
+  const map = { home: 's-home', days: 's-days', workout: 's-workout', stats: 's-home', plan: 's-plan' };
   const id = map[name] || 's-home';
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   document.getElementById('tabs').style.display = FLOW.includes(name) ? 'none' : 'flex';
@@ -654,6 +965,260 @@ function go(name, devBtn, tabBtn) {
 function mark(group, btn) {
   document.querySelectorAll('.dev button[data-g="' + group + '"]')
           .forEach(b => b.classList.toggle('on', b === btn));
+}
+
+/* ═══ Demo-Logik Haken + Superset (nur Prototyp, wird nicht portiert) ═══ */
+const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
+const DOTS = '<svg viewBox="0 0 10 16">' +
+  [3, 8, 13].map(y => `<circle cx="2.5" cy="${y}" r="1.4"/><circle cx="7.5" cy="${y}" r="1.4"/>`).join('') + '</svg>';
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2000);
+}
+
+// ── Haken + Inline-Pause ──
+let demoFast = false;
+let rest = null;   // { btn, el, total, end, iv } – es gibt immer nur eine Pause
+
+document.querySelectorAll('.chk').forEach(b => { b.innerHTML = CHECK; b.onclick = () => toggleChk(b); });
+
+function toggleChk(btn) {
+  if (btn.classList.contains('on')) {
+    btn.classList.remove('on', 'pop');
+    if (rest && rest.btn === btn) stopRest();
+    return;
+  }
+  btn.classList.remove('pop'); void btn.offsetWidth;   // Animation neu starten
+  btn.classList.add('on', 'pop');
+  startRest(btn, demoFast ? 5 : +btn.dataset.rest, 0);
+}
+
+function startRest(btn, total, elapsed) {
+  stopRest();   // läuft schon eine woanders, fährt sie zu und diese hier auf
+  const el = document.createElement('div');
+  el.className = 'rest-in';
+  el.innerHTML = '<div class="rest-in-box"><span class="rest-in-l">Pause · Haken antippen stoppt</span>' +
+                 '<span class="rest-in-n"></span><i class="rest-in-bar"></i></div>';
+  btn.closest('.set, .round').after(el);
+  void el.offsetHeight;
+  el.classList.add('open');
+  rest = { btn, el, total, end: Date.now() + (total - elapsed) * 1000 };
+  tickRest();
+  rest.iv = setInterval(tickRest, 250);
+}
+
+function tickRest() {
+  if (!rest) return;
+  const left = Math.max(0, Math.ceil((rest.end - Date.now()) / 1000));
+  rest.el.querySelector('.rest-in-n').textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  rest.el.querySelector('.rest-in-bar').style.width = (left / rest.total * 100) + '%';
+  if (left <= 0) {
+    clearInterval(rest.iv);
+    const el = rest.el; rest = null;
+    el.classList.add('done');
+    setTimeout(() => collapse(el), 1500);
+  }
+}
+
+function stopRest() {
+  if (!rest) return;
+  clearInterval(rest.iv); collapse(rest.el); rest = null;
+}
+
+function collapse(el) { el.classList.remove('open'); setTimeout(() => el.remove(), 340); }
+
+// Startzustand: Pause läuft unter Seitheben Set 2
+startRest(document.getElementById('demo-chk'), 90, 26);
+
+// ── Plan: Zeilen rendern ──
+const pday = document.getElementById('pday');
+const dayBody = document.getElementById('pday-b');
+
+function renderRow(r) {
+  r.innerHTML = `<span class="handle">${DOTS}</span><span class="sel">${CHECK}</span>` +
+    `<span class="pex-n">${r.dataset.name}</span><span class="pex-m"></span>` +
+    `<button class="pex-btn">✏️</button><button class="pex-btn del">✕</button>`;
+  renderMeta(r);
+}
+// Einzelübung zeigt ihre eigenen Sets, im Superset gelten die Sets des Supersets
+function renderMeta(r) {
+  r.querySelector('.pex-m').textContent = r.classList.contains('solo')
+    ? `${r.dataset.sets}×${r.dataset.reps}` : `${r.dataset.reps} reps`;
+}
+function renderBoxMeta(box) {
+  box.querySelector('.ss-meta').textContent = `${box.dataset.sets} Sets · ${box.dataset.rest} s`;
+}
+dayBody.querySelectorAll('.pex').forEach(renderRow);
+dayBody.querySelectorAll('.ss-box').forEach(b => { b.querySelector('.handle').innerHTML = DOTS; renderBoxMeta(b); });
+
+// ── Long-Press → Auswahlmodus ──
+let hold = null, justHeld = false;
+const selecting = () => pday.classList.contains('selecting');
+const picked = () => [...dayBody.querySelectorAll('.pex.solo.picked')];
+
+dayBody.addEventListener('pointerdown', e => {
+  justHeld = false;
+  const row = e.target.closest('.handle') && e.target.closest('.pex.solo');
+  if (!row || selecting()) return;
+  row.classList.add('holding');
+  hold = { row, x: e.clientX, y: e.clientY, t: setTimeout(() => {
+    row.classList.remove('holding'); hold = null; justHeld = true;
+    enterSelect(row);
+  }, 450) };
+});
+dayBody.addEventListener('pointermove', e => {
+  // Bewegung vor Ablauf = Drag, kein Long-Press
+  if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 8) cancelHold();
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach(t => dayBody.addEventListener(t, cancelHold));
+dayBody.addEventListener('contextmenu', e => { if (e.target.closest('.handle')) e.preventDefault(); });
+
+function cancelHold() {
+  if (!hold) return;
+  clearTimeout(hold.t); hold.row.classList.remove('holding'); hold = null;
+}
+
+dayBody.addEventListener('click', e => {
+  if (justHeld) { justHeld = false; return; }   // Loslassen nach Long-Press ist kein Tap
+  if (selecting()) {
+    const row = e.target.closest('.pex.solo');
+    if (row) pick(row, !row.classList.contains('picked'));
+    return;
+  }
+  const head = e.target.closest('.ss-box-h');
+  if (head && !e.target.closest('.handle')) openEdit(head.closest('.ss-box'));
+});
+
+function enterSelect(row) { pday.classList.add('selecting'); pick(row, true); }
+function exitSelect() {
+  pday.classList.remove('selecting');
+  picked().forEach(r => r.classList.remove('picked'));
+}
+function pick(row, on) {
+  row.classList.toggle('picked', on);
+  if (on) { const s = row.querySelector('.sel'); s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop'); }
+  document.getElementById('ss-create').disabled = picked().length < 2;
+}
+
+// ── Erstellen: weichen Sets oder Pause ab, gebündelt im Sheet fragen ──
+const sheetOv = document.getElementById('sheet-ov');
+const sheet = document.getElementById('sheet');
+const openSheet = () => sheetOv.classList.add('on');
+const closeSheet = () => sheetOv.classList.remove('on');
+const uniq = a => [...new Set(a)].sort((x, y) => x - y);
+
+function tryCreate() {
+  const rows = picked();
+  const sets = uniq(rows.map(r => +r.dataset.sets));
+  const rests = uniq(rows.map(r => +r.dataset.rest));
+  if (sets.length === 1 && rests.length === 1) return createSS(rows, sets[0], rests[0]);
+  openCreateSheet(rows, sets, rests);
+}
+
+function openCreateSheet(rows, sets, rests) {
+  const choice = { sets: sets.length === 1 ? sets[0] : null, rest: rests.length === 1 ? rests[0] : null };
+  const chips = (key, vals, fmt) => vals.map(v =>
+    `<button class="chip" data-k="${key}" data-v="${v}">${fmt(v)}` +
+    `<span>${rows.filter(r => +r.dataset[key] === v).map(r => r.dataset.name).join(', ')}</span></button>`).join('');
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">Superset erstellen</div>
+    <div class="sheet-s">${rows.map(r => r.dataset.name).join(' + ')}</div>
+    ${sets.length > 1 ? `<div class="sheet-l">Sets</div>
+      <div class="sheet-hint">Im Superset haben alle Übungen gleich viele Sets.</div>
+      <div class="chips">${chips('sets', sets, v => `<b>${v}</b> Sets`)}</div>` : ''}
+    ${rests.length > 1 ? `<div class="sheet-l">Pause nach jeder Runde</div>
+      <div class="sheet-hint">Innerhalb einer Runde gibt es keine Pause.</div>
+      <div class="chips">${chips('rest', rests, v => `<b>${v}</b> s`)}</div>` : ''}
+    <div class="sheet-btns">
+      <button class="btn btn-ghost" onclick="closeSheet()">Zurück</button>
+      <button class="btn btn-primary" id="sheet-ok" disabled>Erstellen</button>
+    </div>`;
+  const ok = sheet.querySelector('#sheet-ok');
+  sheet.onclick = e => {
+    const c = e.target.closest('.chip');
+    if (!c) return;
+    sheet.querySelectorAll(`.chip[data-k="${c.dataset.k}"]`).forEach(x => x.classList.toggle('on', x === c));
+    choice[c.dataset.k] = +c.dataset.v;
+    ok.disabled = choice.sets == null || choice.rest == null;
+  };
+  ok.onclick = () => { closeSheet(); createSS(rows, choice.sets, choice.rest); };
+  openSheet();
+}
+
+// Neues Superset erscheint an der Stelle der obersten ausgewählten Übung
+function createSS(rows, sets, rest) {
+  const box = document.createElement('div');
+  box.className = 'ss-box';
+  box.dataset.sets = sets; box.dataset.rest = rest;
+  box.innerHTML = `<div class="ss-box-h"><span class="handle">${DOTS}</span><span class="ss-tag">Superset</span>` +
+                  `<span class="ss-meta"></span><span class="ss-edit">Bearbeiten ›</span></div>`;
+  rows[0].before(box);
+  rows.forEach(r => { r.classList.remove('solo', 'picked'); box.appendChild(r); renderMeta(r); });
+  renderBoxMeta(box);
+  exitSelect();
+  toast('Superset erstellt');
+}
+
+// ── Bearbeiten über den Kasten ──
+function openEdit(box) {
+  const rows = [...box.querySelectorAll('.pex')];
+  const st = { sets: +box.dataset.sets, rest: +box.dataset.rest, gone: new Set() };
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">Superset bearbeiten</div>
+    <div class="sheet-s">Reihenfolge änderst du direkt im Kasten per Ziehen.</div>
+    <div class="sm-list">${rows.map((r, i) =>
+      `<div class="sm-row" data-i="${i}"><span>${r.dataset.name}</span><button class="pex-btn del sm-x">✕</button></div>`).join('')}</div>
+    <button class="btn btn-ghost sm-add" onclick="toast('Öffnet den Übungs-Picker')">＋ Übung hinzufügen</button>
+    <div class="sm-grid">
+      <div><div class="sheet-l">Sets</div>
+        <div class="step"><button data-d="sets:-1">−</button><span class="step-v" id="ed-sets"></span><button data-d="sets:1">+</button></div></div>
+      <div><div class="sheet-l">Pause</div>
+        <div class="step"><button data-d="rest:-15">−</button><span class="step-v" id="ed-rest"></span><button data-d="rest:15">+</button></div></div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn btn-ghost danger" id="ed-dis">Auflösen</button>
+      <button class="btn btn-primary" id="ed-ok">Speichern</button>
+    </div>`;
+  const paint = () => {
+    sheet.querySelector('#ed-sets').textContent = st.sets;
+    sheet.querySelector('#ed-rest').textContent = st.rest + ' s';
+    sheet.querySelectorAll('.sm-row').forEach(el => {
+      const g = st.gone.has(+el.dataset.i);
+      el.classList.toggle('gone', g);
+      el.querySelector('.sm-x').textContent = g ? '↺' : '✕';
+    });
+  };
+  sheet.onclick = e => {
+    const d = e.target.closest('[data-d]');
+    if (d) { const [k, v] = d.dataset.d.split(':'); st[k] = Math.max(k === 'sets' ? 1 : 0, st[k] + +v); paint(); }
+    const x = e.target.closest('.sm-x');
+    if (x) { const i = +x.parentNode.dataset.i; st.gone.has(i) ? st.gone.delete(i) : st.gone.add(i); paint(); }
+  };
+  sheet.querySelector('#ed-dis').onclick = () => { closeSheet(); dissolve(box, rows); toast('Superset aufgelöst'); };
+  sheet.querySelector('#ed-ok').onclick = () => {
+    closeSheet();
+    const keep = rows.filter((_, i) => !st.gone.has(i));
+    if (keep.length < 2) { dissolve(box, rows); toast('Nur noch eine Übung, Superset aufgelöst'); return; }
+    // Entfernte Übungen kommen als Einzelübungen direkt hinter den Kasten
+    let anchor = box;
+    rows.filter((_, i) => st.gone.has(i)).forEach(r => { r.classList.add('solo'); anchor.after(r); anchor = r; renderMeta(r); });
+    box.dataset.sets = st.sets; box.dataset.rest = st.rest;
+    renderBoxMeta(box);
+    toast('Superset gespeichert');
+  };
+  paint();
+  openSheet();
+}
+
+// Auflösen: Übungen kehren als Einzelübungen an die Stelle des Kastens zurück,
+// mit ihren eigenen Parametern (das Superset war ein eigenes Modul)
+function dissolve(box, rows) {
+  rows.forEach(r => { r.classList.add('solo'); box.before(r); renderMeta(r); });
+  box.remove();
 }
 </script>
 </body>

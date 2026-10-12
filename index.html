@@ -173,7 +173,7 @@
 
   /* Alle Zahlenblöcke laufen tabellarisch — Ziffern springen beim Tippen
      oder Hochzählen nicht mehr in der Breite. */
-  .num-input, .rest-timer-num, .stat-card-num, .finish-stat-num,
+  .num-input, .rest-in-n, .stat-card-num, .finish-stat-num,
   .day-row-vol, .vol-trend, .pr-val, .card-vol, #workout-timer,
   .history-set-pill, .focus-preview-sets, .plan-ex-meta {
     font-variant-numeric: tabular-nums;
@@ -824,30 +824,191 @@
     letter-spacing: var(--tr-title);
   }
 
-  /* REST TIMER */
-  .rest-btn {
-    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-    background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
-    font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
+  /* SET-HAKEN: ersetzt den ⏱-Knopf. Tap = Set bestätigen + Pause starten,
+     zweiter Tap nimmt den Haken zurück und stoppt die Pause. Geloggt wird
+     weiter per Default über die Werte, der Haken loggt nichts.
+     Archivo hat kein ✓, deshalb SVG. */
+  .set-chk {
+    position: relative; flex: 0 0 40px; width: 40px; height: 40px; padding: 0;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.26);
+    background: var(--surface2); border: 1px solid var(--border-soft);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s, border-color 0.2s;
   }
-  .rest-btn:active { background: var(--border); color: var(--accent); }
-  .rest-timer-banner {
-    position: fixed; left: 16px; right: 16px;
-    bottom: calc(67px + max(10px, env(safe-area-inset-bottom))); z-index: 50;
-    background: var(--surface2); border: 1px solid var(--accent);
-    border-radius: var(--radius); padding: 12px 18px;
+  .set-chk::after { content: ""; position: absolute; inset: -4px; }
+  .set-chk svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  .set-chk.on {
+    color: var(--on-accent); border-color: transparent;
+    background: linear-gradient(168deg, var(--accent-hi), var(--accent-lo));
+    box-shadow: var(--glow-accent), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+  /* Erfolg: eindrücken, überschwingen, Haken zeichnet sich, Ring läuft aus (~400 ms) */
+  .set-chk.pop { animation: chk-pop 0.38s var(--ease); }
+  .set-chk.pop svg path { stroke-dasharray: 22; animation: chk-draw 0.3s 0.07s ease-out both; }
+  .set-chk.pop::before {
+    content: ""; position: absolute; inset: -1px; border-radius: 50%;
+    border: 2px solid var(--accent); pointer-events: none;
+    animation: chk-ring 0.5s ease-out forwards;
+  }
+  @keyframes chk-pop  { 0% { transform: scale(1); } 30% { transform: scale(0.84); } 65% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  @keyframes chk-draw { from { stroke-dashoffset: 22; } to { stroke-dashoffset: 0; } }
+  @keyframes chk-ring { from { transform: scale(1); opacity: 0.7; } to { transform: scale(1.75); opacity: 0; } }
+  .set-col-label.chk-col { flex: 0 0 40px; }
+
+  /* PAUSE INLINE: fährt direkt unter dem bestätigten Set (bzw. der
+     Superset-Runde) auf. Es gibt immer nur eine. Abgelaufen = kurz rot,
+     dann fährt sie wieder zu. */
+  .rest-in {
+    overflow: hidden; max-height: 0; opacity: 0; margin: 0 6px;
+    transition: max-height 0.32s var(--ease), opacity 0.22s, margin 0.32s var(--ease);
+  }
+  .rest-in.open { max-height: 64px; opacity: 1; margin: 4px 6px 8px; }
+  .rest-in-box {
+    position: relative; overflow: hidden;
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    cursor: pointer; transition: background 0.2s, border-color 0.2s;
+    padding: 9px 14px; border-radius: var(--radius-sm);
+    background: linear-gradient(158deg, rgba(200,241,53,0.15), rgba(200,241,53,0.05));
+    border: 1px solid rgba(200,241,53,0.34);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    transition: background 0.2s, border-color 0.2s;
   }
-  .rest-timer-banner.done { border-color: var(--red); background: rgba(255,68,68,0.1); }
-  .rest-timer-label { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 600; }
-  .rest-timer-num {
-    font-size: var(--fs-xl); font-weight: 800; color: var(--accent);
-    letter-spacing: var(--tr-title); line-height: 1;
+  .rest-in-l { font-size: var(--fs-xs); font-weight: 600; color: var(--text-dim); }
+  .rest-in-n {
+    font-size: var(--fs-lg); font-weight: var(--w-title); color: var(--accent);
+    letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1;
   }
-  .rest-timer-banner.done .rest-timer-num { color: var(--red); }
-  .rest-timer-hint { font-size: var(--fs-xs); color: var(--text-dim); font-weight: 400; }
+  .rest-in-bar {
+    position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent-glow);
+    transition: width 0.25s linear;
+  }
+  .rest-in.done .rest-in-box { border-color: var(--red); background: rgba(255,92,92,0.1); }
+  .rest-in.done .rest-in-n { color: var(--red); }
+
+  /* SUPERSET IM TRAINING: ein Block, die Übungen abwechselnd, ein Haken
+     pro Runde. Innerhalb der Runde keine Pause. */
+  .exercise-block.ss-block {
+    border-color: rgba(200,241,53,0.26);
+    background: linear-gradient(158deg, rgba(200,241,53,0.08), transparent 60%), var(--surface);
+  }
+  .ss-tag {
+    font-size: 9.5px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: var(--radius-pill); color: var(--accent); flex-shrink: 0;
+    background: linear-gradient(160deg, rgba(200,241,53,0.20), rgba(200,241,53,0.06));
+    border: 1px solid rgba(200,241,53,0.28);
+  }
+  .ss-block .exercise-header { justify-content: space-between; }
+  .ss-names {
+    padding: 10px 12px 2px; font-size: var(--fs-base); font-weight: var(--w-card);
+    letter-spacing: var(--tr-title); line-height: var(--lh-snug);
+  }
+  .ss-round {
+    display: flex; align-items: center; gap: 3px;
+    margin: 6px; padding: 4px 0;
+    border-radius: var(--radius-sm);
+    /* Feine Kontur hält die Übungen einer Runde als Paar zusammen */
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+  }
+  .ss-round-subs { flex: 1; min-width: 0; }
+  .ss-round > .set-chk { margin-right: 6px; }
+  .ss-sub-label {
+    font-size: var(--fs-xs); font-weight: 700; color: var(--text-dim);
+    padding: 4px 8px 0;
+  }
+  .ss-sub-label span { color: var(--text-muted); font-weight: 500; }
+  .set-row.ss-sub { border-bottom: none; padding: 3px 6px; border-radius: var(--radius-sm); }
+  /* Spaltenköpfe auf die eingerückten Runden ausrichten */
+  .ss-block .set-cols-header { padding-left: 12px; padding-right: 15px; border-bottom: none; }
+
+  /* SUPERSET IM PLAN: Kasten um die Übungen. Tap auf die Kopfzeile =
+     bearbeiten. Eigener Griff für den Block, Griffe innen nur für die
+     Reihenfolge im Superset. */
+  .plan-ss-box {
+    margin: 8px 0; padding: 0 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(200,241,53,0.30);
+    background: linear-gradient(158deg, rgba(200,241,53,0.09), rgba(200,241,53,0.02));
+    transition: opacity 0.2s;
+  }
+  .plan-ss-head {
+    display: flex; align-items: center; gap: 8px; padding: 7px 0;
+    cursor: pointer; border-bottom: 1px solid rgba(200,241,53,0.14);
+  }
+  .plan-ss-meta { flex: 1; min-width: 0; white-space: nowrap; font-size: var(--fs-xs); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .plan-ss-edit { font-size: var(--fs-xs); font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .plan-ss-box .plan-exercise-row:last-child { border-bottom: none; }
+
+  /* Long-Press-Rückmeldung: die Zeile füllt sich, solange der Finger hält */
+  .plan-exercise-row { transition: background 0.45s linear; }
+  .plan-exercise-row.holding { background: rgba(200,241,53,0.12); }
+  .plan-exercise-row.holding .drag-handle { color: var(--accent); }
+  .drag-handle { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+  /* Auswahlmodus: Haken statt Griff, Supersets nicht wählbar */
+  .plan-sel {
+    display: none; flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%;
+    align-items: center; justify-content: center;
+    border: 1.5px solid rgba(255,255,255,0.28);
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .plan-sel svg { width: 13px; height: 13px; fill: none; stroke: var(--on-accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+  .plan-exercise-row.picked .plan-sel {
+    border-color: transparent;
+    background: linear-gradient(168deg, var(--accent-hi), var(--accent-lo));
+    box-shadow: 0 3px 12px -3px var(--accent-glow);
+  }
+  .plan-exercise-row.picked .plan-sel svg { opacity: 1; }
+  .plan-sel.pop { animation: chk-pop 0.34s var(--ease); }
+  .plan-day-body.selecting .plan-exercise-row[data-solo] { cursor: pointer; }
+  .plan-day-body.selecting .plan-exercise-row[data-solo] .drag-handle { display: none; }
+  .plan-day-body.selecting .plan-exercise-row[data-solo] .plan-sel { display: flex; }
+  .plan-day-body.selecting .plan-ex-edit,
+  .plan-day-body.selecting .plan-ex-delete { visibility: hidden; }
+  .plan-day-body.selecting .plan-ss-box { opacity: 0.35; pointer-events: none; }
+  .plan-sel-hint { font-size: var(--fs-xs); font-weight: 600; color: var(--accent); padding: 8px 0 4px; }
+  .plan-sel-actions { display: flex; gap: 10px; margin-top: 10px; }
+  .plan-sel-actions .btn-secondary { flex: 1; }
+  .plan-sel-actions .btn-primary { flex: 1.5; height: 48px; }
+  .btn-primary:disabled {
+    cursor: default; color: var(--text-muted);
+    background: var(--surface2); box-shadow: inset 0 0 0 1px var(--border-soft);
+  }
+  .btn-primary:disabled:active { transform: none; }
+
+  /* SHEET-AUSWAHL (Superset erstellen) */
+  .ss-sheet-label {
+    font-size: var(--fs-micro); font-weight: var(--w-label); letter-spacing: var(--tr-label);
+    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
+  }
+  .ss-sheet-hint { font-size: var(--fs-sm); color: var(--text-muted); }
+  .ss-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 9px 0 20px; }
+  .ss-chip {
+    cursor: pointer; font: inherit; text-align: left;
+    padding: 9px 15px; border-radius: 16px;
+    background: var(--surface2); border: 1px solid var(--border-soft);
+    color: var(--text-dim); font-size: var(--fs-sm); font-weight: 600;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .ss-chip b { color: var(--text); font-weight: 800; font-size: var(--fs-base); }
+  .ss-chip span { display: block; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+  .ss-chip.on { border-color: rgba(200,241,53,0.55); background: linear-gradient(160deg, rgba(200,241,53,0.20), rgba(200,241,53,0.06)); color: var(--accent); }
+  .ss-chip.on b { color: var(--accent); }
+  .ss-edit-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+    font-size: var(--fs-base); font-weight: 500;
+  }
+  .ss-edit-row.gone span { color: var(--text-muted); text-decoration: line-through; }
+  .ss-edit-steps { display: flex; gap: 12px; margin: 16px 0 18px; }
+  .ss-edit-steps > div { flex: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .set-chk.pop, .set-chk.pop svg path, .plan-sel.pop { animation: none; }
+    .set-chk.pop::before { display: none; }
+    .rest-in, .plan-exercise-row { transition: none; }
+  }
 
   /* TOAST */
   .toast {
@@ -959,14 +1120,14 @@
      Die Lichtkante oben (::before) ist das, was Glas von „dunkles Rechteck"
      unterscheidet — sie simuliert eine Kante, die Licht fängt. */
   .focus-preview, .day-row, .exercise-block, .plan-day-block, .stat-card,
-  .chart-wrap, .finish-stat, .history-session, .modal, .rest-timer-banner,
+  .chart-wrap, .finish-stat, .history-session, .modal,
   .toast, .preview-ex-item {
     position: relative;
     backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
     box-shadow: var(--lift-1);
   }
-  /* Banner und Toast sind fixed; die Gruppe oben darf sie nicht auf relative zurücksetzen */
-  .rest-timer-banner, .toast { position: fixed; }
+  /* Der Toast ist fixed; die Gruppe oben darf ihn nicht auf relative zurücksetzen */
+  .toast { position: fixed; }
   .focus-preview::before, .day-row::before, .exercise-block::before,
   .plan-day-block::before, .stat-card::before, .chart-wrap::before,
   .finish-stat::before, .history-session::before, .modal::before {
@@ -1097,8 +1258,6 @@
   .plan-advanced-toggle, .add-exercise-btn { height: 44px; }
   .plan-ex-delete, .plan-ex-edit { position: relative; }
   .plan-ex-delete::after, .plan-ex-edit::after { content: ""; position: absolute; inset: -8px; }
-  .rest-btn { position: relative; }
-  .rest-btn::after { content: ""; position: absolute; inset: -6px; }
 
   /* ─── STEPPER ─────────────────────────────────────────────────────────
      Trefferfläche über die sichtbare Größe hinaus: in der Kartenbreite
@@ -1164,15 +1323,6 @@
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-top: none;
   }
-
-  /* ─── PAUSEN-BANNER ───────────────────────────────────────────────────*/
-  .rest-timer-banner {
-    background: linear-gradient(158deg, rgba(200,241,53,0.15), rgba(200,241,53,0.05));
-    border: 1px solid rgba(200,241,53,0.34);
-    border-radius: var(--radius);
-    box-shadow: 0 10px 34px -10px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.14);
-  }
-  .rest-timer-num { font-weight: var(--w-display); letter-spacing: var(--tr-display); }
 
 
   /* ─── MODALS, EINGABEN, TOASTS ────────────────────────────────────────*/
@@ -1279,10 +1429,6 @@
     <div id="workout-timer" style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums;">0:00</div>
   </div>
   <div class="scroll-area" id="workout-body"></div>
-  <div class="rest-timer-banner" id="rest-timer-banner" style="display:none" onclick="cancelRestTimer()">
-    <span class="rest-timer-label">Pause <span class="rest-timer-hint">· antippen zum Abbrechen</span></span>
-    <span class="rest-timer-num" id="rest-timer-num"></span>
-  </div>
   <div class="bottom-bar">
     <button class="btn-secondary" onclick="confirmExitWorkout()">Abbrechen</button>
     <button class="btn-primary" onclick="finishWorkout()">Training beenden <svg class="btn-ico-in stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></button>
@@ -1397,7 +1543,7 @@
     <button class="btn-primary" style="width:100%;margin-bottom:12px" onclick="showCreateExerciseModal()">＋ Neue Übung erstellen</button>
     <input class="form-input" id="pick-ex-search" type="text" placeholder="Übung suchen…" oninput="renderPickList(this.value)" style="margin-bottom:8px">
     <div id="pick-ex-list" style="height:50vh;overflow-y:auto"></div>
-    <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="closeModal('modal-pick-exercise')">← Zurück</button>
+    <button class="btn-secondary" style="width:100%;margin-top:12px" onclick="pickerBack()">← Zurück</button>
   </div>
 </div>
 
@@ -1408,8 +1554,56 @@
     <div class="modal-title">In mehreren Tagen</div>
     <div id="fork-text" style="font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:16px;line-height:var(--lh-snug)"></div>
     <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="forkApplyAll()">Für alle Tage ändern</button>
-    <button class="btn-secondary" style="width:100%;margin-bottom:8px" onclick="forkOnlyHere()">Nur hier (neue Übung)</button>
+    <button class="btn-secondary" style="width:100%;margin-bottom:8px" id="fork-here-btn" onclick="forkOnlyHere()">Nur hier (neue Übung)</button>
     <button class="btn-secondary" style="width:100%" onclick="closeModal('modal-fork')">Abbrechen</button>
+  </div>
+</div>
+
+<!-- Superset erstellen: weichen Sets oder Pause der Übungen ab, wird beides
+     hier gebündelt gewählt. Inhalt kommt aus openSSCreateModal(). -->
+<div class="modal-overlay" id="modal-ss-create" onclick="closeModalIfBg(event, 'modal-ss-create')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="margin-bottom:2px">Superset erstellen</div>
+    <div id="ss-create-names" style="font-size:var(--fs-sm);color:var(--text-dim);margin-bottom:18px"></div>
+    <div id="ss-create-body"></div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-ss-create')">Zurück</button>
+      <button class="btn-primary" style="flex:1.5" id="ss-create-ok" onclick="confirmSSCreate()" disabled>Erstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Superset bearbeiten: Übungen entfernen/hinzufügen, Sets, Pause, Auflösen -->
+<div class="modal-overlay" id="modal-ss-edit" onclick="closeModalIfBg(event, 'modal-ss-edit')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="margin-bottom:2px">Superset bearbeiten</div>
+    <div style="font-size:var(--fs-sm);color:var(--text-dim);margin-bottom:12px">Reihenfolge änderst du direkt im Kasten per Ziehen.</div>
+    <div id="ss-edit-list"></div>
+    <button class="add-exercise-btn" onclick="openSSAddPicker()">＋ Übung hinzufügen</button>
+    <div class="ss-edit-steps">
+      <div>
+        <div class="ss-sheet-label">Sets</div>
+        <div class="num-widget">
+          <button class="num-btn" onclick="adjustSSEdit('sets',-1)">−</button>
+          <div class="num-input" id="ss-edit-sets" style="display:flex;align-items:center;justify-content:center"></div>
+          <button class="num-btn" onclick="adjustSSEdit('sets',1)">+</button>
+        </div>
+      </div>
+      <div>
+        <div class="ss-sheet-label">Pause</div>
+        <div class="num-widget">
+          <button class="num-btn" onclick="adjustSSEdit('restSeconds',-15)">−</button>
+          <div class="num-input" id="ss-edit-rest" style="display:flex;align-items:center;justify-content:center"></div>
+          <button class="num-btn" onclick="adjustSSEdit('restSeconds',15)">+</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" style="flex:1;color:var(--red)" onclick="dissolveSSFromEdit()">Auflösen</button>
+      <button class="btn-primary" style="flex:1.5" onclick="saveSSEdit()">Speichern</button>
+    </div>
   </div>
 </div>
 
@@ -1578,11 +1772,6 @@ function hydrateEx(id) {
   };
 }
 
-// Voll aufgelöste, geordnete Übungsliste eines Tages.
-function dayExercises(day) {
-  return (day.exercises || []).map(hydrateEx);
-}
-
 // Alle Tage, die ein bestimmtes Modul referenzieren (für Fork-Logik beim Editieren).
 function daysUsingEx(id) {
   return db.plan.days.filter(d => (d.exercises || []).includes(id));
@@ -1598,6 +1787,50 @@ function exTrainingParamsDiffer(a, b) {
          a.targetReps !== b.targetReps || a.weightStep !== b.weightStep ||
          (a.restSeconds || 90) !== (b.restSeconds || 90);
 }
+
+// ─── SUPERSETS ──────────────────────────────────────────────────────────────────
+// Ein Superset ist ein eigenes Modul in db.supersets: { members: [exId…], sets,
+// restSeconds }. Tage referenzieren es per ID in day.exercises wie eine Übung.
+// Gleiche Übungen in gleicher Reihenfolge mit gleichen Sets/Pause = dasselbe
+// Modul (wiederverwendbar, ↔ und Fork-Frage wie bei Übungen).
+// Die Übungen im Superset haben eine eigene History, getrennt von der
+// Einzelübung, unter "<supersetId>:<exId>". Leos Entscheidung: im Superset ist
+// der Output pro Übung kleiner, die Zahlen sind nicht vergleichbar.
+// Kein Schema-Bump nötig: db.supersets fehlt in alten Daten einfach.
+
+function getSS(id) {
+  return (db.supersets && db.supersets[id]) || null;
+}
+
+function ssHistId(sid, exId) { return sid + ':' + exId; }
+
+function ssNames(ss) { return ss.members.map(id => hydrateEx(id).name).join(' + '); }
+
+// Flache Übungsliste eines Tages: Supersets in ihre Übungen aufgelöst, mit den
+// Sets und der Pause des Supersets statt der eigenen.
+function dayFlatExercises(day) {
+  const out = [];
+  (day.exercises || []).forEach(id => {
+    const ss = getSS(id);
+    if (ss) ss.members.forEach(mid => out.push({ ...hydrateEx(mid), sets: ss.sets, restSeconds: ss.restSeconds, ss: id }));
+    else out.push(hydrateEx(id));
+  });
+  return out;
+}
+
+// Bestehendes Superset-Modul mit genau dieser Zusammenstellung, sonst null.
+function findSS(members, sets, restSeconds) {
+  return Object.keys(db.supersets || {}).find(id => {
+    const s = db.supersets[id];
+    return s.members.join() === members.join() && +s.sets === +sets && +s.restSeconds === +restSeconds;
+  }) || null;
+}
+
+// Anzeigename in History und Statistik. Superset-Übungen tragen eine eigene
+// History und sollen sich dort von der Einzelübung unterscheiden.
+function histExName(ex) { return ex.ss ? ex.name + ' · Superset' : ex.name; }
+
+const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
 
@@ -1627,7 +1860,7 @@ function showScreen(id) {
 
   if (id === 'screen-home') renderFocusHome();
   if (id === 'screen-overview') renderOverview();
-  if (id === 'screen-plan') renderPlan();
+  if (id === 'screen-plan') { planSel = null; renderPlan(); }
   if (id === 'screen-history') renderHistory('all');
   if (id === 'screen-analytics') renderAnalytics('verlauf');
 }
@@ -1903,7 +2136,13 @@ function renderFocusHome() {
   // Erste 3 sichtbar, Rest hinter dem Toggle — Zeilen sind immer im DOM,
   // damit das Aufklappen ohne Re-Render funktioniert.
   const VISIBLE = 3;
-  const exList = dayExercises(day);
+  // Ein Superset ist eine Zeile ("A + B"), wie im Plan ein Block.
+  const exList = (day.exercises || []).map(id => {
+    const ss = getSS(id);
+    if (ss) return { name: ssNames(ss), meta: `${ss.sets}× Superset` };
+    const ex = hydrateEx(id);
+    return { name: ex.name, meta: `${ex.sets}×${ex.targetReps}` };
+  });
   const more = Math.max(0, exList.length - VISIBLE);
   const moreLabel = `+${more} weitere Übung${more > 1 ? 'en' : ''}`;
   const previewHTML = exList.length ? `
@@ -1911,7 +2150,7 @@ function renderFocusHome() {
       ${exList.map((ex, i) => `
         <div class="focus-preview-row${i >= VISIBLE ? ' extra' : ''}">
           <div class="focus-preview-name">${ex.name}</div>
-          <div class="focus-preview-sets">${ex.sets}×${ex.targetReps}</div>
+          <div class="focus-preview-sets">${ex.meta}</div>
         </div>`).join('')}
       ${more > 0 ? `
         <button class="focus-preview-toggle" onclick="toggleFocusPreview()">
@@ -2188,18 +2427,19 @@ function previewDay(dayId) {
   body.innerHTML = `
     <div class="preview-hero">
       <div class="preview-hero-name">${day.name}</div>
-      <div class="preview-hero-sub">${day.exercises.length} Übungen${lastDate ? ' · Zuletzt ' + lastDate : ' · Erstes Mal'}</div>
+      <div class="preview-hero-sub">${dayFlatExercises(day).length} Übungen${lastDate ? ' · Zuletzt ' + lastDate : ' · Erstes Mal'}</div>
     </div>
     <div class="preview-ex-list">
-      ${dayExercises(day).map(ex => {
-        const lastEx = lastSession && lastSession.exercises.find(e => e.exId === ex.id);
+      ${dayFlatExercises(day).map(ex => {
+        const histId = ex.ss ? ssHistId(ex.ss, ex.id) : ex.id;
+        const lastEx = lastSession && lastSession.exercises.find(e => e.exId === histId);
         const lastLine = lastEx
           ? lastEx.sets.map(s => `${s.reps}×${s.weight}kg`).join(' ')
           : '—';
         return `
           <div class="preview-ex-item">
             <div class="preview-ex-name">${ex.name}</div>
-            <div class="preview-ex-meta">${ex.sets}×${ex.targetReps}</div>
+            <div class="preview-ex-meta">${ex.ss ? 'SS · ' : ''}${ex.sets}×${ex.targetReps}</div>
             <div class="preview-ex-last">${lastLine}</div>
           </div>`;
       }).join('')}
@@ -2224,15 +2464,19 @@ function startWorkout() {
     dayName: day.name,
     startTime: Date.now(),
     backlogDate: backlogDate,
-    exercises: dayExercises(day).map(ex => {
+    // Supersets kommen flach rein, jede Übung mit `ss` markiert. renderWorkout
+    // fasst aufeinanderfolgende Übungen desselben Supersets zu einem Block.
+    exercises: dayFlatExercises(day).map(ex => {
+      const exId = ex.ss ? ssHistId(ex.ss, ex.id) : ex.id;
       // Find last values for this exercise
       let lastSets = [];
       if (lastSession) {
-        const lastEx = lastSession.exercises.find(e => e.exId === ex.id);
+        const lastEx = lastSession.exercises.find(e => e.exId === exId);
         if (lastEx) lastSets = lastEx.sets;
       }
       return {
-        exId: ex.id,
+        exId: exId,
+        ...(ex.ss ? { ss: ex.ss } : {}),
         name: ex.name,
         targetReps: ex.targetReps,
         weightStep: ex.weightStep || 2.5,
@@ -2316,38 +2560,75 @@ function startTimer() {
 
 // ─── REST TIMER ───────────────────────────────────────────────────────────────
 
-let restTimerInterval = null;
-let restTimerEndsAt = 0;
+// Die Pause hängt inline unter dem bestätigten Set (bzw. der Superset-Runde).
+// Es gibt immer nur eine: wird woanders abgehakt, fährt die alte zu und die
+// neue dort auf. Gestartet wird sie ausschließlich über den Set-Haken.
+let restTimer = null;   // { ei, si, el, total, endsAt, iv }
 
-function startRestTimer(seconds) {
-  clearInterval(restTimerInterval);
-  restTimerEndsAt = Date.now() + seconds * 1000;
-  const banner = document.getElementById('rest-timer-banner');
-  banner.classList.remove('done');
-  banner.style.display = 'flex';
+function startRestTimer(ei, si) {
+  stopRestTimer();
+  const anchor = document.getElementById(`round-${ei}-${si}`) || document.getElementById(`set-${ei}-${si}`);
+  if (!anchor) return;
+  const total = workoutState.exercises[ei].restSeconds || 90;
+  const el = document.createElement('div');
+  el.className = 'rest-in';
+  el.innerHTML = '<div class="rest-in-box"><span class="rest-in-l">Pause · Haken antippen stoppt</span>' +
+                 '<span class="rest-in-n"></span><i class="rest-in-bar"></i></div>';
+  anchor.after(el);
+  void el.offsetHeight;   // Startzustand festschreiben, sonst fährt sie nicht auf
+  el.classList.add('open');
+  restTimer = { ei, si, el, total, endsAt: Date.now() + total * 1000 };
   tickRestTimer();
-  restTimerInterval = setInterval(tickRestTimer, 250);
+  restTimer.iv = setInterval(tickRestTimer, 250);
 }
 
 function tickRestTimer() {
-  const banner = document.getElementById('rest-timer-banner');
-  const numEl = document.getElementById('rest-timer-num');
-  if (!banner || banner.style.display === 'none') { clearInterval(restTimerInterval); return; }
-  const remaining = Math.max(0, Math.ceil((restTimerEndsAt - Date.now()) / 1000));
+  if (!restTimer) return;
+  if (!restTimer.el.isConnected) { stopRestTimer(); return; }   // Workout neu gerendert
+  const remaining = Math.max(0, Math.ceil((restTimer.endsAt - Date.now()) / 1000));
   const m = Math.floor(remaining / 60);
   const s = remaining % 60;
-  numEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  restTimer.el.querySelector('.rest-in-n').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  restTimer.el.querySelector('.rest-in-bar').style.width = (remaining / restTimer.total * 100) + '%';
   if (remaining <= 0) {
-    clearInterval(restTimerInterval);
-    banner.classList.add('done');
+    clearInterval(restTimer.iv);
+    const el = restTimer.el;
+    restTimer = null;
+    el.classList.add('done');
     if (navigator.vibrate) navigator.vibrate([200,100,200]);
-    setTimeout(() => { banner.style.display = 'none'; }, 1500);
+    setTimeout(() => collapseRest(el), 1500);
   }
 }
 
-function cancelRestTimer() {
-  clearInterval(restTimerInterval);
-  document.getElementById('rest-timer-banner').style.display = 'none';
+function stopRestTimer() {
+  if (!restTimer) return;
+  clearInterval(restTimer.iv);
+  collapseRest(restTimer.el);
+  restTimer = null;
+}
+
+function collapseRest(el) {
+  el.classList.remove('open');
+  setTimeout(() => el.remove(), 340);
+}
+
+// Haken = Set bestätigen + Pause starten. Zweiter Tap nimmt ihn zurück und
+// stoppt die Pause. Loggt nichts: geloggt wird per Default über die Werte.
+function toggleSetCheck(ei, si) {
+  const set = workoutState.exercises[ei].sets[si];
+  const btn = document.getElementById(`chk-${ei}-${si}`);
+  if (set.chk) {
+    set.chk = false;
+    btn.classList.remove('on', 'pop');
+    if (restTimer && restTimer.ei === ei && restTimer.si === si) stopRestTimer();
+  } else {
+    set.chk = true;
+    btn.classList.remove('pop');
+    void btn.offsetWidth;   // Animation neu starten
+    btn.classList.add('on', 'pop');
+    startRestTimer(ei, si);
+  }
+  saveWorkoutDraft();
 }
 
 // ─── WAKE LOCK ────────────────────────────────────────────────────────────────
@@ -2376,23 +2657,98 @@ function renderWorkout() {
   if (!workoutState) return;
   document.getElementById('workout-title').textContent = workoutState.dayName;
 
-  const body = document.getElementById('workout-body');
-  body.innerHTML = workoutState.exercises.map((ex, ei) => {
-    const setsHTML = ex.sets.map((set, si) => {
-      const prevSet = ex.lastSets[si];
-      const repsWidget = `<div class="num-widget reps-widget">
+  stopRestTimer();
+  const exs = workoutState.exercises;
+  const backlog = !!workoutState.backlogDate;
+  const colsHeader = `
+        <div class="set-cols-header">
+          <div class="set-col-label reps-col">reps</div>
+          <div class="set-col-label weight-col">kg</div>
+          ${backlog ? '' : '<div class="set-col-label chk-col"></div>'}
+        </div>`;
+  // Nachtragen: keine Pause, also auch kein Haken.
+  const chkHTML = (ei, si) => backlog ? '' :
+    `<button class="set-chk${exs[ei].sets[si].chk ? ' on' : ''}" id="chk-${ei}-${si}" onclick="toggleSetCheck(${ei},${si})" aria-label="Set bestätigen">${CHECK_SVG}</button>`;
+
+  let html = '';
+  for (let ei = 0; ei < exs.length; ei++) {
+    const ex = exs[ei];
+    if (ex.ss) {
+      // Aufeinanderfolgende Übungen desselben Supersets = ein Block
+      let end = ei;
+      while (end + 1 < exs.length && exs[end + 1].ss === ex.ss) end++;
+      html += renderSupersetBlock(ei, end, colsHeader, chkHTML);
+      ei = end;
+      continue;
+    }
+    const setsHTML = ex.sets.map((set, si) => `
+        <div class="set-row ${set.done ? 'done' : ''}" id="set-${ei}-${si}">
+          ${setWidgetsHTML(ex, ei, si)}
+          ${chkHTML(ei, si)}
+        </div>
+      `).join('');
+
+    html += `
+      <div class="exercise-block" id="ex-block-${ei}">
+        <div class="exercise-header">
+          <div class="exercise-name">${ex.name}</div>
+          <div class="exercise-target">${ex.targetReps} reps</div>
+        </div>
+        ${colsHeader}
+        ${setsHTML}
+      </div>
+    `;
+  }
+  document.getElementById('workout-body').innerHTML = html;
+}
+
+// Superset im Training: Runden, in jeder Runde alle Übungen untereinander,
+// ein Haken pro Runde (hängt am Set der ersten Übung). Pause nur nach der Runde.
+function renderSupersetBlock(a, b, colsHeader, chkHTML) {
+  const members = workoutState.exercises.slice(a, b + 1);
+  const rounds = Math.max(...members.map(m => m.sets.length));
+  let roundsHTML = '';
+  for (let r = 0; r < rounds; r++) {
+    const subs = members.map((m, k) => {
+      const ei = a + k;
+      if (!m.sets[r]) return '';
+      return `
+          <div class="ss-sub-label">${m.name} <span>· ${m.targetReps}</span></div>
+          <div class="set-row ss-sub ${m.sets[r].done ? 'done' : ''}" id="set-${ei}-${r}">${setWidgetsHTML(m, ei, r)}</div>`;
+    }).join('');
+    roundsHTML += `
+        <div class="ss-round" id="round-${a}-${r}">
+          <div class="ss-round-subs">${subs}</div>
+          ${members[0].sets[r] ? chkHTML(a, r) : ''}
+        </div>`;
+  }
+  return `
+      <div class="exercise-block ss-block" id="ex-block-${a}">
+        <div class="exercise-header">
+          <span class="ss-tag">Superset</span>
+          <div class="exercise-target">${rounds} Sets · ${members[0].restSeconds} s Pause</div>
+        </div>
+        <div class="ss-names">${members.map(m => m.name).join(' + ')}</div>
+        ${colsHeader}
+        ${roundsHTML}
+      </div>`;
+}
+
+// Reps- und Gewichts-Stepper eines Sets (ohne Zeilen-Wrapper).
+function setWidgetsHTML(ex, ei, si) {
+  const set = ex.sets[si];
+  const prevSet = ex.lastSets[si];
+  return `
+          <div class="num-widget reps-widget">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'reps',-1)">−</button>
             <input class="num-input" type="number" inputmode="numeric"
               value="${set.reps}"
-              placeholder="${ex.targetReps.split('-')[0]}"
+              placeholder="${String(ex.targetReps).split('-')[0]}"
               onfocus="setTimeout(() => this.select(), 0)"
               onchange="setVal(${ei},${si},'reps',this.value)"
               oninput="setVal(${ei},${si},'reps',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'reps',1)">+</button>
-          </div>`;
-      return `
-        <div class="set-row ${set.done ? 'done' : ''}" id="set-${ei}-${si}">
-          ${repsWidget}
+          </div>
           <div class="num-widget weight-widget">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${-(ex.weightStep || 2.5)})">−</button>
             <input class="num-input" type="number" inputmode="decimal"
@@ -2402,26 +2758,7 @@ function renderWorkout() {
               onchange="setVal(${ei},${si},'weight',this.value)"
               oninput="setVal(${ei},${si},'weight',this.value)">
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${ex.weightStep || 2.5})">+</button>
-          </div>
-          ${workoutState.backlogDate ? '' : `<button class="rest-btn" onclick="startRestTimer(${ex.restSeconds || 90})" title="Pause starten">⏱</button>`}
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <div class="exercise-block" id="ex-block-${ei}">
-        <div class="exercise-header">
-          <div class="exercise-name">${ex.name}</div>
-          <div class="exercise-target">${ex.targetReps} reps</div>
-        </div>
-        <div class="set-cols-header">
-          <div class="set-col-label reps-col">reps</div>
-          <div class="set-col-label weight-col">kg</div>
-        </div>
-        ${setsHTML}
-      </div>
-    `;
-  }).join('');
+          </div>`;
 }
 
 function isSetCommitted(set) {
@@ -2474,7 +2811,7 @@ function confirmExitWorkout() {
 
 function exitWorkout() {
   clearInterval(timerInterval);
-  cancelRestTimer();
+  stopRestTimer();
   releaseWakeLock();
   workoutState = null;
   db.draftWorkout = null;
@@ -2486,7 +2823,7 @@ function exitWorkout() {
 function finishWorkout() {
   if (!workoutState) return;
   clearInterval(timerInterval);
-  cancelRestTimer();
+  stopRestTimer();
   releaseWakeLock();
   db.draftWorkout = null;
 
@@ -2500,6 +2837,7 @@ function finishWorkout() {
     duration: workoutState.backlogDate ? 0 : timerSeconds,
     exercises: workoutState.exercises.map(ex => ({
       exId: ex.exId,
+      ...(ex.ss ? { ss: ex.ss } : {}),
       name: ex.name,
       sets: ex.sets.filter(isSetCommitted).map(s => ({ reps: +s.reps || 0, weight: +s.weight || 0 }))
     })).filter(ex => ex.sets.length > 0)
@@ -2568,7 +2906,7 @@ function renderHistory(filter) {
 
     const exHTML = session.exercises.map(ex => `
       <div class="history-ex-row">
-        <div class="history-ex-name">${ex.name}</div>
+        <div class="history-ex-name">${histExName(ex)}</div>
         <div class="history-set-pills">
           ${ex.sets.map((s, i) => `<span class="history-set-pill">S${i+1}: ${s.reps}r · ${s.weight}kg</span>`).join('')}
         </div>
@@ -2600,27 +2938,95 @@ function toggleHistorySession(id) {
 let editingExercise = { dayId: null, exIdx: null };
 
 // ─── DRAG & DROP ──────────────────────────────────────────────────────────────
+// Griff berühren startet eine Geste: bewegt sich der Finger, wird gezogen.
+// Hält er bei einer Einzelübung still, öffnet sich die Superset-Auswahl.
+// Ein Superset zieht als ganzer Block; die Griffe im Kasten sortieren nur die
+// Übungen innerhalb des Supersets.
 
 let drag = null;
+let gesture = null;
+const HOLD_MS = 450;
+const MOVE_PX = 8;
 
-function onExDragStart(e, dayId, exIdx) {
+function startHandleGesture(e, row, onDragStart, onHold) {
   e.preventDefault();
-  const row = document.getElementById(`pex-${dayId}-${exIdx}`);
-  const rect = row.getBoundingClientRect();
-  const touch = e.touches[0];
+  if (planSel || drag || gesture) return;
+  const t = e.touches[0];
+  gesture = { row, x: t.clientX, y: t.clientY, onDragStart };
+  if (onHold) {
+    row.classList.add('holding');
+    gesture.timer = setTimeout(() => { endGesture(); onHold(); }, HOLD_MS);
+  }
+  document.addEventListener('touchmove', onGestureMove, { passive: false });
+  document.addEventListener('touchend', endGesture);
+  document.addEventListener('touchcancel', endGesture);
+}
 
+function onGestureMove(e) {
+  if (!gesture) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  if (Math.hypot(t.clientX - gesture.x, t.clientY - gesture.y) < MOVE_PX) return;
+  const g = gesture;
+  endGesture();
+  g.onDragStart(g.y);
+  onExDragMove(e);
+}
+
+function endGesture() {
+  if (!gesture) return;
+  clearTimeout(gesture.timer);
+  gesture.row.classList.remove('holding');
+  document.removeEventListener('touchmove', onGestureMove);
+  document.removeEventListener('touchend', endGesture);
+  document.removeEventListener('touchcancel', endGesture);
+  gesture = null;
+}
+
+// Griff auf Tagesebene: Einzelübung oder ganzer Superset-Block.
+function onDayItemHandle(e, dayId, idx) {
+  const row = document.getElementById(`pex-${dayId}-${idx}`);
+  if (!row) return;
+  const solo = row.hasAttribute('data-solo');
+  startHandleGesture(e, row,
+    startY => beginDrag(row, startY, 'data-ex-row', idx, dayId, (from, to) => {
+      const day = db.plan.days.find(d => d.id === dayId);
+      const [moved] = day.exercises.splice(from, 1);
+      day.exercises.splice(to, 0, moved);
+    }),
+    solo ? () => enterPlanSelect(dayId, idx) : null);
+}
+
+// Griff einer Übung im Superset-Kasten: sortiert nur innerhalb des Supersets.
+function onSSMemberHandle(e, dayId, idx, k) {
+  const row = document.getElementById(`pss-${dayId}-${idx}-${k}`);
+  if (!row) return;
+  startHandleGesture(e, row,
+    startY => beginDrag(row, startY, 'data-ss-row', k, dayId, (from, to) => {
+      const day = db.plan.days.find(d => d.id === dayId);
+      const ss = getSS(day.exercises[idx]);
+      const [moved] = ss.members.splice(from, 1);
+      ss.members.splice(to, 0, moved);
+    }),
+    null);
+}
+
+function beginDrag(row, startY, rowAttr, fromIdx, dayId, apply) {
+  const rect = row.getBoundingClientRect();
   const ph = document.createElement('div');
   ph.className = 'drag-ph';
   ph.style.height = rect.height + 'px';
   row.parentNode.insertBefore(ph, row);
 
   row.classList.add('dragging');
-  row.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;top:${rect.top}px;z-index:999;background:var(--surface2);border-radius:var(--radius-sm);padding:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);`;
+  row.style.cssText = `position:fixed;left:${rect.left}px;width:${rect.width}px;top:${rect.top}px;z-index:999;margin:0;background:var(--surface2);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,0.5);` +
+    (row.classList.contains('plan-exercise-row') ? 'padding:8px;' : '');
 
-  drag = { dayId, exIdx, row, ph, offsetY: touch.clientY - rect.top };
+  drag = { row, ph, rowAttr, fromIdx, dayId, apply, container: ph.parentNode, offsetY: startY - rect.top };
 
   document.addEventListener('touchmove', onExDragMove, { passive: false });
-  document.addEventListener('touchend', onExDragEnd, { once: true });
+  document.addEventListener('touchend', onExDragEnd);
+  document.addEventListener('touchcancel', onExDragEnd);
 }
 
 function onExDragMove(e) {
@@ -2632,13 +3038,15 @@ function onExDragMove(e) {
   drag.row.style.display = 'none';
   const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
   drag.row.style.display = '';
-  const rowUnder = elUnder?.closest('[data-ex-row]');
-  if (rowUnder) {
+  // Nur Geschwister im selben Container: Blöcke bleiben auf Tagesebene,
+  // Übungen bleiben in ihrem Superset.
+  const rowUnder = elUnder?.closest(`[${drag.rowAttr}]`);
+  if (rowUnder && rowUnder.parentNode === drag.container) {
     const rect = rowUnder.getBoundingClientRect();
     if (touch.clientY < rect.top + rect.height / 2) {
-      rowUnder.parentNode.insertBefore(drag.ph, rowUnder);
+      drag.container.insertBefore(drag.ph, rowUnder);
     } else {
-      rowUnder.parentNode.insertBefore(drag.ph, rowUnder.nextSibling);
+      drag.container.insertBefore(drag.ph, rowUnder.nextSibling);
     }
   }
 }
@@ -2646,26 +3054,289 @@ function onExDragMove(e) {
 function onExDragEnd() {
   if (!drag) return;
   document.removeEventListener('touchmove', onExDragMove);
+  document.removeEventListener('touchend', onExDragEnd);
+  document.removeEventListener('touchcancel', onExDragEnd);
 
-  const { dayId, exIdx, row, ph } = drag;
+  const { row, ph, rowAttr, fromIdx, dayId, apply } = drag;
   drag = null;
 
-  const container = ph.parentNode;
-  const children = [...container.children];
-  const phIdx = children.indexOf(ph);
-  const newIdx = children.slice(0, phIdx).filter(el => el.hasAttribute('data-ex-row')).length;
+  // Der gezogene Eintrag selbst zählt nicht mit. Sonst landet er beim Ziehen
+  // nach unten eine Position zu weit.
+  const children = [...ph.parentNode.children];
+  const newIdx = children.slice(0, children.indexOf(ph))
+    .filter(el => el !== row && el.hasAttribute(rowAttr)).length;
 
   ph.remove();
   row.style.cssText = '';
   row.classList.remove('dragging');
 
-  if (newIdx !== exIdx) {
-    const day = db.plan.days.find(d => d.id === dayId);
-    const [moved] = day.exercises.splice(exIdx, 1);
-    day.exercises.splice(newIdx, 0, moved);
+  if (newIdx !== fromIdx) {
+    apply(fromIdx, newIdx);
     saveDB();
   }
   renderPlan(dayId);
+}
+
+// ─── SUPERSET-AUSWAHL ─────────────────────────────────────────────────────────
+// Long-Press auf den Griff einer Einzelübung: alle Einzelübungen des Tages
+// bekommen einen Haken statt Griff, die gedrückte ist vorausgewählt.
+
+let planSel = null;   // { dayId, picked: Set<exId> }
+
+function enterPlanSelect(dayId, idx) {
+  const day = db.plan.days.find(d => d.id === dayId);
+  if (!day) return;
+  planSel = { dayId, picked: new Set([day.exercises[idx]]) };
+  renderPlan(dayId);
+  popPlanSel(dayId, idx);
+  if (navigator.vibrate) navigator.vibrate(12);
+}
+
+function togglePlanPick(dayId, idx) {
+  if (!planSel || planSel.dayId !== dayId) return;
+  const day = db.plan.days.find(d => d.id === dayId);
+  const id = day && day.exercises[idx];
+  if (!id || getSS(id)) return;
+  const row = document.getElementById(`pex-${dayId}-${idx}`);
+  if (planSel.picked.has(id)) {
+    planSel.picked.delete(id);
+    row.classList.remove('picked');
+  } else {
+    planSel.picked.add(id);
+    row.classList.add('picked');
+    popPlanSel(dayId, idx);
+  }
+  document.getElementById('ss-create-btn').disabled = planSel.picked.size < 2;
+}
+
+function popPlanSel(dayId, idx) {
+  const s = document.querySelector(`#pex-${dayId}-${idx} .plan-sel`);
+  if (!s) return;
+  s.classList.remove('pop');
+  void s.offsetWidth;
+  s.classList.add('pop');
+}
+
+function exitPlanSelect() {
+  const dayId = planSel && planSel.dayId;
+  planSel = null;
+  renderPlan(dayId);
+}
+
+// ─── SUPERSET ERSTELLEN ───────────────────────────────────────────────────────
+// Weichen Sets oder Pause der gewählten Übungen ab, wird beides gebündelt im
+// Sheet gewählt (ohne Vorauswahl). Sonst entsteht das Superset direkt.
+
+let ssCreate = null;   // { dayId, members, sets, restSeconds }
+
+function exSetsOf(id) { return parseInt((getExDef(id) || {}).sets) || 3; }
+function exRestOf(id) { return (getExDef(id) || {}).restSeconds || 90; }
+
+function tryCreateSuperset() {
+  if (!planSel) return;
+  const day = db.plan.days.find(d => d.id === planSel.dayId);
+  if (!day) return;
+  const members = day.exercises.filter(id => planSel.picked.has(id));   // Tagesreihenfolge
+  if (members.length < 2) return;
+
+  const setsOpts = [...new Set(members.map(exSetsOf))].sort((a, b) => a - b);
+  const restOpts = [...new Set(members.map(exRestOf))].sort((a, b) => a - b);
+  ssCreate = {
+    dayId: day.id, members,
+    sets: setsOpts.length === 1 ? setsOpts[0] : null,
+    restSeconds: restOpts.length === 1 ? restOpts[0] : null
+  };
+  if (ssCreate.sets !== null && ssCreate.restSeconds !== null) { finalizeSSCreate(); return; }
+
+  // Unter jedem Wert steht, von welcher Übung er kommt.
+  const chips = (key, opts, valueOf, fmt) => opts.map(v => {
+    const from = members.filter(id => valueOf(id) === v).map(id => hydrateEx(id).name).join(', ');
+    return `<button class="ss-chip" data-k="${key}" data-v="${v}" onclick="pickSSChip(this)">${fmt(v)}<span>${from}</span></button>`;
+  }).join('');
+
+  document.getElementById('ss-create-names').textContent = members.map(id => hydrateEx(id).name).join(' + ');
+  document.getElementById('ss-create-body').innerHTML =
+    (setsOpts.length > 1 ? `
+      <div class="ss-sheet-label">Sets</div>
+      <div class="ss-sheet-hint">Im Superset haben alle Übungen gleich viele Sets.</div>
+      <div class="ss-chips">${chips('sets', setsOpts, exSetsOf, v => `<b>${v}</b> Sets`)}</div>` : '') +
+    (restOpts.length > 1 ? `
+      <div class="ss-sheet-label">Pause nach jeder Runde</div>
+      <div class="ss-sheet-hint">Innerhalb einer Runde gibt es keine Pause.</div>
+      <div class="ss-chips">${chips('restSeconds', restOpts, exRestOf, v => `<b>${v}</b> s`)}</div>` : '');
+  document.getElementById('ss-create-ok').disabled = true;
+  openModal('modal-ss-create');
+}
+
+function pickSSChip(btn) {
+  if (!ssCreate) return;
+  const key = btn.dataset.k;
+  document.querySelectorAll(`#ss-create-body .ss-chip[data-k="${key}"]`)
+    .forEach(c => c.classList.toggle('on', c === btn));
+  ssCreate[key] = +btn.dataset.v;
+  document.getElementById('ss-create-ok').disabled = ssCreate.sets === null || ssCreate.restSeconds === null;
+}
+
+function confirmSSCreate() {
+  if (!ssCreate || ssCreate.sets === null || ssCreate.restSeconds === null) return;
+  closeModal('modal-ss-create');
+  finalizeSSCreate();
+}
+
+// Das Superset erscheint an der Stelle der obersten ausgewählten Übung. Gibt
+// es dieselbe Zusammenstellung schon als Modul, wird es wiederverwendet.
+function finalizeSSCreate() {
+  const { dayId, members, sets, restSeconds } = ssCreate;
+  ssCreate = null;
+  const day = db.plan.days.find(d => d.id === dayId);
+  if (!day) return;
+  let sid = findSS(members, sets, restSeconds);
+  if (sid && day.exercises.includes(sid)) { showToast('Dieses Superset gibt es in diesem Tag schon'); return; }
+  if (!sid) {
+    sid = 's' + Date.now();
+    db.supersets = db.supersets || {};
+    db.supersets[sid] = { members: [...members], sets, restSeconds };
+  }
+  const at = day.exercises.indexOf(members[0]);
+  day.exercises = day.exercises.filter(id => !members.includes(id));
+  day.exercises.splice(at, 0, sid);
+  planSel = null;
+  saveDB();
+  renderPlan(dayId);
+  showToast('Superset erstellt');
+}
+
+// ─── SUPERSET BEARBEITEN ──────────────────────────────────────────────────────
+// Tap auf den Kasten. Entfernte Übungen kommen als Einzelübungen direkt hinter
+// den Block. Bleibt nur eine übrig, löst sich das Superset auf. Ist das
+// Superset in mehreren Tagen, kommt die Fork-Frage wie bei Übungen.
+
+let ssEdit = null;   // { dayId, idx, sid, members, gone: Set, sets, restSeconds }
+
+function openSSEdit(dayId, idx) {
+  if (planSel) return;
+  const day = db.plan.days.find(d => d.id === dayId);
+  const sid = day && day.exercises[idx];
+  const ss = getSS(sid);
+  if (!ss) return;
+  ssEdit = { dayId, idx, sid, members: [...ss.members], gone: new Set(), sets: +ss.sets, restSeconds: +ss.restSeconds };
+  renderSSEdit();
+  openModal('modal-ss-edit');
+}
+
+function renderSSEdit() {
+  document.getElementById('ss-edit-list').innerHTML = ssEdit.members.map(id => {
+    const gone = ssEdit.gone.has(id);
+    return `
+      <div class="ss-edit-row${gone ? ' gone' : ''}">
+        <span>${hydrateEx(id).name}</span>
+        <button class="plan-ex-delete" onclick="toggleSSEditMember('${id}')">${gone ? '↺' : '✕'}</button>
+      </div>`;
+  }).join('');
+  document.getElementById('ss-edit-sets').textContent = ssEdit.sets;
+  document.getElementById('ss-edit-rest').textContent = ssEdit.restSeconds + ' s';
+}
+
+function toggleSSEditMember(id) {
+  if (!ssEdit) return;
+  if (ssEdit.gone.has(id)) ssEdit.gone.delete(id); else ssEdit.gone.add(id);
+  renderSSEdit();
+}
+
+function adjustSSEdit(key, delta) {
+  if (!ssEdit) return;
+  ssEdit[key] = Math.max(key === 'sets' ? 1 : 0, ssEdit[key] + delta);
+  renderSSEdit();
+}
+
+// Übungen ab Position `pos` in den Tag einfügen, ohne Dubletten im Tag.
+function insertSoloAt(day, pos, ids) {
+  ids.forEach(id => {
+    if (!day.exercises.includes(id)) day.exercises.splice(pos++, 0, id);
+  });
+}
+
+// Auflösen: die Übungen kehren als Einzelübungen an die Stelle des Blocks
+// zurück, mit ihren eigenen Parametern. Das Superset-Modul bleibt bestehen
+// (History, andere Tage).
+function dissolveSS(day, idx, ids) {
+  day.exercises.splice(idx, 1);
+  insertSoloAt(day, idx, ids);
+}
+
+function dissolveSSFromEdit() {
+  if (!ssEdit) return;
+  const { dayId, idx, sid } = ssEdit;
+  ssEdit = null;
+  closeModal('modal-ss-edit');
+  const day = db.plan.days.find(d => d.id === dayId);
+  const ss = getSS(sid);
+  if (!day || !ss || day.exercises[idx] !== sid) return;
+  dissolveSS(day, idx, [...ss.members]);
+  saveDB();
+  renderPlan(dayId);
+  showToast('Superset aufgelöst');
+}
+
+function saveSSEdit() {
+  if (!ssEdit) return;
+  const { dayId, idx, sid } = ssEdit;
+  const day = db.plan.days.find(d => d.id === dayId);
+  const ss = getSS(sid);
+  closeModal('modal-ss-edit');
+  if (!day || !ss || day.exercises[idx] !== sid) { ssEdit = null; return; }
+
+  const keep = ssEdit.members.filter(id => !ssEdit.gone.has(id));
+  const removed = ss.members.filter(id => ssEdit.gone.has(id));
+  const next = { members: keep, sets: ssEdit.sets, restSeconds: ssEdit.restSeconds };
+  ssEdit = null;
+
+  if (keep.length < 2) {
+    dissolveSS(day, idx, [...ss.members, ...keep.filter(id => !ss.members.includes(id))]);
+    saveDB();
+    renderPlan(dayId);
+    showToast('Nur noch eine Übung, Superset aufgelöst');
+    return;
+  }
+
+  const changed = keep.join() !== ss.members.join() || next.sets !== +ss.sets || next.restSeconds !== +ss.restSeconds;
+  if (!changed) return;
+
+  const users = daysUsingEx(sid);
+  if (users.length > 1) {
+    pendingExEdit = null;
+    pendingSSEdit = { dayId, idx, sid, next, removed };
+    document.getElementById('fork-text').textContent =
+      `Dieses Superset liegt in ${users.length} Tagen. Soll die Änderung für alle gelten oder nur hier ein eigenes Superset werden?`;
+    document.getElementById('fork-here-btn').textContent = 'Nur hier (neues Superset)';
+    openModal('modal-fork');
+    return;
+  }
+
+  db.supersets[sid] = next;
+  insertSoloAt(day, idx + 1, removed);
+  saveDB();
+  renderPlan(dayId);
+  showToast('Superset gespeichert');
+}
+
+// Picker im Superset-Modus: Übung zum Superset in Bearbeitung hinzufügen.
+function openSSAddPicker() {
+  if (!ssEdit) return;
+  closeModal('modal-ss-edit');
+  pickTarget = 'ss';
+  editingExercise = { dayId: ssEdit.dayId, exIdx: null };
+  const inSS = new Set(ssEdit.members);
+  pickCandidates = Object.keys(db.exercises || {})
+    .filter(id => !inSS.has(id))
+    .map(pickItemEx)
+    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  openPicker();
+}
+
+function backToSSEdit() {
+  renderSSEdit();
+  openModal('modal-ss-edit');
 }
 
 function renderPlan(expandDayId) {
@@ -2677,27 +3348,62 @@ function renderPlan(expandDayId) {
     return;
   }
 
-  const totalEx = days.reduce((a, d) => a + d.exercises.length, 0);
+  const totalEx = days.reduce((a, d) => a + dayFlatExercises(d).length, 0);
 
   const daysHTML = days.map((day) => {
-    const exList = dayExercises(day);
-    const exHTML = exList.map((ex, ei) => {
-      const shared = daysUsingEx(ex.id).length > 1;
+    const selecting = !!planSel && planSel.dayId === day.id;
+    const exHTML = (day.exercises || []).map((id, ei) => {
+      const shared = daysUsingEx(id).length > 1;
+      const sharedMark = shared ? ' <span title="in mehreren Tagen" style="color:var(--accent);font-size:var(--fs-xs)">↔</span>' : '';
+      const ss = getSS(id);
+      if (ss) {
+        const membersHTML = ss.members.map((mid, k) => {
+          const m = hydrateEx(mid);
+          return `
+          <div class="plan-exercise-row" id="pss-${day.id}-${ei}-${k}" data-ss-row>
+            <div class="drag-handle" ontouchstart="onSSMemberHandle(event,'${day.id}',${ei},${k})">⠿</div>
+            <div class="plan-ex-name">${m.name}</div>
+            <div class="plan-ex-meta">${m.targetReps} reps</div>
+          </div>`;
+        }).join('');
+        return `
+      <div class="plan-ss-box" id="pex-${day.id}-${ei}" data-ex-row>
+        <div class="plan-ss-head" onclick="openSSEdit('${day.id}', ${ei})">
+          <div class="drag-handle" ontouchstart="onDayItemHandle(event,'${day.id}',${ei})">⠿</div>
+          <span class="ss-tag">Superset</span>${sharedMark}
+          <span class="plan-ss-meta">${ss.sets} Sets · ${ss.restSeconds} s</span>
+          <span class="plan-ss-edit">Bearbeiten ›</span>
+        </div>
+        ${membersHTML}
+      </div>`;
+      }
+      const ex = hydrateEx(id);
+      const picked = selecting && planSel.picked.has(id);
       return `
-      <div class="plan-exercise-row" id="pex-${day.id}-${ei}" data-ex-row data-ex-idx="${ei}">
-        <div class="drag-handle" ontouchstart="onExDragStart(event,'${day.id}',${ei})">⠿</div>
-        <div class="plan-ex-name">${ex.name}${shared ? ' <span title="in mehreren Tagen" style="color:var(--accent);font-size:var(--fs-xs)">↔</span>' : ''}</div>
+      <div class="plan-exercise-row${picked ? ' picked' : ''}" id="pex-${day.id}-${ei}" data-ex-row data-solo onclick="togglePlanPick('${day.id}', ${ei})">
+        <div class="drag-handle" ontouchstart="onDayItemHandle(event,'${day.id}',${ei})">⠿</div>
+        <div class="plan-sel">${CHECK_SVG}</div>
+        <div class="plan-ex-name">${ex.name}${sharedMark}</div>
         <div class="plan-ex-meta">${ex.sets}×${ex.targetReps}</div>
-        <button class="plan-ex-edit" onclick="showEditExerciseModal('${day.id}', ${ei})">✏️</button>
-        <button class="plan-ex-delete" onclick="deleteExercise('${day.id}', ${ei})">✕</button>
+        <button class="plan-ex-edit" onclick="event.stopPropagation();showEditExerciseModal('${day.id}', ${ei})">✏️</button>
+        <button class="plan-ex-delete" onclick="event.stopPropagation();deleteExercise('${day.id}', ${ei})">✕</button>
       </div>
     `;
     }).join('');
 
-    const sets = exList.reduce((a, ex) => a + (parseInt(ex.sets) || 0), 0);
-    const meta = day.exercises.length
-      ? `${day.exercises.length} Übungen · ${sets} Sets`
+    const flat = dayFlatExercises(day);
+    const sets = flat.reduce((a, ex) => a + (parseInt(ex.sets) || 0), 0);
+    const meta = flat.length
+      ? `${flat.length} Übungen · ${sets} Sets`
       : 'Noch keine Übungen';
+
+    // Im Auswahlmodus ersetzt "Superset erstellen" den Hinzufügen-Knopf.
+    const footHTML = selecting ? `
+          <div class="plan-sel-actions">
+            <button class="btn-secondary" onclick="exitPlanSelect()">Abbrechen</button>
+            <button class="btn-primary" id="ss-create-btn" onclick="tryCreateSuperset()"${planSel.picked.size < 2 ? ' disabled' : ''}>Superset erstellen</button>
+          </div>`
+      : `<button class="add-exercise-btn" onclick="showAddExerciseModal('${day.id}')">＋ Übung hinzufügen</button>`;
 
     return `
       <div class="plan-day-block" style="--day-color:${getDayColor(day.id)}">
@@ -2710,9 +3416,10 @@ function renderPlan(expandDayId) {
           <button class="plan-day-btn danger" onclick="event.stopPropagation();deletePlanDay('${day.id}')">✕</button>
           <div class="plan-day-toggle" id="pdt-${day.id}">▼</div>
         </div>
-        <div class="plan-day-body" id="pd-${day.id}">
+        <div class="plan-day-body${selecting ? ' selecting' : ''}" id="pd-${day.id}">
+          ${selecting ? '<div class="plan-sel-hint">Übungen für das Superset auswählen</div>' : ''}
           ${exHTML}
-          <button class="add-exercise-btn" onclick="showAddExerciseModal('${day.id}')">＋ Übung hinzufügen</button>
+          ${footHTML}
         </div>
       </div>
     `;
@@ -2767,19 +3474,35 @@ function togglePlanDay(id) {
 // Einstiegspunkt "＋ Übung hinzufügen": Picker mit vorhandenen Modulen plus
 // dem Weg, eine ganz neue Übung anzulegen.
 let pickCandidates = [];   // wiederverwendbare Module, gefiltert per Suchleiste
+let pickTarget = 'day';    // Picker hängt an den Tag oder ans Superset in Bearbeitung
+
+function pickItemEx(id) {
+  const ex = hydrateEx(id);
+  return { id, name: ex.name, meta: `${ex.sets}×${ex.targetReps}` };
+}
+function pickItemSS(id) {
+  const ss = getSS(id);
+  return { id, name: 'Superset: ' + ssNames(ss), meta: `${ss.sets} Sets · ${ss.restSeconds} s` };
+}
 
 function showAddExerciseModal(dayId) {
   editingExercise = { dayId, exIdx: null };
+  pickTarget = 'day';
   const day = db.plan.days.find(d => d.id === dayId);
   if (!day) return;
 
   // Kandidaten: alle Katalog-Module, die in diesem Tag noch nicht drin sind.
+  // Supersets sind auch Module und darum wiederverwendbar, sie stehen hinten.
   const inDay = new Set(day.exercises || []);
-  pickCandidates = Object.keys(db.exercises || {})
-    .filter(id => !inDay.has(id))
-    .map(hydrateEx)
-    .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const byName = (a, b) => a.name.localeCompare(b.name, 'de');
+  pickCandidates = [
+    ...Object.keys(db.exercises || {}).filter(id => !inDay.has(id)).map(pickItemEx).sort(byName),
+    ...Object.keys(db.supersets || {}).filter(id => !inDay.has(id)).map(pickItemSS).sort(byName)
+  ];
+  openPicker();
+}
 
+function openPicker() {
   const search = document.getElementById('pick-ex-search');
   search.value = '';
   search.hidden = pickCandidates.length === 0;   // ohne Module keine leere Suchleiste
@@ -2802,22 +3525,38 @@ function renderPickList(query) {
     html = rows.map(ex => `
       <div onclick="addExistingExercise('${ex.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border);cursor:pointer">
         <div style="font-weight:600">${ex.name}</div>
-        <div style="font-size:var(--fs-xs);color:var(--text-muted);white-space:nowrap">${ex.sets}×${ex.targetReps}</div>
+        <div style="font-size:var(--fs-xs);color:var(--text-muted);white-space:nowrap">${ex.meta}</div>
       </div>`).join('');
   }
   document.getElementById('pick-ex-list').innerHTML = html;
 }
 
 // Bestehendes Modul in den Tag hängen (Fall b: geteilte Übung, geteilte History).
+// Im Superset-Modus landet die Übung im Superset in Bearbeitung (gespeichert
+// wird erst mit "Speichern" im Bearbeiten-Sheet).
 function addExistingExercise(id) {
+  if (pickTarget === 'ss') {
+    if (!ssEdit || !getExDef(id)) return;
+    if (!ssEdit.members.includes(id)) ssEdit.members.push(id);
+    ssEdit.gone.delete(id);
+    closeModal('modal-pick-exercise');
+    backToSSEdit();
+    return;
+  }
   const day = db.plan.days.find(d => d.id === editingExercise.dayId);
-  if (!day || !getExDef(id)) return;
+  if (!day || !(getExDef(id) || getSS(id))) return;
   if ((day.exercises || []).includes(id)) { showToast('Schon in diesem Tag'); return; }
   day.exercises.push(id);
   saveDB();
   closeModal('modal-pick-exercise');
   renderPlan(editingExercise.dayId);
-  showToast('Übung hinzugefügt');
+  showToast(getSS(id) ? 'Superset hinzugefügt' : 'Übung hinzugefügt');
+}
+
+// "← Zurück" im Picker: im Superset-Modus zurück ins Bearbeiten-Sheet.
+function pickerBack() {
+  closeModal('modal-pick-exercise');
+  if (pickTarget === 'ss' && ssEdit) backToSSEdit();
 }
 
 // "← Zurück" im Übungs-Formular: beim Erstellen zurück zum Picker, beim
@@ -2825,7 +3564,8 @@ function addExistingExercise(id) {
 function exModalBack() {
   closeModal('modal-exercise');
   if (editingExercise.exIdx === null && editingExercise.dayId) {
-    showAddExerciseModal(editingExercise.dayId);
+    if (pickTarget === 'ss' && ssEdit) openSSAddPicker();
+    else showAddExerciseModal(editingExercise.dayId);
   }
 }
 
@@ -2887,6 +3627,17 @@ function saveExerciseModal() {
       return;
     }
     db.exercises[id] = params;
+  } else if (pickTarget === 'ss' && ssEdit) {
+    // Neue Übung direkt fürs Superset in Bearbeitung: Modul anlegen, ins
+    // Bearbeiten-Sheet zurück. In den Tag kommt sie über "Speichern".
+    const id = 'e' + Date.now();
+    db.exercises[id] = params;
+    ssEdit.members.push(id);
+    saveDB();
+    closeModal('modal-exercise');
+    backToSSEdit();
+    showToast('Übung angelegt');
+    return;
   } else {
     const id = 'e' + Date.now();
     db.exercises[id] = params;
@@ -2904,14 +3655,33 @@ function saveExerciseModal() {
 // ob die Änderung überall greift oder nur hier eine neue Übung entsteht (Fall c).
 
 let pendingExEdit = null;
+let pendingSSEdit = null;   // gleiche Frage für Supersets, siehe saveSSEdit()
 
 function openForkModal(dayCount) {
+  pendingSSEdit = null;
   document.getElementById('fork-text').textContent =
     `Diese Übung liegt in ${dayCount} Tagen. Soll die Änderung für alle gelten oder nur hier eine eigene Übung werden?`;
+  document.getElementById('fork-here-btn').textContent = 'Nur hier (neue Übung)';
   openModal('modal-fork');
 }
 
+function finishSSFork(dayId, msg) {
+  pendingSSEdit = null;
+  saveDB();
+  closeModal('modal-fork');
+  renderPlan(dayId);
+  showToast(msg);
+}
+
 function forkApplyAll() {
+  if (pendingSSEdit) {
+    const { dayId, idx, sid, next, removed } = pendingSSEdit;
+    db.supersets[sid] = next;
+    const day = db.plan.days.find(d => d.id === dayId);
+    if (day) insertSoloAt(day, idx + 1, removed);
+    finishSSFork(dayId, 'In allen Tagen aktualisiert');
+    return;
+  }
   if (!pendingExEdit) return;
   db.exercises[pendingExEdit.id] = pendingExEdit.params;
   finishFork();
@@ -2919,6 +3689,23 @@ function forkApplyAll() {
 }
 
 function forkOnlyHere() {
+  if (pendingSSEdit) {
+    const { dayId, idx, next, removed } = pendingSSEdit;
+    const day = db.plan.days.find(d => d.id === dayId);
+    if (day) {
+      // Neues Modul, eigene History ab jetzt (außer es gibt genau diese
+      // Zusammenstellung schon, dann wird die wiederverwendet).
+      let newId = findSS(next.members, next.sets, next.restSeconds);
+      if (!newId || day.exercises.includes(newId)) {
+        newId = 's' + Date.now();
+        db.supersets[newId] = next;
+      }
+      day.exercises[idx] = newId;
+      insertSoloAt(day, idx + 1, removed);
+    }
+    finishSSFork(dayId, 'Als eigenes Superset angelegt');
+    return;
+  }
   if (!pendingExEdit) return;
   const day = db.plan.days.find(d => d.id === pendingExEdit.dayId);
   if (!day) { pendingExEdit = null; closeModal('modal-fork'); return; }
@@ -3152,7 +3939,9 @@ function checkSetAndExPR(ei, si) {
   const sessionExVol = ex.sets.reduce((a, s) => a + (+s.reps||0)*(+s.weight||0), 0);
   if (sessionExVol > bests.bestSessionVol && sessionExVol > 0 && !prShownForEx.has(ei)) {
     prShownForEx.add(ei);
-    const block = document.getElementById(`ex-block-${ei}`);
+    // Superset-Übungen teilen sich einen Block (id hängt an der ersten Übung)
+    const block = document.getElementById(`ex-block-${ei}`) ||
+                  document.getElementById(`set-${ei}-${si}`)?.closest('.exercise-block');
     if (block) {
       block.classList.remove('pr-ex-glow');
       void block.offsetWidth;
@@ -3223,7 +4012,7 @@ function renderVerlaufHTML() {
     const totalSets = session.exercises.reduce((a, ex) => a + ex.sets.length, 0);
     const exHTML = session.exercises.map(ex => `
       <div class="history-ex-row">
-        <div class="history-ex-name">${ex.name}</div>
+        <div class="history-ex-name">${histExName(ex)}</div>
         <div class="history-set-pills">${ex.sets.map((s,i) => `<span class="history-set-pill">S${i+1}: ${s.reps}r · ${s.weight}kg</span>`).join('')}</div>
       </div>`).join('');
     return `
@@ -3240,7 +4029,7 @@ function renderVerlaufHTML() {
 function renderPRBoardHTML() {
   const allExIds = new Map();
   db.history.forEach(s => s.exercises.forEach(ex => {
-    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, ex.name);
+    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
   }));
   if (!allExIds.size) return `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Noch keine PRs — training starten!</div></div>`;
 
@@ -3275,7 +4064,7 @@ function renderPRBoardHTML() {
 function renderProgressionHTML() {
   const allExIds = new Map();
   db.history.forEach(s => s.exercises.forEach(ex => {
-    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, ex.name);
+    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
   }));
   const options = [...allExIds.entries()].map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
   return `<div style="padding:16px">

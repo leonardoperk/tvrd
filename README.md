@@ -58,7 +58,7 @@ Every decision below exists to reduce something specific I noticed getting in my
 
 **Screen stays awake mid-workout** (Wake Lock API), and re-engages automatically if I background the tab. My phone never locks in the middle of a set.
 
-**Auto-save on every change.** Every value I enter is persisted immediately. If the app crashes or I close the tab, I open it and pick up exactly where I was. The home screen offers to resume.
+**Pause by minimizing.** Swipe the workout down or tap ⌄ and the whole session pauses, clock and rest timer included. A bar above the tab bar brings it back with one tap. Every value is still saved the moment I enter it, so if the app gets closed mid-set, it reopens right in the workout.
 
 **No decorations during the set.** No motivational quotes, no confetti on every rep, no ads. When I hit a PR, the badge appears for two seconds and self-removes. That's the entire ceremony.
 

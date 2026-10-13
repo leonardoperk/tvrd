@@ -745,7 +745,9 @@ body {
 .pl-t { flex: 1; min-width: 0; }
 .pl-n { font-size: 15.5px; font-weight: 600; letter-spacing: -.012em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pl-m { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
-.pl-edit { appearance: none; border: 0; background: transparent; cursor: pointer; font-size: 15px; padding: 8px; margin: -8px -4px -8px 0; }
+.pl-edit { appearance: none; border: 0; background: transparent; cursor: pointer; color: var(--text-dim); padding: 8px; margin: -8px -4px -8px 0; display: flex; }
+.ico-edit { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.pex-btn .ico-edit { width: 14px; height: 14px; }
 .inp {
   width: 100%; padding: 13px 15px; margin: 6px 0 18px;
   border-radius: var(--r-inner); border: 1px solid var(--edge);
@@ -824,7 +826,6 @@ body {
           <span class="hd-t" id="plan-name">Push Pull Beine</span>
           <svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg>
         </button>
-        <div class="hd-s">Donnerstag, 13. August</div>
       </div>
     </div>
 
@@ -1175,6 +1176,8 @@ function mark(group, btn) {
 
 /* ═══ Demo-Logik Haken + Superset (nur Prototyp, wird nicht portiert) ═══ */
 const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
+// Linien-Stift statt ✏️ (2026-10-13), Stil wie die Tab-Bar-Icons
+const EDIT = '<svg class="ico-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
 const DOTS = '<svg viewBox="0 0 10 16">' +
   [3, 8, 13].map(y => `<circle cx="2.5" cy="${y}" r="1.4"/><circle cx="7.5" cy="${y}" r="1.4"/>`).join('') + '</svg>';
 
@@ -1257,7 +1260,7 @@ const dayBody = document.getElementById('pday-b');
 function renderRow(r) {
   r.innerHTML = `<span class="handle">${DOTS}</span><span class="sel">${CHECK}</span>` +
     `<span class="pex-n">${r.dataset.name}</span><span class="pex-m"></span>` +
-    `<button class="pex-btn">✏️</button><button class="pex-btn del">✕</button>`;
+    `<button class="pex-btn">${EDIT}</button><button class="pex-btn del">✕</button>`;
   renderMeta(r);
 }
 // Einzelübung zeigt ihre eigenen Sets, im Superset gelten die Sets des Supersets
@@ -1459,7 +1462,7 @@ function openPlans() {
       <div class="pl-row${p.id === activePlan ? ' on' : ''}" data-id="${p.id}">
         <span class="pl-mark">${CHECK}</span>
         <div class="pl-t"><div class="pl-n">${esc(p.name)}</div><div class="pl-m">${p.id === activePlan ? 'Aktiv · ' : ''}${planMeta(p)}</div></div>
-        <button class="pl-edit" data-edit="${p.id}" aria-label="Plan bearbeiten">✏️</button>
+        <button class="pl-edit" data-edit="${p.id}" aria-label="Plan bearbeiten">${EDIT}</button>
       </div>`).join('')}
     </div>
     <button class="btn btn-ghost sm-add" id="pl-new">＋ Neuer Plan</button>`;

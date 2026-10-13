@@ -1506,7 +1506,9 @@
   .pl-t { flex: 1; min-width: 0; }
   .pl-n { font-size: var(--fs-md); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pl-m { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 1px; }
-  .pl-edit { appearance: none; border: 0; background: transparent; cursor: pointer; font-size: 15px; padding: 8px; margin: -8px -4px -8px 0; }
+  .pl-edit { appearance: none; border: 0; background: transparent; cursor: pointer; color: var(--text-dim); padding: 8px; margin: -8px -4px -8px 0; display: flex; }
+  .ico-edit { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .plan-ex-edit .ico-edit { width: 14px; height: 14px; }
   .pl-label { font-size: var(--fs-micro); font-weight: 700; letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--text-muted); margin: 4px 0 6px; }
   .pl-note { font-size: var(--fs-xs); color: var(--text-muted); margin: -8px 0 16px; line-height: var(--lh-snug); }
   .pl-btns { display: flex; gap: 10px; margin-top: 6px; }
@@ -1526,7 +1528,6 @@
         <span class="header-title" id="plan-name"></span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>
       </button>
-      <div class="header-sub" id="home-date"></div>
     </div>
   </div>
   <div class="scroll-area" id="focus-body"></div>
@@ -2092,6 +2093,9 @@ function statDiffLabels(entries) {
 }
 
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
+// Bearbeiten-Icon: Linien-Stift im Stil der Tab-Bar-Icons statt ✏️. Das
+// Emoji brachte eine fremde Farbigkeit in die sonst einfarbige Oberfläche.
+const EDIT_SVG = '<svg class="ico-edit" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
 
@@ -2352,8 +2356,8 @@ window.addEventListener('resize', () => {
 });
 
 function renderFocusHome() {
-  const dateEl = document.getElementById('home-date');
-  dateEl.textContent = new Date().toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+  // Kein Datum mehr im Kopf (2026-10-13): der Wochenstreifen markiert heute
+  // schon, die Zeile trug keine eigene Information.
   document.getElementById('plan-name').textContent = db.plan.name;
 
   const body = document.getElementById('focus-body');
@@ -3850,7 +3854,7 @@ function renderPlan(expandDayId) {
         <div class="plan-sel">${CHECK_SVG}</div>
         <div class="plan-ex-name">${ex.name}${sharedMark}</div>
         <div class="plan-ex-meta">${ex.sets}×${ex.targetReps}</div>
-        <button class="plan-ex-edit" onclick="event.stopPropagation();showEditExerciseModal('${day.id}', ${ei})">✏️</button>
+        <button class="plan-ex-edit" onclick="event.stopPropagation();showEditExerciseModal('${day.id}', ${ei})" aria-label="Übung bearbeiten">${EDIT_SVG}</button>
         <button class="plan-ex-delete" onclick="event.stopPropagation();deleteExercise('${day.id}', ${ei})">✕</button>
       </div>
     `;
@@ -3880,7 +3884,7 @@ function renderPlan(expandDayId) {
             <div class="plan-day-meta">${meta}</div>
           </div>
           ${locked ? '' : `
-          <button class="plan-day-btn" onclick="event.stopPropagation();showEditDayModal('${day.id}')">✏️</button>
+          <button class="plan-day-btn" onclick="event.stopPropagation();showEditDayModal('${day.id}')" aria-label="Tag bearbeiten">${EDIT_SVG}</button>
           <button class="plan-day-btn danger" onclick="event.stopPropagation();deletePlanDay('${day.id}')">✕</button>`}
           <div class="plan-day-toggle" id="pdt-${day.id}">▼</div>
         </div>
@@ -4305,7 +4309,7 @@ function openPlans() {
       <div class="pl-row${p.id === db.activePlanId ? ' on' : ''}" onclick="switchPlan('${p.id}')">
         <span class="pl-mark">${CHECK_SVG}</span>
         <div class="pl-t"><div class="pl-n">${escHTML(p.name)}</div><div class="pl-m">${p.id === db.activePlanId ? 'Aktiv · ' : ''}${planMetaText(p)}</div></div>
-        <button class="pl-edit" onclick="event.stopPropagation();openPlanEdit('${p.id}')" aria-label="Plan bearbeiten">✏️</button>
+        <button class="pl-edit" onclick="event.stopPropagation();openPlanEdit('${p.id}')" aria-label="Plan bearbeiten">${EDIT_SVG}</button>
       </div>`).join('')}
     </div>
     <button class="btn-secondary" style="width:100%" onclick="openPlanNew()">＋ Neuer Plan</button>`;

@@ -2037,6 +2037,60 @@ function findSS(members, sets, restSeconds) {
 // History und sollen sich dort von der Einzelübung unterscheiden.
 function histExName(ex) { return ex.ss ? ex.name + ' · Superset' : ex.name; }
 
+// ─── GLEICHNAMIGE MODULE ──────────────────────────────────────────────────────
+// Module dürfen gleich heißen (abweichende Parameter = anderes Modul). Leo
+// 2026-10-13: Wo sie zur Auswahl stehen (Picker, PR-Board, Progression), muss
+// sichtbar sein, was sie unterscheidet. Gezeigt werden nur die abweichenden
+// Parameter, gleiche nicht, sonst geht der Unterschied in Zahlen unter.
+// Unterscheiden sie sich in nichts, sagt der Kontext es: Superset-Partner
+// oder die Tage, in denen das Modul steckt.
+const EX_DIFF_PARAMS = [
+  { key: 'setsReps', val: e => `${e.sets}×${e.targetReps}` },
+  { key: 'step',     val: e => `Schritt ${String(e.weightStep != null ? e.weightStep : 2.5).replace('.', ',')} kg` },
+  { key: 'rest',     val: e => `${e.restSeconds || 90} s Pause` }
+];
+
+// Tage (aller Pläne), in denen ein Modul steckt, direkt oder in einem Superset
+function daysWithModule(id) {
+  return livePlans().flatMap(p => p.days.filter(d => (d.exercises || []).some(x =>
+    x === id || ((getSS(x) || {}).members || []).includes(id))));
+}
+
+// items: [{ key, name, exId, ssId? }] → Map key → Unterschieds-Text ('' = Name
+// ist eindeutig). skip: Parameter, die ohnehin schon daneben stehen.
+function nameDiffLabels(items, skip = []) {
+  const out = new Map();
+  const groups = {};
+  items.forEach(it => (groups[String(it.name || '').trim().toLowerCase()] ||= []).push(it));
+  Object.values(groups).forEach(g => {
+    if (g.length < 2) { g.forEach(it => out.set(it.key, '')); return; }
+    const defs = g.map(it => getExDef(it.exId) || {});
+    const differing = EX_DIFF_PARAMS.filter(p => new Set(defs.map(p.val)).size > 1);
+    g.forEach((it, i) => {
+      let parts = differing.filter(p => !skip.includes(p.key)).map(p => p.val(defs[i]));
+      if (!differing.length) {
+        const ss = it.ssId && new Set(g.map(x => x.ssId)).size > 1 && getSS(it.ssId);
+        if (ss) {
+          parts = ['mit ' + ss.members.filter(m => m !== it.exId).map(m => hydrateEx(m).name).join(' + ')];
+        } else {
+          const days = [...new Set(daysWithModule(it.exId).map(d => d.name))];
+          parts = [days.length ? 'in ' + days.join(', ') : 'in keinem Tag'];
+        }
+      }
+      out.set(it.key, parts.join(' · '));
+    });
+  });
+  return out;
+}
+
+// Statistik schlüsselt nach History-ID: "<sid>:<exId>" bei Superset-Übungen
+function statDiffLabels(entries) {
+  return nameDiffLabels(entries.map(([key, name]) => {
+    const [a, b] = String(key).split(':');
+    return { key, name, exId: b || a, ssId: b ? a : null };
+  }));
+}
+
 const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
 
 // ─── ROUTING ──────────────────────────────────────────────────────────────────
@@ -3732,9 +3786,10 @@ function openSSAddPicker() {
   pickTarget = 'ss';
   editingExercise = { dayId: ssEdit.dayId, exIdx: null };
   const inSS = new Set(ssEdit.members);
+  const diffs = catalogDiffs();
   pickCandidates = Object.keys(db.exercises || {})
     .filter(id => !inSS.has(id))
-    .map(pickItemEx)
+    .map(id => pickItemEx(id, diffs))
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
   openPicker();
 }
@@ -3888,9 +3943,17 @@ function togglePlanDay(id) {
 let pickCandidates = [];   // wiederverwendbare Module, gefiltert per Suchleiste
 let pickTarget = 'day';    // Picker hängt an den Tag oder ans Superset in Bearbeitung
 
-function pickItemEx(id) {
+// diffs: Unterschiede gleichnamiger Module über den ganzen Katalog, nicht nur
+// über die Kandidaten. Steckt der Namensvetter schon im Tag, soll trotzdem
+// klar sein, dass dieses hier ein anderes Modul ist. Sets×Reps steht schon
+// als Meta daneben und wird darum nicht wiederholt.
+function catalogDiffs() {
+  return nameDiffLabels(Object.keys(db.exercises || {}).map(id =>
+    ({ key: id, name: db.exercises[id].name, exId: id })), ['setsReps']);
+}
+function pickItemEx(id, diffs) {
   const ex = hydrateEx(id);
-  return { id, name: ex.name, meta: `${ex.sets}×${ex.targetReps}` };
+  return { id, name: ex.name, meta: `${ex.sets}×${ex.targetReps}`, diff: (diffs instanceof Map && diffs.get(id)) || '' };
 }
 function pickItemSS(id) {
   const ss = getSS(id);
@@ -3907,8 +3970,9 @@ function showAddExerciseModal(dayId) {
   // Supersets sind auch Module und darum wiederverwendbar, sie stehen hinten.
   const inDay = new Set(day.exercises || []);
   const byName = (a, b) => a.name.localeCompare(b.name, 'de');
+  const diffs = catalogDiffs();
   pickCandidates = [
-    ...Object.keys(db.exercises || {}).filter(id => !inDay.has(id)).map(pickItemEx).sort(byName),
+    ...Object.keys(db.exercises || {}).filter(id => !inDay.has(id)).map(id => pickItemEx(id, diffs)).sort(byName),
     ...Object.keys(db.supersets || {}).filter(id => !inDay.has(id)).map(pickItemSS).sort(byName)
   ];
   openPicker();
@@ -3936,7 +4000,7 @@ function renderPickList(query) {
   } else {
     html = rows.map(ex => `
       <div onclick="addExistingExercise('${ex.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border);cursor:pointer">
-        <div style="font-weight:600">${ex.name}</div>
+        <div style="min-width:0"><div style="font-weight:600">${ex.name}</div>${ex.diff ? `<div style="font-size:var(--fs-xs);color:var(--text-dim);margin-top:2px">${ex.diff}</div>` : ''}</div>
         <div style="font-size:var(--fs-xs);color:var(--text-muted);white-space:nowrap">${ex.meta}</div>
       </div>`).join('');
   }
@@ -4595,6 +4659,7 @@ function renderPRBoardHTML() {
   }));
   if (!allExIds.size) return `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Noch keine PRs — training starten!</div></div>`;
 
+  const diffs = statDiffLabels([...allExIds.entries()]);
   const rows = [...allExIds.entries()].map(([exId, name]) => {
     let bestWeight = 0, bestWeightDate = null;
     let bestSetVol = 0, bestSetVolDate = null;
@@ -4609,7 +4674,7 @@ function renderPRBoardHTML() {
     });
     const fmt = ts => new Date(ts).toLocaleDateString('de-AT', { day:'numeric', month:'short' });
     return `<tr>
-      <td class="pr-ex-name-cell">${name}</td>
+      <td class="pr-ex-name-cell">${name}${diffs.get(exId) ? `<div class="pr-date">${diffs.get(exId)}</div>` : ''}</td>
       <td><div class="pr-val">${bestWeight > 0 ? bestWeight+'kg' : '—'}</div>${bestWeightDate ? `<div class="pr-date">${fmt(bestWeightDate)}</div>` : ''}</td>
       <td><div class="pr-val">${bestSetVol > 0 ? Math.round(bestSetVol)+'kg' : '—'}</div>${bestSetVolDate ? `<div class="pr-date">${fmt(bestSetVolDate)}</div>` : ''}</td>
     </tr>`;
@@ -4628,7 +4693,9 @@ function renderProgressionHTML() {
   planHistory().forEach(s => s.exercises.forEach(ex => {
     if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
   }));
-  const options = [...allExIds.entries()].map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+  const diffs = statDiffLabels([...allExIds.entries()]);
+  const options = [...allExIds.entries()].map(([id, name]) =>
+    `<option value="${id}">${name}${diffs.get(id) ? ' (' + diffs.get(id) + ')' : ''}</option>`).join('');
   return `<div style="padding:16px">
     <select class="prog-select" id="prog-ex-select" onchange="renderProgCharts(this.value)">
       <option value="">— Übung wählen —</option>${options}

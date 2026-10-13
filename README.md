@@ -30,7 +30,7 @@ Four principles set the direction from the beginning. Each one has a specific pl
 
 **Function first, form second, in that order, not instead of.** Every hour spent on polish while the function still had friction would have been an hour spent wrong. So the design stayed MVP-grade on purpose until the app genuinely did its job. Then form got its own pass, with the same rule applied to it: nothing that costs a tap during a set.
 
-**Good enough is perfect.** I build when a real need surfaces, not before. Cloud sync isn't there because I train on one device. Multi-plan switching isn't there because I run one plan at a time. Cost/benefit, not completeness.
+**Good enough is perfect.** I build when a real need surfaces, not before. Cloud sync isn't there because I train on one device. Cost/benefit, not completeness.
 
 **Built for heavy users.** Assumes someone who trains often and knows their weights. Preset weight increments per exercise (2.5 kg for dumbbells, 5 kg for cables), no onboarding flow, no explainer overlays. If you don't already know what a "set" is, this isn't for you.
 
@@ -148,7 +148,7 @@ Supersets live here too. Long-press the drag handle of an exercise, check the on
 
 It did inherit the full visual treatment, though. That fell out of doing the design work at the token layer instead of screen by screen.
 
-The interesting thing this mode does *not* do yet: **multi-plan activation and long-term periodization.** Swap between several active plans, and see how they build on each other across months. It assumes the user plans across cycles, not week to week. On the list, not built.
+**Plans.** I can keep several plans, but exactly one is active. Home, history and stats only show that one, because a plan follows one goal and tracking two at once splits the focus. Switching is one tap on the plan name. A new plan starts empty or as a copy and doesn't activate itself, the app asks at the end. Exercises stay modules across plans, so a copy keeps their history and PRs. Long-term periodization across plans is still on the list, not built.
 
 ---
 
@@ -157,7 +157,7 @@ The interesting thing this mode does *not* do yet: **multi-plan activation and l
 At n=1, knowing what to leave out is most of the work.
 
 - **Cloud sync.** `localStorage` only. A backend would let data survive a new phone; for a single-device personal tool the complexity isn't worth it yet.
-- **Multiple active plans.** One plan at a time. See above.
+- **Running several plans in parallel.** I can keep several, but only one is active at a time. See above.
 - **User management / accounts.** I'm the only user. Would add if a friend wants to try it.
 - **RPE (Rate of Perceived Exertion).** Standard in strength apps, where the user tags each set with how hard it felt. Useful for programming, not for how I currently train. Might add later.
 - **Reminders / notifications.** The app doesn't nag. I open it when I train.
@@ -170,7 +170,6 @@ At n=1, knowing what to leave out is most of the work.
 Stated plainly, because a tool you use daily has real edges:
 
 - **Data is device-bound.** `localStorage` lives in one browser on one device. The custom domain fixed the "bookmark change looks like data loss" problem, but it does **not** sync across devices. Backup and restore are manual JSON export/import.
-- **Cross-plan history mixes silently.** Each session stores its `planId`, but nothing filters on it yet. Activate a new plan and old sessions still count toward the stats.
 
 ---
 
@@ -203,7 +202,7 @@ flowchart LR
 ```
 
 - **One HTML file.** ~4,200 lines, HTML + CSS + JS inline. No framework, no build step, no dependencies. The Archivo variable font is embedded as base64, subset to Latin + umlauts + digits, with axes trimmed to what's used (weight 400-900, width 100-125%). No network request for it.
-- **Persistence:** `localStorage`, versioned schema with sequential migrations (currently v2, which turned exercises into shared modules). Backup and restore via JSON file (manual).
+- **Persistence:** `localStorage`, versioned schema with sequential migrations (currently v3: v2 turned exercises into shared modules, v3 added plans). Backup and restore via JSON file (manual).
 - **Charts:** hand-rolled inline SVG, no charting library.
 - **Platform APIs:** Wake Lock (screen stays on mid-workout), Vibration (rest-timer alert), installable PWA (standalone, custom home-screen icon).
 - **Deploy:** GitHub Pages with a custom domain via `CNAME`. Push to `main` deploys.

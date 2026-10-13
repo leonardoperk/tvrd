@@ -714,6 +714,48 @@ body {
 .when-paused { display: none; }
 .phone.has-min .when-paused { display: block; }
 
+/* ═══ Mehrere Pläne (2026-10-13) ═══
+   Der Planname ersetzt "TVRD" oben links, mit ⌄, damit man sieht, dass man
+   tippen kann. Tap öffnet das Plan-Sheet: wechseln, neu, umbenennen, löschen.
+   Es ist immer genau ein Plan aktiv, und Home, Tage, Statistik und Verlauf
+   zeigen nur ihn. Leos Begründung: Ein Plan verfolgt ein klares Ziel, das
+   will man tracken. Mehrere parallel lenken ab, sie parallel zu tracken
+   noch mehr. Wer andere Pläne sehen will, wechselt. */
+.plan-sw {
+  appearance: none; border: 0; background: transparent; cursor: pointer; padding: 0;
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+  color: var(--text); font: inherit; text-align: left;
+}
+.plan-sw .hd-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plan-sw svg { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: var(--text-dim); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; margin-top: 2px; }
+
+.pl-list { margin: 4px 0 16px; }
+.pl-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.06); cursor: pointer;
+}
+.pl-row:last-child { border-bottom: 0; }
+.pl-mark {
+  width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
+  display: grid; place-items: center; border: 1.5px solid rgba(255,255,255,.22);
+}
+.pl-row.on .pl-mark { border: 0; color: #0a0f00; background: linear-gradient(168deg, var(--lime-hi), var(--lime-lo)); }
+.pl-mark svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
+.pl-row.on .pl-mark svg { display: block; }
+.pl-t { flex: 1; min-width: 0; }
+.pl-n { font-size: 15.5px; font-weight: 600; letter-spacing: -.012em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-m { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.pl-edit { appearance: none; border: 0; background: transparent; cursor: pointer; font-size: 15px; padding: 8px; margin: -8px -4px -8px 0; }
+.inp {
+  width: 100%; padding: 13px 15px; margin: 6px 0 18px;
+  border-radius: var(--r-inner); border: 1px solid var(--edge);
+  background: var(--glass-3); color: var(--text);
+  font: inherit; font-size: 16px; font-weight: 600; outline: none;
+}
+.inp:focus { border-color: rgba(200,241,53,.5); }
+.btn-danger { color: var(--red); }
+.sheet-note { font-size: 12.5px; color: var(--text-muted); margin: -8px 0 16px; }
+
 /* ═══ Tab-Bar: schwebende Pille ═══ */
 .tabs {
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -777,8 +819,11 @@ body {
   <!-- ══════════ START ══════════ -->
   <section class="screen on" id="s-home">
     <div class="hd">
-      <div style="flex:1">
-        <div class="hd-t">TVRD</div>
+      <div style="flex:1;min-width:0">
+        <button class="plan-sw" onclick="openPlans()" aria-label="Plan wechseln">
+          <span class="hd-t" id="plan-name">Push Pull Beine</span>
+          <svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg>
+        </button>
         <div class="hd-s">Donnerstag, 13. August</div>
       </div>
     </div>
@@ -1392,6 +1437,158 @@ function openEdit(box) {
 function dissolve(box, rows) {
   rows.forEach(r => { r.classList.add('solo'); box.before(r); renderMeta(r); });
   box.remove();
+}
+
+/* ═══ Demo-Logik Pläne (nur Prototyp, wird nicht portiert) ═══ */
+const plans = [
+  { id: 'a', name: 'Push Pull Beine', days: 4, sessions: 61 },
+  { id: 'b', name: 'Kraftblock Winter', days: 3, sessions: 0 }
+];
+let activePlan = 'a';
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const planMeta = p => `${p.days} Trainingstage · ${p.sessions ? p.sessions + ' Sessions' : 'noch nicht trainiert'}`;
+// Solange ein Training pausiert ist, bleibt der aktive Plan wie er ist
+const sessionLocked = () => phone.classList.contains('has-min');
+
+function openPlans() {
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">Pläne</div>
+    <div class="sheet-s">Aktiv ist immer genau einer. Start, Tage und Statistik zeigen nur ihn.</div>
+    <div class="pl-list">${plans.map(p => `
+      <div class="pl-row${p.id === activePlan ? ' on' : ''}" data-id="${p.id}">
+        <span class="pl-mark">${CHECK}</span>
+        <div class="pl-t"><div class="pl-n">${esc(p.name)}</div><div class="pl-m">${p.id === activePlan ? 'Aktiv · ' : ''}${planMeta(p)}</div></div>
+        <button class="pl-edit" data-edit="${p.id}" aria-label="Plan bearbeiten">✏️</button>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-ghost sm-add" id="pl-new">＋ Neuer Plan</button>`;
+  sheet.onclick = e => {
+    const ed = e.target.closest('[data-edit]');
+    if (ed) return openPlanEdit(ed.dataset.edit);
+    if (e.target.closest('#pl-new')) return openPlanNew();
+    const row = e.target.closest('.pl-row');
+    if (row && row.dataset.id !== activePlan) switchPlan(row.dataset.id);
+  };
+  openSheet();
+}
+
+function switchPlan(id) {
+  if (sessionLocked()) { toast('Erst das pausierte Training beenden'); return; }
+  activePlan = id;
+  document.getElementById('plan-name').textContent = plans.find(p => p.id === id).name;
+  closeSheet();
+  toast('Plan gewechselt');
+}
+
+function openPlanNew() {
+  let from = null;   // null = leer, sonst ID des Plans, der kopiert wird
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">Neuer Plan</div>
+    <div class="sheet-l" style="margin-top:14px">Name</div>
+    <input class="inp" id="pl-name" placeholder="z.B. Kraftblock Frühjahr" autocomplete="off">
+    <div class="sheet-l">Start</div>
+    <div class="chips">
+      <button class="chip on" data-from=""><b>Leer</b><span>ohne Tage</span></button>
+      ${plans.map(p => `<button class="chip" data-from="${p.id}"><b>Kopie</b><span>${esc(p.name)}</span></button>`).join('')}
+    </div>
+    <div class="sheet-note">Übungen sind Module: in der Kopie stecken dieselben, mit ihrer History.</div>
+    <div class="sheet-btns">
+      <button class="btn btn-ghost" id="pl-back">Zurück</button>
+      <button class="btn btn-primary" id="pl-ok" disabled>Erstellen</button>
+    </div>`;
+  const name = sheet.querySelector('#pl-name');
+  const ok = sheet.querySelector('#pl-ok');
+  name.oninput = () => { ok.disabled = !name.value.trim(); };
+  sheet.onclick = e => {
+    if (e.target.closest('#pl-back')) return openPlans();
+    const c = e.target.closest('.chip');
+    if (c) {
+      sheet.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+      from = c.dataset.from || null;
+      return;
+    }
+    if (e.target.closest('#pl-ok') && !ok.disabled) {
+      const src = plans.find(p => p.id === from);
+      const p = { id: 'n' + Date.now(), name: name.value.trim(), days: src ? src.days : 0, sessions: 0 };
+      plans.push(p);
+      askActivate(p);
+    }
+  };
+  openSheet();
+  setTimeout(() => name.focus(), 350);
+}
+
+// Erstellen aktiviert nicht automatisch (Leo): Am Ende wird gefragt.
+// Bearbeiten lässt sich nur der aktive Plan, wer also gleich aufbauen will,
+// aktiviert ihn hier.
+function askActivate(p) {
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">"${esc(p.name)}" aktivieren?</div>
+    <div class="sheet-s" style="margin-bottom:22px">Bearbeiten kannst du nur den aktiven Plan. Start, Tage und Statistik zeigen dann ihn.</div>
+    <div class="sheet-btns">
+      <button class="btn btn-ghost" id="pl-later">Später</button>
+      <button class="btn btn-primary" id="pl-act">Aktivieren</button>
+    </div>`;
+  sheet.onclick = e => {
+    if (e.target.closest('#pl-later')) { openPlans(); toast('Plan erstellt'); }
+    if (e.target.closest('#pl-act')) switchPlan(p.id);
+  };
+  openSheet();
+}
+
+function openPlanEdit(id) {
+  const p = plans.find(x => x.id === id);
+  const isActive = id === activePlan;
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">Plan bearbeiten</div>
+    <div class="sheet-l" style="margin-top:14px">Name</div>
+    <input class="inp" id="pl-name" value="${esc(p.name)}" autocomplete="off">
+    <button class="btn btn-ghost sm-add btn-danger" id="pl-del"${isActive ? ' disabled style="opacity:.4"' : ''}>Plan löschen</button>
+    ${isActive ? '<div class="sheet-note">Den aktiven Plan löschst du, nachdem du gewechselt hast.</div>' : ''}
+    <div class="sheet-btns">
+      <button class="btn btn-ghost" id="pl-back">Zurück</button>
+      <button class="btn btn-primary" id="pl-ok">Speichern</button>
+    </div>`;
+  const name = sheet.querySelector('#pl-name');
+  sheet.onclick = e => {
+    if (e.target.closest('#pl-back')) return openPlans();
+    if (e.target.closest('#pl-del') && !isActive) return openPlanDelete(id);
+    if (e.target.closest('#pl-ok') && name.value.trim()) {
+      p.name = name.value.trim();
+      if (isActive) document.getElementById('plan-name').textContent = p.name;
+      openPlans();
+      toast('Gespeichert');
+    }
+  };
+  openSheet();
+}
+
+// Gelöscht wird nur die Hülle (Tage und Anordnung). Module und Sessions
+// bleiben, der Plan selbst als gelöscht markiert, damit die Daten später
+// sauber trennbar bleiben.
+function openPlanDelete(id) {
+  const p = plans.find(x => x.id === id);
+  sheet.innerHTML = `
+    <div class="sheet-grab"></div>
+    <div class="sheet-t">"${esc(p.name)}" löschen?</div>
+    <div class="sheet-s" style="margin-bottom:22px">Die Tage und ihre Anordnung verschwinden. Übungen bleiben erhalten, ebenso ihre Bestwerte und Vorwerte. Die Sessions dieses Plans siehst du danach nicht mehr im Verlauf.</div>
+    <div class="sheet-btns">
+      <button class="btn btn-ghost" id="pl-back">Abbrechen</button>
+      <button class="btn btn-primary" id="pl-ok" style="background:linear-gradient(168deg,#ff7a7a,#e04848);color:#fff;box-shadow:none">Löschen</button>
+    </div>`;
+  sheet.onclick = e => {
+    if (e.target.closest('#pl-back')) return openPlanEdit(id);
+    if (e.target.closest('#pl-ok')) {
+      plans.splice(plans.indexOf(p), 1);
+      openPlans();
+      toast('Plan gelöscht');
+    }
+  };
+  openSheet();
 }
 </script>
 </body>

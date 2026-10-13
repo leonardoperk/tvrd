@@ -1474,6 +1474,46 @@
   @media (prefers-reduced-motion: reduce) {
     #screen-workout, .mini { transition: none; animation: none; }
   }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     MEHRERE PLÄNE (2026-10-13)
+     Der Planname ersetzt "TVRD" oben links, mit ⌄, damit man sieht, dass
+     man tippen kann. Es ist immer genau ein Plan aktiv. Bearbeiten lässt
+     sich nur der aktive. Ein neuer Plan wird nicht automatisch aktiv, am
+     Ende der Erstellung wird gefragt (Leo).
+     ══════════════════════════════════════════════════════════════════════ */
+  .plan-sw {
+    appearance: none; border: 0; background: transparent; cursor: pointer; padding: 0;
+    display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+    color: var(--text); font: inherit; text-align: left;
+  }
+  .plan-sw .header-title { flex: 0 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plan-sw svg { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: var(--text-dim); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .pl-sub { font-size: var(--fs-sm); color: var(--text-dim); margin: 2px 0 14px; line-height: var(--lh-snug); }
+  .pl-list { margin: 0 0 16px; }
+  .pl-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid var(--border-soft); cursor: pointer;
+  }
+  .pl-row:last-child { border-bottom: 0; }
+  .pl-mark {
+    width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
+    display: grid; place-items: center; border: 1.5px solid rgba(255,255,255,0.22);
+  }
+  .pl-row.on .pl-mark { border: 0; color: var(--on-accent); background: linear-gradient(168deg, var(--accent-hi), var(--accent-lo)); }
+  .pl-mark svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
+  .pl-row.on .pl-mark svg { display: block; }
+  .pl-t { flex: 1; min-width: 0; }
+  .pl-n { font-size: var(--fs-md); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pl-m { font-size: var(--fs-xs); color: var(--text-muted); margin-top: 1px; }
+  .pl-edit { appearance: none; border: 0; background: transparent; cursor: pointer; font-size: 15px; padding: 8px; margin: -8px -4px -8px 0; }
+  .pl-label { font-size: var(--fs-micro); font-weight: 700; letter-spacing: var(--tr-label); text-transform: uppercase; color: var(--text-muted); margin: 4px 0 6px; }
+  .pl-note { font-size: var(--fs-xs); color: var(--text-muted); margin: -8px 0 16px; line-height: var(--lh-snug); }
+  .pl-btns { display: flex; gap: 10px; margin-top: 6px; }
+  .pl-btns .btn-secondary { flex: 1; }
+  .pl-btns .btn-primary { flex: 1.5; }
+  .pl-danger { color: var(--red) !important; }
+  .pl-danger:disabled { opacity: 0.4; }
 </style>
 </head>
 <body>
@@ -1481,8 +1521,11 @@
 <!-- HOME SCREEN (FOCUS VIEW) -->
 <div class="screen active" id="screen-home">
   <div class="header">
-    <div style="flex:1">
-      <div class="header-title">TVRD</div>
+    <div style="flex:1;min-width:0">
+      <button class="plan-sw" onclick="openPlans()" aria-label="Plan wechseln">
+        <span class="header-title" id="plan-name"></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>
+      </button>
       <div class="header-sub" id="home-date"></div>
     </div>
   </div>
@@ -1654,9 +1697,9 @@
 <div class="modal-overlay" id="modal-fork" onclick="closeModalIfBg(event, 'modal-fork')">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">In mehreren Tagen</div>
+    <div class="modal-title">In mehreren Tagen oder Plänen</div>
     <div id="fork-text" style="font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:16px;line-height:var(--lh-snug)"></div>
-    <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="forkApplyAll()">Für alle Tage ändern</button>
+    <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="forkApplyAll()">Für alle ändern</button>
     <button class="btn-secondary" style="width:100%;margin-bottom:8px" id="fork-here-btn" onclick="forkOnlyHere()">Nur hier (neue Übung)</button>
     <button class="btn-secondary" style="width:100%" onclick="closeModal('modal-fork')">Abbrechen</button>
   </div>
@@ -1722,6 +1765,14 @@
   </div>
 </div>
 
+<!-- Pläne: wechseln, neu, umbenennen, löschen. Inhalt kommt aus renderPlans*(). -->
+<div class="modal-overlay" id="modal-plans" onclick="closeModalIfBg(event, 'modal-plans')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="plans-body"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-backlog" onclick="closeModalIfBg(event, 'modal-backlog')">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1749,7 +1800,7 @@
 // ─── STATE ────────────────────────────────────────────────────────────────────
 
 const DB_KEY = 'tvrd_db';         // stable forever — never change this key
-const CURRENT_VERSION = 2;        // bump when schema changes, add migration below
+const CURRENT_VERSION = 3;        // bump when schema changes, add migration below
 
 function migrateDB(db) {
   // Each block runs only once per user, in order.
@@ -1779,7 +1830,38 @@ function migrateDB(db) {
     db.version = 2;
   }
 
+  // v3: mehrere Pläne. Der bisherige Einzelplan wird zum ersten Eintrag in
+  // db.plans und bleibt aktiv, seine ID bleibt dieselbe. Jede Session zeigt
+  // per planId auf einen existierenden Plan, damit Daten, Plan und Übung
+  // später sauber trennbar bleiben (Leo-Auftrag). Weicht eine alte planId ab
+  // (Altlast des früheren "Neuen Plan aktivieren"), bleibt sie als
+  // legacyPlanId erhalten, nichts geht verloren. IDs werden Strings, weil sie
+  // Objekt-Schlüssel sind.
+  if (db.version < 3) {
+    const old = db.plan || { id: Date.now(), days: [] };
+    const pid = String(old.id);
+    db.plans = { [pid]: { id: pid, name: old.name || 'High Volume', days: old.days || [], createdAt: Date.now() } };
+    db.activePlanId = pid;
+    (db.history || []).forEach(h => {
+      if (h.planId != null && String(h.planId) !== pid) h.legacyPlanId = h.planId;
+      h.planId = pid;
+    });
+    delete db.plan;
+    db.version = 3;
+  }
+
   return db;
+}
+
+// db.plan bleibt als Zugriff auf den aktiven Plan erhalten, so lesen alle
+// bestehenden Stellen (db.plan.days …) einfach den aktiven. Nicht aufzählbar,
+// damit er beim Speichern nicht als Kopie in localStorage landet.
+function attachPlanGetter(d) {
+  Object.defineProperty(d, 'plan', {
+    get() { return d.plans[d.activePlanId]; },
+    enumerable: false, configurable: true
+  });
+  return d;
 }
 
 function loadDB() {
@@ -1788,11 +1870,15 @@ function loadDB() {
     if (raw) {
       const db = JSON.parse(raw);
       if (db.version < CURRENT_VERSION) {
+        // Rohkopie vor jeder Migration, unter eigenem Key. Scheitert die
+        // Migration, fällt loadDB auf die Demo-Daten zurück, und das nächste
+        // saveDB würde die echten Daten überschreiben. Die Kopie bleibt.
+        try { localStorage.setItem(`${DB_KEY}_pre_v${CURRENT_VERSION}`, raw); } catch(e) {}
         const migrated = migrateDB(db);
         localStorage.setItem(DB_KEY, JSON.stringify(migrated));
-        return migrated;
+        return attachPlanGetter(migrated);
       }
-      return db;
+      return attachPlanGetter(db);
     }
   } catch(e) {}
   return getDefaultDB();
@@ -1802,9 +1888,10 @@ function saveDB() {
   localStorage.setItem(DB_KEY, JSON.stringify(db));
 }
 
+// Demo-Daten im v2-Format, laufen durch dieselbe Migration wie echte Daten.
 function getDefaultDB() {
-  return {
-    version: CURRENT_VERSION,
+  return attachPlanGetter(migrateDB({
+    version: 2,
     // Katalog: Übung = eigenständiges Modul, per ID referenziert. Tage halten
     // nur die IDs (day.exercises), History schlüsselt ebenfalls nach exId.
     exercises: {
@@ -1840,6 +1927,7 @@ function getDefaultDB() {
     },
     plan: {
       id: Date.now(),
+      name: 'Mein Plan',
       days: [
         { id: 'd1', name: 'Brust & Arme', emoji: '💪', exercises: ['e1','e2','e3','e4','e5','e6','e7','e8'] },
         { id: 'd2', name: 'Beine', emoji: '🦵', exercises: ['e9','e10','e11','e12','e13','e14'] },
@@ -1849,7 +1937,7 @@ function getDefaultDB() {
     },
     history: [], // { id, planId, dayId, dayName, date, exercises: [{exId, name, sets:[{reps,weight}]}] }
     draftWorkout: null
-  };
+  }));
 }
 
 let db = loadDB();
@@ -1875,9 +1963,25 @@ function hydrateEx(id) {
   };
 }
 
-// Alle Tage, die ein bestimmtes Modul referenzieren (für Fork-Logik beim Editieren).
+// Pläne, die nicht gelöscht sind (gelöschte bleiben als Hülle mit deletedAt).
+function livePlans() {
+  return Object.values(db.plans).filter(p => !p.deletedAt);
+}
+
+// Alle Tage, die ein bestimmtes Modul referenzieren (für Fork-Logik beim
+// Editieren), über alle Pläne: ein Modul ist überall dasselbe. Eine Plan-Kopie
+// verweist auf dieselben Module, ändert man dort eins, fragt die App wie bei
+// mehreren Tagen. Leo: so weiß der User, dass das Modul auch woanders steckt,
+// und kann bewusst ein eigenes anlegen.
 function daysUsingEx(id) {
-  return db.plan.days.filter(d => (d.exercises || []).includes(id));
+  return livePlans().flatMap(p => p.days.filter(d => (d.exercises || []).includes(id)));
+}
+
+// "3 Tagen" oder "3 Tagen in 2 Plänen", für die Fork-Frage
+function usageLabel(id) {
+  const days = daysUsingEx(id).length;
+  const plans = livePlans().filter(p => p.days.some(d => (d.exercises || []).includes(id))).length;
+  return plans > 1 ? `${days} Tagen in ${plans} Plänen` : `${days} Tagen`;
 }
 
 // Vergleicht zwei Parameter-Sätze eines Moduls. Gleich = dieselbe Übung (Fall b),
@@ -1982,6 +2086,7 @@ function calcSessionVol(s) {
 
 const DAY_PALETTE = ['#c8f135','#7ec8e3','#ff8a5c','#c77dff','#ffb84d','#4caf50','#ff6b9d'];
 const REST_COLOR = '#666';
+const OTHER_PLAN_COLOR = '#a3aaa1';   // Training in einem anderen Plan (Wochenstreifen)
 
 function getDayColor(dayId) {
   const i = db.plan.days.findIndex(d => d.id === dayId);
@@ -2012,7 +2117,20 @@ function getTodayEntries() {
   return db.history.filter(h => startOfDay(h.date) === todayMs);
 }
 
+// Was der aktive Plan zeigt: seine Trainings plus Aktive Erholung.
+// Statistik, Verlauf und Tagesvorschlag lesen nur das. Leos Begründung: Ein
+// Plan verfolgt ein klares Ziel, das will man tracken. Mehrere parallel lenken
+// ab, sie parallel zu tracken noch mehr. Wer andere Pläne sehen will, wechselt.
+// Aktive Erholung ist kein Training eines Plans und gilt planübergreifend
+// (Leo). Ebenfalls planübergreifend, weil sie zur Übung gehören, nicht zum
+// Plan: PR-Prüfung im Training und Vorwerte (Modul-History), dazu der Nudge
+// und "heute schon trainiert" (die messen, ob man überhaupt trainiert).
+function planHistory() {
+  return db.history.filter(h => !h.dayId || h.planId === db.activePlanId);
+}
+
 // Kalendertage seit dem letzten echten Training (Aktive Erholung zählt nicht).
+// Planübergreifend, sonst schlüge er nach einem Planwechsel fälschlich an.
 function daysSinceLastTraining() {
   const trainings = db.history.filter(h => h.dayId);
   if (!trainings.length) return null;
@@ -2042,9 +2160,12 @@ function renderWeekStrip() {
     let style = '', cellCls = 'week-strip-cell', tap = '';
     if (entries) {
       const training = entries.find(e => e.dayId); // Training schlägt Erholung
-      style = ` style="background:${training ? getDayColor(training.dayId) : REST_COLOR}"`;
+      const own = training && training.planId === db.activePlanId;
+      // Training aus einem anderen Plan: neutral markiert, nicht anklickbar.
+      // Der Tag war kein freier Tag, Details zeigt aber nur der eigene Plan.
+      style = ` style="background:${own ? getDayColor(training.dayId) : training ? OTHER_PLAN_COLOR : REST_COLOR}"`;
       // Nur echte Trainings sind anklickbar, springen in den Verlauf.
-      if (training) { cellCls += ' clickable'; tap = ` onclick="openSessionFromStrip('${training.id}')"`; }
+      if (own) { cellCls += ' clickable'; tap = ` onclick="openSessionFromStrip('${training.id}')"`; }
     } else {
       // Leerer Tag: nachträglich Training oder Aktive Erholung eintragen.
       cellCls += ' backlog';
@@ -2179,6 +2300,7 @@ window.addEventListener('resize', () => {
 function renderFocusHome() {
   const dateEl = document.getElementById('home-date');
   dateEl.textContent = new Date().toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('plan-name').textContent = db.plan.name;
 
   const body = document.getElementById('focus-body');
   const draft = db.draftWorkout;
@@ -2526,7 +2648,7 @@ function startBacklogWorkout(dayId) {
 function getSuggestedDayId() {
   const days = db.plan.days;
   if (!days.length) return null;
-  const trainingSessions = db.history.filter(h => h.dayId).sort((a, b) => b.date - a.date);
+  const trainingSessions = db.history.filter(h => h.dayId && h.planId === db.activePlanId).sort((a, b) => b.date - a.date);
   if (!trainingSessions.length) return days[0].id;
   const idx = days.findIndex(d => d.id === trainingSessions[0].dayId);
   if (idx === -1) return days[0].id;
@@ -2618,12 +2740,15 @@ function startWorkout() {
     // fasst aufeinanderfolgende Übungen desselben Supersets zu einem Block.
     exercises: dayFlatExercises(day).map(ex => {
       const exId = ex.ss ? ssHistId(ex.ss, ex.id) : ex.id;
-      // Find last values for this exercise
+      // Vorwerte: zuerst die letzte Session desselben Tages, sonst die letzte
+      // Session dieses Moduls überhaupt, egal aus welchem Tag oder Plan. Ohne
+      // den Fallback hätte ein neuer Plan (neue Tage) keine Vorwerte, und
+      // commit-per-default liefe ins Leere. Die Werte gehören zur Übung.
       let lastSets = [];
-      if (lastSession) {
-        const lastEx = lastSession.exercises.find(e => e.exId === exId);
-        if (lastEx) lastSets = lastEx.sets;
-      }
+      const lastEx = (lastSession && lastSession.exercises.find(e => e.exId === exId)) ||
+        (db.history.find(s => s.exercises.some(e => e.exId === exId && e.sets.length)) || { exercises: [] })
+          .exercises.find(e => e.exId === exId);
+      if (lastEx) lastSets = lastEx.sets;
       return {
         exId: exId,
         ...(ex.ss ? { ss: ex.ss } : {}),
@@ -3158,7 +3283,7 @@ function filterHistory(dayId, tabEl) {
 
 function renderHistory(filter) {
   const body = document.getElementById('history-body');
-  let sessions = db.history;
+  let sessions = planHistory();
   if (filter !== 'all') sessions = sessions.filter(h => h.dayId === filter);
 
   // Build nav tabs here (not in renderPlan)
@@ -3587,7 +3712,7 @@ function saveSSEdit() {
     pendingExEdit = null;
     pendingSSEdit = { dayId, idx, sid, next, removed };
     document.getElementById('fork-text').textContent =
-      `Dieses Superset liegt in ${users.length} Tagen. Soll die Änderung für alle gelten oder nur hier ein eigenes Superset werden?`;
+      `Dieses Superset liegt in ${usageLabel(sid)}. Soll die Änderung für alle gelten oder nur hier ein eigenes Superset werden?`;
     document.getElementById('fork-here-btn').textContent = 'Nur hier (neues Superset)';
     openModal('modal-fork');
     return;
@@ -3735,7 +3860,6 @@ function renderPlan(expandDayId) {
             ⬆ Backup laden<input type="file" accept=".json" style="display:none" onchange="importData(this)">
           </label>
         </div>
-        <button class="btn-ghost" style="width:100%" onclick="activateNewPlan()">Neuen Plan aktivieren</button>
       </div>
     </div>
   `;
@@ -3920,7 +4044,7 @@ function saveExerciseModal() {
     if (users.length > 1 && exTrainingParamsDiffer(current, params)) {
       pendingExEdit = { dayId: editingExercise.dayId, exIdx: editingExercise.exIdx, id, params, dayCount: users.length };
       closeModal('modal-exercise');
-      openForkModal(users.length);
+      openForkModal(id);
       return;
     }
     db.exercises[id] = params;
@@ -3954,10 +4078,10 @@ function saveExerciseModal() {
 let pendingExEdit = null;
 let pendingSSEdit = null;   // gleiche Frage für Supersets, siehe saveSSEdit()
 
-function openForkModal(dayCount) {
+function openForkModal(id) {
   pendingSSEdit = null;
   document.getElementById('fork-text').textContent =
-    `Diese Übung liegt in ${dayCount} Tagen. Soll die Änderung für alle gelten oder nur hier eine eigene Übung werden?`;
+    `Diese Übung liegt in ${usageLabel(id)}. Soll die Änderung für alle gelten oder nur hier eine eigene Übung werden?`;
   document.getElementById('fork-here-btn').textContent = 'Nur hier (neue Übung)';
   openModal('modal-fork');
 }
@@ -4088,17 +4212,154 @@ function saveDayModal() {
   }
 }
 
-function activateNewPlan() {
-  showConfirm(
-    'Neuen Plan aktivieren?',
-    'Der aktuelle Plan wird archiviert. Die bisherige History bleibt erhalten. Dieser Schritt kann nicht rückgängig gemacht werden.',
-    () => {
-      db.plan.id = Date.now();
-      saveDB();
-      closeModal('modal-confirm');
-      showToast('Neuer Plan aktiviert ✓');
-    }
-  );
+// ─── PLÄNE ────────────────────────────────────────────────────────────────────
+// Ersetzt das frühere "Neuen Plan aktivieren" (setzte nur eine neue plan.id,
+// die nie gelesen wurde). Ein Plan = Tage und ihre Anordnung. Module und
+// Sessions hängen nicht am Plan, sondern an der Übung.
+
+const escHTML = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Solange ein Training läuft oder pausiert ist, bleibt der aktive Plan, wie
+// er ist: die Session gehört zu ihm (Leo, gleiche Logik wie die Plan-Sperre).
+function planSwitchLocked() {
+  if (!db.draftWorkout && !workoutState) return false;
+  showToast('Erst das pausierte Training beenden');
+  return true;
+}
+
+function planMetaText(p) {
+  const n = db.history.filter(h => h.dayId && h.planId === p.id).length;
+  return `${p.days.length} Trainingstag${p.days.length === 1 ? '' : 'e'} · ${n ? n + ' Session' + (n === 1 ? '' : 's') : 'noch nicht trainiert'}`;
+}
+
+function openPlans() {
+  const plans = livePlans().sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  document.getElementById('plans-body').innerHTML = `
+    <div class="modal-title" style="margin-bottom:2px">Pläne</div>
+    <div class="pl-sub">Aktiv ist immer genau einer. Start, Tage und Statistik zeigen nur ihn.</div>
+    <div class="pl-list">${plans.map(p => `
+      <div class="pl-row${p.id === db.activePlanId ? ' on' : ''}" onclick="switchPlan('${p.id}')">
+        <span class="pl-mark">${CHECK_SVG}</span>
+        <div class="pl-t"><div class="pl-n">${escHTML(p.name)}</div><div class="pl-m">${p.id === db.activePlanId ? 'Aktiv · ' : ''}${planMetaText(p)}</div></div>
+        <button class="pl-edit" onclick="event.stopPropagation();openPlanEdit('${p.id}')" aria-label="Plan bearbeiten">✏️</button>
+      </div>`).join('')}
+    </div>
+    <button class="btn-secondary" style="width:100%" onclick="openPlanNew()">＋ Neuer Plan</button>`;
+  openModal('modal-plans');
+}
+
+function switchPlan(id) {
+  if (id === db.activePlanId) { closeModal('modal-plans'); return; }
+  if (planSwitchLocked()) return;
+  db.activePlanId = id;
+  saveDB();
+  closeModal('modal-plans');
+  showScreen('screen-home');
+  showToast('Plan gewechselt');
+}
+
+let planNewFrom = null;   // null = leer, sonst ID des Plans, der kopiert wird
+
+function openPlanNew() {
+  planNewFrom = null;
+  document.getElementById('plans-body').innerHTML = `
+    <div class="modal-title" style="margin-bottom:12px">Neuer Plan</div>
+    <div class="pl-label">Name</div>
+    <input class="form-input" id="pl-name" placeholder="z.B. Kraftblock Frühjahr" autocomplete="off" oninput="document.getElementById('pl-ok').disabled = !this.value.trim()" style="margin-bottom:18px">
+    <div class="pl-label">Start</div>
+    <div class="ss-chips">
+      <button class="ss-chip on" onclick="pickPlanFrom(this, null)"><b>Leer</b><span>ohne Tage</span></button>
+      ${livePlans().map(p => `<button class="ss-chip" onclick="pickPlanFrom(this, '${p.id}')"><b>Kopie</b><span>${escHTML(p.name)}</span></button>`).join('')}
+    </div>
+    <div class="pl-note">Übungen sind Module: In der Kopie stecken dieselben, mit ihrer History.</div>
+    <div class="pl-btns">
+      <button class="btn-secondary" onclick="openPlans()">Zurück</button>
+      <button class="btn-primary" id="pl-ok" onclick="createPlan()" disabled>Erstellen</button>
+    </div>`;
+  setTimeout(() => { const i = document.getElementById('pl-name'); if (i) i.focus(); }, 300);
+}
+
+function pickPlanFrom(btn, id) {
+  btn.parentNode.querySelectorAll('.ss-chip').forEach(c => c.classList.toggle('on', c === btn));
+  planNewFrom = id;
+}
+
+// Eine Kopie übernimmt Tage und Anordnung mit neuen Tages-IDs, verweist aber
+// auf dieselben Module und Supersets (geteilt, ↔ und Fork-Frage wie bei Tagen).
+function createPlan() {
+  const name = document.getElementById('pl-name').value.trim();
+  if (!name) return;
+  const src = planNewFrom && db.plans[planNewFrom];
+  const stamp = Date.now();
+  const id = 'p' + stamp;
+  db.plans[id] = {
+    id, name, createdAt: stamp,
+    days: src ? src.days.map((d, i) => ({ ...d, id: `d${stamp}${i}`, exercises: [...(d.exercises || [])] })) : []
+  };
+  saveDB();
+  askActivatePlan(id);
+}
+
+// Erstellen aktiviert nicht automatisch (Leo): am Ende wird gefragt. Bearbeiten
+// lässt sich nur der aktive Plan, wer gleich aufbauen will, aktiviert hier.
+function askActivatePlan(id) {
+  const p = db.plans[id];
+  document.getElementById('plans-body').innerHTML = `
+    <div class="modal-title" style="margin-bottom:2px">"${escHTML(p.name)}" aktivieren?</div>
+    <div class="pl-sub" style="margin-bottom:20px">Bearbeiten kannst du nur den aktiven Plan. Start, Tage und Statistik zeigen dann ihn.</div>
+    <div class="pl-btns">
+      <button class="btn-secondary" onclick="openPlans();showToast('Plan erstellt')">Später</button>
+      <button class="btn-primary" onclick="switchPlan('${id}')">Aktivieren</button>
+    </div>`;
+}
+
+function openPlanEdit(id) {
+  const p = db.plans[id];
+  const isActive = id === db.activePlanId;
+  document.getElementById('plans-body').innerHTML = `
+    <div class="modal-title" style="margin-bottom:12px">Plan bearbeiten</div>
+    <div class="pl-label">Name</div>
+    <input class="form-input" id="pl-name" value="${escHTML(p.name)}" autocomplete="off" style="margin-bottom:18px">
+    <button class="btn-secondary pl-danger" style="width:100%;margin-bottom:${isActive ? '18px' : '18px'}" onclick="openPlanDelete('${id}')"${isActive ? ' disabled' : ''}>Plan löschen</button>
+    ${isActive ? '<div class="pl-note">Den aktiven Plan löschst du, nachdem du gewechselt hast.</div>' : ''}
+    <div class="pl-btns">
+      <button class="btn-secondary" onclick="openPlans()">Zurück</button>
+      <button class="btn-primary" onclick="renamePlan('${id}')">Speichern</button>
+    </div>`;
+}
+
+function renamePlan(id) {
+  const name = document.getElementById('pl-name').value.trim();
+  if (!name) return;
+  db.plans[id].name = name;
+  saveDB();
+  if (id === db.activePlanId) document.getElementById('plan-name').textContent = name;
+  openPlans();
+  showToast('Gespeichert');
+}
+
+function openPlanDelete(id) {
+  if (id === db.activePlanId) return;
+  const p = db.plans[id];
+  document.getElementById('plans-body').innerHTML = `
+    <div class="modal-title" style="margin-bottom:2px">"${escHTML(p.name)}" löschen?</div>
+    <div class="pl-sub" style="margin-bottom:20px">Die Tage und ihre Anordnung verschwinden. Übungen bleiben erhalten, ebenso ihre Bestwerte und Vorwerte. Die Sessions dieses Plans siehst du danach nicht mehr im Verlauf.</div>
+    <div class="pl-btns">
+      <button class="btn-secondary" onclick="openPlanEdit('${id}')">Abbrechen</button>
+      <button class="btn-primary pl-danger" style="background:var(--surface2);box-shadow:none" onclick="deletePlan('${id}')">Löschen</button>
+    </div>`;
+}
+
+// Soft-Delete: Für den User ist der Plan weg. In den Daten bleibt er mit
+// deletedAt stehen (samt Tagen), damit jede Session weiter auf einen
+// existierenden Plan zeigt und Daten, Plan und Übung später sauber trennbar
+// bleiben (Leo-Auftrag). Sessions und Module bleiben unangetastet.
+function deletePlan(id) {
+  if (id === db.activePlanId) return;
+  db.plans[id].deletedAt = Date.now();
+  saveDB();
+  openPlans();
+  showToast('Plan gelöscht');
 }
 
 // ─── MODALS ───────────────────────────────────────────────────────────────────
@@ -4143,7 +4404,7 @@ function importData(input) {
   reader.onload = e => {
     try {
       const parsed = JSON.parse(e.target.result);
-      if (!parsed.plan || !parsed.history) throw new Error('Ungültiges Format');
+      if (!(parsed.plan || parsed.plans) || !parsed.history) throw new Error('Ungültiges Format');
       // Alte Backups ohne Version gelten als v1, damit die v2-Migration greift
       // (Übungen aus den Tagen in den Katalog heben). Nicht auf CURRENT_VERSION
       // heben, sonst würde die Migration übersprungen.
@@ -4300,7 +4561,7 @@ function renderAnalytics(tab) {
 }
 
 function renderVerlaufHTML() {
-  const sessions = db.history;
+  const sessions = planHistory();
   if (!sessions.length) return `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Noch keine Sessions.</div></div>`;
   return sessions.map(session => {
     const d = new Date(session.date);
@@ -4323,9 +4584,13 @@ function renderVerlaufHTML() {
   }).join('');
 }
 
+// PR-Board zeigt nur den aktiven Plan (Statistik). Das "Neuer PR!" im Training
+// prüft dagegen gegen die ganze Modul-History (getExBests), Leo: ein PR für
+// eine Übung ist ein PR, egal in welchem Plan.
 function renderPRBoardHTML() {
+  const sessionsInPlan = planHistory();
   const allExIds = new Map();
-  db.history.forEach(s => s.exercises.forEach(ex => {
+  sessionsInPlan.forEach(s => s.exercises.forEach(ex => {
     if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
   }));
   if (!allExIds.size) return `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Noch keine PRs — training starten!</div></div>`;
@@ -4333,7 +4598,7 @@ function renderPRBoardHTML() {
   const rows = [...allExIds.entries()].map(([exId, name]) => {
     let bestWeight = 0, bestWeightDate = null;
     let bestSetVol = 0, bestSetVolDate = null;
-    db.history.forEach(s => {
+    sessionsInPlan.forEach(s => {
       const ex = s.exercises.find(e => e.exId === exId);
       if (!ex) return;
       ex.sets.forEach(st => {
@@ -4360,7 +4625,7 @@ function renderPRBoardHTML() {
 
 function renderProgressionHTML() {
   const allExIds = new Map();
-  db.history.forEach(s => s.exercises.forEach(ex => {
+  planHistory().forEach(s => s.exercises.forEach(ex => {
     if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
   }));
   const options = [...allExIds.entries()].map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
@@ -4383,7 +4648,7 @@ function setupProgSelect() {
 function renderProgCharts(exId) {
   const container = document.getElementById('prog-charts');
   if (!container || !exId) return;
-  const data = db.history
+  const data = planHistory()
     .filter(s => s.exercises.some(e => e.exId === exId))
     .sort((a, b) => a.date - b.date)
     .map(s => {
@@ -4423,7 +4688,7 @@ function svgLine(data, field, color) {
 }
 
 function renderKonsistenzHTML() {
-  const sessions = db.history;
+  const sessions = planHistory();
   if (!sessions.length) return `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Noch keine Daten.</div></div>`;
 
   const now = Date.now();

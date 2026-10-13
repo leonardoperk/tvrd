@@ -655,6 +655,65 @@ body {
 .bar-b .btn-primary { flex: 1.6; }
 .bar-b .btn-ghost { flex: 1; }
 
+/* ═══ Training als Bottom Sheet (2026-10-13) ═══
+   Das Training liegt als Sheet über allem, auch über der Tab-Bar. Nach unten
+   ziehen (nur am Kopf, sonst kollidiert es mit dem Scrollen der Sets) oder ⌄
+   minimiert es. Minimieren pausiert die komplette Session, Trainingsuhr und
+   Satzpause. Leos Begründung: Minimieren ist eine aktive Handlung des Users,
+   also wird pausiert. Das ⌄ ersetzt das ←, das bisher "Abbrechen?" fragte;
+   Abbrechen bleibt unten in der Leiste. */
+#s-workout {
+  display: flex; z-index: 9;
+  transform: translateY(100%); visibility: hidden;
+  transition: transform .4s var(--ease), border-radius .4s var(--ease), visibility 0s .4s;
+  overflow: hidden; touch-action: pan-y;
+}
+#s-workout.open { transform: none; visibility: visible; transition: transform .4s var(--ease), border-radius .4s var(--ease); }
+#s-workout.dragging { transition: none; border-radius: 30px 30px 0 0; }
+#s-workout .hd { touch-action: none; cursor: grab; position: relative; }
+.grab {
+  position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+  width: 38px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.22);
+}
+.btn-ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Pausierte Satzpause: Zahl steht, Balken grau */
+.rest-in.paused .rest-in-n { color: var(--text-dim); }
+.rest-in.paused .rest-in-bar { background: rgba(255,255,255,.25); box-shadow: none; }
+
+/* ── Mini-Leiste: das minimierte Training, über der Tab-Bar ──
+   Tap öffnet das Sheet und setzt die Session fort. */
+.mini {
+  position: absolute; left: 14px; right: 14px; bottom: 100px; z-index: 8;
+  display: none; align-items: center; gap: 12px;
+  padding: 9px 9px 9px 16px; border-radius: 22px; cursor: pointer;
+  background: var(--glass-nav);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--edge);
+  box-shadow: var(--lift-nav), inset 0 1px 0 rgba(255,255,255,.1);
+  animation: mini-in .35s var(--ease);
+}
+.phone.has-min .mini { display: flex; }
+.mini-t { flex: 1; min-width: 0; }
+.mini-n { font-size: 14.5px; font-weight: var(--t-card-w); letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-s { font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; margin-top: 1px; }
+.mini-play {
+  width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%;
+  display: grid; place-items: center; color: #0a0f00;
+  background: linear-gradient(168deg, var(--lime-hi), var(--lime-lo));
+  box-shadow: 0 5px 18px -5px var(--lime-glow), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.mini-play svg { width: 15px; height: 15px; fill: currentColor; margin-left: 2px; }
+@keyframes mini-in { from { transform: translateY(14px); opacity: 0; } }
+/* Platz für die Leiste, damit sie nichts verdeckt */
+.phone.has-min .body:not(.flow) { padding-bottom: 196px; }
+/* Ein zweites Training gibt es nicht, solange eins pausiert ist. Home zeigt
+   oben das pausierte Training statt des nächsten (Leo, Option a): Home soll
+   nichts zeigen, was gerade nicht gilt. Die Mini-Leiste bleibt trotzdem. */
+.phone.has-min .cta, .phone.has-min .when-idle { display: none; }
+.when-paused { display: none; }
+.phone.has-min .when-paused { display: block; }
+
 /* ═══ Tab-Bar: schwebende Pille ═══ */
 .tabs {
   position: absolute; left: 50%; transform: translateX(-50%);
@@ -725,11 +784,18 @@ body {
     </div>
 
     <div class="body">
-      <div class="kicker">Nächstes Training</div>
-      <div class="focus-name">Rücken</div>
-      <div class="focus-meta">
-        <span>Zuletzt 6. Aug.</span><span>·</span><span>5.830 kg</span>
-        <span class="pill-stat">↑ 30%</span>
+      <div class="when-idle">
+        <div class="kicker">Nächstes Training</div>
+        <div class="focus-name">Rücken</div>
+        <div class="focus-meta">
+          <span>Zuletzt 6. Aug.</span><span>·</span><span>5.830 kg</span>
+          <span class="pill-stat">↑ 30%</span>
+        </div>
+      </div>
+      <div class="when-paused">
+        <div class="kicker">Training pausiert</div>
+        <div class="focus-name">Schulter &amp; Arme</div>
+        <div class="focus-meta"><span>6 / 16 Sets</span><span>·</span><span id="home-clock">24:10</span></div>
       </div>
 
       <div class="week">
@@ -742,7 +808,13 @@ body {
         <div class="wd today"><div class="wd-l">Do</div><div class="wd-b"></div></div>
       </div>
 
-      <div class="glass list">
+      <div class="glass list when-paused">
+        <div class="row"><span class="row-n">Schulterdrücken</span><span class="row-m">3×8-10</span></div>
+        <div class="row"><span class="row-n">Seitheben</span><span class="row-m">3×12-15</span></div>
+        <div class="row"><span class="row-n">Standing Curl + Rope Pushdown</span><span class="row-m">3× Superset</span></div>
+        <div class="row"><span class="row-n">Reverse Fly</span><span class="row-m">3×12-15</span></div>
+      </div>
+      <div class="glass list when-idle">
         <div class="row"><span class="row-n">Reverse Hyper</span><span class="row-m">3×15-20</span></div>
         <div class="row"><span class="row-n">Kettle Swing</span><span class="row-m">3×15-20</span></div>
         <div class="row"><span class="row-n">Pulldown Front</span><span class="row-m">3×12-15</span></div>
@@ -800,13 +872,15 @@ body {
 
   <!-- ══════════ TRAINING (Flow — keine Tab-Bar) ══════════ -->
   <section class="screen" id="s-workout">
-    <div class="hd">
-      <button class="btn btn-ico">←</button>
+    <div class="ambient"></div>
+    <div class="hd" id="wo-hd">
+      <span class="grab"></span>
+      <button class="btn btn-ico" onclick="minimize()" aria-label="Training minimieren"><svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg></button>
       <div style="flex:1">
         <div class="hd-t" style="font-size:21px">Schulter &amp; Arme</div>
         <div class="hd-s">6 / 16 Sets</div>
       </div>
-      <div style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums">24:10</div>
+      <div id="wo-clock" style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums">24:10</div>
     </div>
 
     <!-- Haken = Set bestätigen + Pause starten. Geloggt kommt von den
@@ -942,6 +1016,15 @@ body {
   </div>
   <div class="toast-p" id="toast"></div>
 
+  <!-- ══════════ MINI-LEISTE (minimiertes Training) ══════════ -->
+  <div class="mini" id="mini" onclick="openWorkout()" role="button" aria-label="Training fortsetzen">
+    <div class="mini-t">
+      <div class="mini-n">Schulter &amp; Arme</div>
+      <div class="mini-s" id="mini-s">Pausiert · 24:10</div>
+    </div>
+    <span class="mini-play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg></span>
+  </div>
+
   <!-- ══════════ TAB-BAR ══════════ -->
   <nav class="tabs" id="tabs">
     <button class="tab on" onclick="go('home',null,this)">
@@ -958,20 +1041,86 @@ body {
 </div>
 
 <script>
-// Nur der Umschalter für die Vorschau. Regel: in Flow-Screens (Training,
-// Tagesvorschau, Abschluss) ist die Tab-Bar weg.
-const FLOW = ['workout'];
-
+// Nur der Umschalter für die Vorschau. Das Training ist kein Screen mehr,
+// sondern ein Sheet über allem (die Tab-Bar liegt darunter).
 function go(name, devBtn, tabBtn) {
-  const map = { home: 's-home', days: 's-days', workout: 's-workout', stats: 's-home', plan: 's-plan' };
-  const id = map[name] || 's-home';
-  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
-  document.getElementById('tabs').style.display = FLOW.includes(name) ? 'none' : 'flex';
-
+  if (name === 'workout') { if (devBtn) mark('screen', devBtn); openWorkout(); return; }
+  if (wsheet.classList.contains('open')) minimize();
   if (devBtn) mark('screen', devBtn);
+  const map = { home: 's-home', days: 's-days', stats: 's-home', plan: 's-plan' };
+  const id = map[name] || 's-home';
+  document.querySelectorAll('.screen:not(#s-workout)').forEach(s => s.classList.toggle('on', s.id === id));
   if (tabBtn) document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b === tabBtn));
   document.querySelectorAll('.body').forEach(b => b.scrollTop = 0);
 }
+
+/* ═══ Demo-Logik Sheet + Pausieren (nur Prototyp, wird nicht portiert) ═══ */
+const wsheet = document.getElementById('s-workout');
+const phone = document.getElementById('phone');
+// Trainingsuhr: läuft nur, solange das Sheet offen ist
+const clock = { base: 24 * 60 + 10, since: null, iv: null };
+let sessionStarted = false;
+
+function clockSecs() { return clock.base + (clock.since ? Math.floor((Date.now() - clock.since) / 1000) : 0); }
+function fmtClock(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function paintClock() {
+  document.getElementById('wo-clock').textContent = fmtClock(clockSecs());
+  document.getElementById('mini-s').textContent = 'Pausiert · ' + fmtClock(clockSecs());
+  document.getElementById('home-clock').textContent = fmtClock(clockSecs());
+}
+
+function openWorkout() {
+  wsheet.style.transform = '';
+  wsheet.classList.add('open');
+  phone.classList.remove('has-min');
+  clock.since = Date.now();
+  clock.iv = setInterval(paintClock, 500);
+  paintClock();
+  if (!sessionStarted) {
+    sessionStarted = true;
+    // Startzustand: Pause läuft unter Seitheben Set 2
+    startRest(document.getElementById('demo-chk'), 90, 26);
+  } else {
+    resumeRest();
+  }
+}
+
+function minimize() {
+  if (!wsheet.classList.contains('open')) return;
+  clock.base = clockSecs(); clock.since = null; clearInterval(clock.iv);
+  pauseRest();
+  paintClock();
+  wsheet.style.transform = '';
+  wsheet.classList.remove('open', 'dragging');
+  phone.classList.add('has-min');
+  mark('screen', document.querySelector('.dev button'));   // Vorschau-Umschalter zurück auf Start
+}
+
+// Ziehen am Kopf: das Sheet folgt dem Finger. Weit genug oder schnell genug
+// nach unten = minimieren, sonst federt es zurück.
+let pull = null;
+const hd = document.getElementById('wo-hd');
+hd.addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  pull = { y: e.clientY, t: Date.now(), dy: 0 };
+  hd.setPointerCapture(e.pointerId);
+  wsheet.classList.add('dragging');
+});
+hd.addEventListener('pointermove', e => {
+  if (!pull) return;
+  pull.dy = Math.max(0, e.clientY - pull.y);
+  wsheet.style.transform = `translateY(${pull.dy}px)`;
+});
+const endPull = () => {
+  if (!pull) return;
+  const fast = pull.dy / Math.max(1, Date.now() - pull.t) > 0.6;
+  const far = pull.dy > 120;
+  pull = null;
+  wsheet.classList.remove('dragging');
+  if (far || fast) minimize(); else wsheet.style.transform = '';
+};
+hd.addEventListener('pointerup', endPull);
+hd.addEventListener('pointercancel', endPull);
 
 // Markiert den aktiven Knopf innerhalb einer Gruppe
 function mark(group, btn) {
@@ -1041,8 +1190,20 @@ function stopRest() {
 
 function collapse(el) { el.classList.remove('open'); setTimeout(() => el.remove(), 340); }
 
-// Startzustand: Pause läuft unter Seitheben Set 2
-startRest(document.getElementById('demo-chk'), 90, 26);
+// Minimieren friert die Satzpause ein, Fortsetzen lässt die Restzeit weiterlaufen
+function pauseRest() {
+  if (!rest || rest.left != null) return;
+  clearInterval(rest.iv);
+  rest.left = Math.max(0, rest.end - Date.now());
+  rest.el.classList.add('paused');
+}
+function resumeRest() {
+  if (!rest || rest.left == null) return;
+  rest.end = Date.now() + rest.left; rest.left = null;
+  rest.el.classList.remove('paused');
+  tickRest();
+  rest.iv = setInterval(tickRest, 250);
+}
 
 // ── Plan: Zeilen rendern ──
 const pday = document.getElementById('pday');

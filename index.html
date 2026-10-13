@@ -1391,8 +1391,88 @@
     box-shadow: 0 5px 18px -5px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.45);
   }
   /* Scrollfläche braucht unten Platz für die schwebende Pille */
-  .screen:not(#screen-workout):not(#screen-day-preview):not(#screen-finish) .scroll-area {
+  .screen:not(#screen-day-preview):not(#screen-finish) .scroll-area {
     padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     TRAINING ALS BOTTOM SHEET (2026-10-13)
+     Das Training liegt als Sheet über allem, auch über der Tab-Bar. Nach
+     unten ziehen (nur am Kopf, sonst kollidiert es mit dem Scrollen der Sets)
+     oder ⌄ minimiert es. Minimieren pausiert die komplette Session,
+     Trainingsuhr und Satzpause. Leos Begründung: Minimieren ist eine aktive
+     Handlung des Users, also wird pausiert. Das ⌄ ersetzt das ←, das bisher
+     "Abbrechen?" fragte: "zurück" heißt intuitiv "raus, ohne etwas zu
+     verlieren". Abbrechen bleibt unten in der Leiste.
+     ══════════════════════════════════════════════════════════════════════ */
+  #screen-workout {
+    position: fixed; inset: 0; z-index: 70; height: 100dvh;
+    display: flex; flex-direction: column;
+    transform: translateY(100%); visibility: hidden;
+    transition: transform .4s var(--ease), border-radius .4s var(--ease), visibility 0s .4s;
+    overflow: hidden;
+  }
+  #screen-workout.open {
+    transform: none; visibility: visible;
+    transition: transform .4s var(--ease), border-radius .4s var(--ease);
+  }
+  #screen-workout.dragging { transition: none; border-radius: 30px 30px 0 0; }
+  /* Eigene Verlaufsfläche, das Sheet muss deckend sein */
+  #screen-workout::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(820px 560px at 80% -12%, rgba(200,241,53,0.28), transparent 66%),
+      radial-gradient(620px 480px at 6% 20%,   rgba(120,220,255,0.15),  transparent 62%),
+      radial-gradient(760px 600px at 18% 104%, rgba(140,110,255,0.18),  transparent 64%),
+      linear-gradient(180deg, #101a0b 0%, #090c08 46%, var(--bg-deep) 100%);
+  }
+  #screen-workout .header { position: relative; touch-action: none; cursor: grab; }
+  .wsheet-grab {
+    /* knapp über dem Kopfinhalt, also unter der Statusleiste / Dynamic Island */
+    position: absolute; top: calc(max(12px, env(safe-area-inset-top)) - 9px); left: 50%; transform: translateX(-50%);
+    width: 38px; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.22);
+  }
+  .btn-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Pausierte Satzpause: Zahl steht, Balken grau */
+  .rest-in.paused .rest-in-n { color: var(--text-dim); }
+  .rest-in.paused .rest-in-bar { background: rgba(255,255,255,0.25); box-shadow: none; }
+
+  /* Mini-Leiste: das minimierte Training, über der Tab-Bar. Tap öffnet das
+     Sheet und setzt die Session fort. */
+  .mini {
+    position: fixed; left: 14px; right: 14px; z-index: 60;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 9px 9px 16px; border-radius: 22px; cursor: pointer;
+    background: linear-gradient(158deg, rgba(28,33,30,0.86), rgba(12,15,14,0.92));
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--border);
+    box-shadow: var(--lift-nav), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: mini-in .35s var(--ease);
+  }
+  .mini[hidden] { display: none; }
+  .mini-t { flex: 1; min-width: 0; }
+  .mini-n { font-size: 14.5px; font-weight: var(--w-title); letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-s { font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .mini-play {
+    width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%;
+    display: grid; place-items: center; color: var(--on-accent);
+    background: linear-gradient(168deg, var(--accent-hi), var(--accent-lo));
+    box-shadow: 0 5px 18px -5px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.45);
+  }
+  .mini-play svg { width: 15px; height: 15px; fill: currentColor; margin-left: 2px; }
+  @keyframes mini-in { from { transform: translateY(14px); opacity: 0; } }
+  /* Toast über die Leiste heben, sonst liegt er darauf */
+  body.has-min .toast { bottom: calc(160px + env(safe-area-inset-bottom)); }
+  /* Platz für die Leiste, damit sie nichts verdeckt */
+  body.has-min .screen:not(#screen-day-preview):not(#screen-finish) .scroll-area {
+    padding-bottom: calc(170px + env(safe-area-inset-bottom));
+  }
+  /* Im Plan gesperrt, solange er im pausierten Training steckt */
+  .plan-day-block.locked .plan-day-body { pointer-events: none; opacity: 0.55; }
+  @media (prefers-reduced-motion: reduce) {
+    #screen-workout, .mini { transition: none; animation: none; }
   }
 </style>
 </head>
@@ -1433,9 +1513,10 @@
 </div>
 
 <!-- WORKOUT SCREEN -->
-<div class="screen" id="screen-workout">
-  <div class="header">
-    <button class="btn-icon" onclick="confirmExitWorkout()">←</button>
+<div id="screen-workout">
+  <div class="header" id="workout-header">
+    <span class="wsheet-grab"></span>
+    <button class="btn-icon" onclick="minimizeWorkout()" aria-label="Training minimieren"><svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg></button>
     <div style="flex:1">
       <div class="header-title" id="workout-title"></div>
     </div>
@@ -1501,6 +1582,15 @@
 </div>
 
 <!-- TAB-BAR — Ziele siehe TABBAR in showScreen() -->
+<!-- Mini-Leiste: minimiertes (pausiertes) Training -->
+<div class="mini" id="mini" hidden onclick="resumeWorkout()" role="button" aria-label="Training fortsetzen">
+  <div class="mini-t">
+    <div class="mini-n" id="mini-n"></div>
+    <div class="mini-s" id="mini-s"></div>
+  </div>
+  <span class="mini-play"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg></span>
+</div>
+
 <nav class="tabbar" id="tabbar">
   <button class="tabbar-item active" data-target="screen-home" onclick="showScreen('screen-home')">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg>Start</button>
@@ -1851,7 +1941,8 @@ const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l
 // Ablauf, kein Ort — da darf ein Fehltipper einen nicht rauswerfen. Die
 // Tagesvorschau und der Abschluss haben ausserdem eine eigene untere Leiste,
 // die sich sonst mit der Pille stapeln wuerde.
-const FLOW_SCREENS = ['screen-workout', 'screen-day-preview', 'screen-finish'];
+// Das Training selbst ist kein Screen mehr, sondern ein Sheet darüber.
+const FLOW_SCREENS = ['screen-day-preview', 'screen-finish'];
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1871,6 +1962,7 @@ function showScreen(id) {
       b.classList.toggle('active', b.dataset.target === id));
   }
 
+  updateMiniBar(id);
   if (id === 'screen-home') renderFocusHome();
   if (id === 'screen-overview') renderOverview();
   if (id === 'screen-plan') { planSel = null; renderPlan(); }
@@ -2091,20 +2183,44 @@ function renderFocusHome() {
   const body = document.getElementById('focus-body');
   const draft = db.draftWorkout;
 
+  // Pausiertes Training: oben steht das pausierte statt des nächsten
+  // (Leo, Option a). Home soll nichts zeigen, was gerade nicht gilt. Keine
+  // Start-Knöpfe, es gibt immer nur eine Session. Fortgesetzt wird über die
+  // Mini-Leiste. Verwerfen = öffnen und "Abbrechen", kein eigener Knopf mehr.
   if (draft) {
-    const elapsed = draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
-    const m = Math.floor(elapsed / 60);
+    const ws = draft.workoutState;
+    const secs = draft.timerSeconds || 0;
+    // Wie im Plan: ein Superset ist eine Zeile
+    const rows = [];
+    ws.exercises.forEach((ex, i) => {
+      if (ex.ss && i > 0 && ws.exercises[i - 1].ss === ex.ss) {
+        rows[rows.length - 1].name += ' + ' + ex.name;
+        return;
+      }
+      rows.push(ex.ss
+        ? { name: ex.name, meta: `${ex.sets.length}× Superset` }
+        : { name: ex.name, meta: `${ex.sets.length}×${ex.targetReps}` });
+    });
     body.innerHTML = `
-      <div class="focus-card">
-        <div class="focus-eyebrow draft">⚡ Training unterbrochen</div>
-        <div class="focus-name">${draft.workoutState.dayName}</div>
-        <div class="focus-meta">Unterbrochen vor ${m < 1 ? 'weniger als 1 min' : m + ' min'}</div>
-        <button class="btn-primary" style="width:100%;margin-top:20px" onclick="resumeWorkout()">Fortsetzen <svg class="btn-ico-in fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg></button>
-        <div class="focus-actions">
-          <button class="btn-ghost" onclick="discardDraft()">Verwerfen</button>
+      <div class="focus-card" id="focus-card">
+        <div class="focus-eyebrow">Training pausiert</div>
+        <div class="focus-name">${ws.dayName}</div>
+        <div class="focus-meta-row">${ws.backlogDate
+          ? 'Nachtrag für ' + backlogDateLabel(ws.backlogDate)
+          : `Pausiert bei ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`}</div>
+        <div class="focus-gap sm"></div>
+        ${renderWeekStrip()}
+        <div class="focus-gap"></div>
+        <div class="focus-preview" id="focus-preview">
+          ${rows.map(r => `
+            <div class="focus-preview-row">
+              <div class="focus-preview-name">${r.name}</div>
+              <div class="focus-preview-sets">${r.meta}</div>
+            </div>`).join('')}
         </div>
       </div>
     `;
+    updateMiniBar();
     return;
   }
 
@@ -2478,6 +2594,12 @@ function previewDay(dayId) {
 }
 
 function startWorkout() {
+  // Immer nur eine Session: solange eine pausiert ist, startet keine zweite.
+  if (db.draftWorkout || workoutState) {
+    pendingBacklogDate = null;
+    showToast('Erst das pausierte Training beenden');
+    return;
+  }
   const dayId = pendingDayId;
   const day = db.plan.days.find(d => d.id === dayId);
   if (!day) return;
@@ -2529,25 +2651,77 @@ function startWorkout() {
 
   prShownForEx = new Set();
   renderWorkout();
-  showScreen('screen-workout');
+  openWorkoutSheet();
   const timerEl = document.getElementById('workout-timer');
   if (backlogDate) {
     // Nachtragen: kein laufender Timer, stattdessen das Datum im Kopf.
     timerEl.textContent = new Date(backlogDate).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
   } else {
+    timerSeconds = 0;
     timerEl.textContent = '0:00';
     startTimer();
     requestWakeLock();
   }
 }
 
+// Draft = die laufende oder pausierte Session, bei jeder Änderung gespeichert.
+// paused: vom User minimiert, Uhr und Satzpause stehen. Ohne paused lief das
+// Training noch, als die App beendet wurde (z.B. iOS hat die PWA im
+// Hintergrund geschlossen): dann läuft die Zeit weiter, denn das war keine
+// aktive Handlung des Users.
 function saveWorkoutDraft() {
   db.draftWorkout = {
     workoutState: JSON.parse(JSON.stringify(workoutState)),
     timerSeconds: timerSeconds,
-    savedAt: Date.now()
+    savedAt: Date.now(),
+    paused: false,
+    rest: restTimer ? { ei: restTimer.ei, si: restTimer.si, endsAt: restTimer.endsAt } : null
   };
   saveDB();
+}
+
+function isPaused() { return !!(db.draftWorkout && db.draftWorkout.paused); }
+
+// ─── TRAINING-SHEET: minimieren = pausieren ───────────────────────────────────
+
+function openWorkoutSheet() {
+  const sheet = document.getElementById('screen-workout');
+  sheet.style.transform = '';
+  sheet.querySelector('.scroll-area').scrollTop = 0;
+  sheet.classList.add('open');
+  updateMiniBar();
+}
+
+function closeWorkoutSheet() {
+  const sheet = document.getElementById('screen-workout');
+  sheet.style.transform = '';
+  sheet.classList.remove('open', 'dragging');
+}
+
+function minimizeWorkout() {
+  if (!workoutState) return;
+  clearInterval(timerInterval);
+  if (!workoutState.backlogDate) timerSeconds = Math.floor((Date.now() - workoutState.startTime) / 1000);
+  // Satzpause einfrieren: Restzeit merken, Anzeige bleibt stehen
+  let rest = null;
+  if (restTimer) {
+    clearInterval(restTimer.iv);
+    rest = { ei: restTimer.ei, si: restTimer.si, leftMs: Math.max(0, restTimer.endsAt - Date.now()) };
+    restTimer.el.classList.add('paused');
+    restTimer = null;
+  }
+  saveWorkoutDraft();
+  db.draftWorkout.paused = true;
+  db.draftWorkout.rest = rest;
+  saveDB();
+  releaseWakeLock();
+  workoutState = null;
+  closeWorkoutSheet();
+  // Home zeigt jetzt das pausierte Training, alle anderen Screens die Leiste
+  const active = document.querySelector('.screen.active');
+  if (active && active.id === 'screen-home') renderFocusHome();
+  if (active && active.id === 'screen-plan') renderPlan();
+  updateMiniBar();
 }
 
 function resumeWorkout() {
@@ -2556,24 +2730,88 @@ function resumeWorkout() {
   workoutState = draft.workoutState;
   prShownForEx = new Set();
   renderWorkout();
-  showScreen('screen-workout');
+  openWorkoutSheet();
   const timerEl = document.getElementById('workout-timer');
   if (workoutState.backlogDate) {
     // Nachtrag-Draft: kein Timer, Datum im Kopf wie beim Start.
     timerEl.textContent = new Date(workoutState.backlogDate).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
   } else {
-    const totalElapsed = draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
-    workoutState.startTime = Date.now() - totalElapsed * 1000;
+    // Pausiert = die Zeit stand. Nicht pausiert (App wurde beendet) = sie lief weiter.
+    const elapsed = draft.paused
+      ? draft.timerSeconds
+      : draft.timerSeconds + Math.floor((Date.now() - draft.savedAt) / 1000);
+    workoutState.startTime = Date.now() - elapsed * 1000;
+    timerSeconds = elapsed;
+    timerEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
     startTimer();
     requestWakeLock();
   }
+  const r = draft.rest;
+  if (r) {
+    const left = draft.paused ? r.leftMs : r.endsAt - Date.now();
+    if (left > 0) startRestTimer(r.ei, r.si, left);
+  }
+  saveWorkoutDraft();   // ab jetzt läuft die Session wieder
+  updateMiniBar();
 }
 
-function discardDraft() {
-  db.draftWorkout = null;
-  saveDB();
-  renderFocusHome();
+// Leiste über der Tab-Bar, solange ein Training pausiert ist. Nicht in den
+// Ablauf-Screens (Tagesvorschau, Abschluss), die haben eine eigene Leiste.
+function updateMiniBar(screenId) {
+  const id = screenId || (document.querySelector('.screen.active') || {}).id;
+  const paused = isPaused() && !workoutState;
+  const mini = document.getElementById('mini');
+  mini.hidden = !paused || FLOW_SCREENS.includes(id);
+  document.body.classList.toggle('has-min', paused);
+  if (!paused) return;
+  const d = db.draftWorkout;
+  document.getElementById('mini-n').textContent = d.workoutState.dayName;
+  document.getElementById('mini-s').textContent = d.workoutState.backlogDate
+    ? 'Nachtrag pausiert'
+    : `Pausiert · ${Math.floor(d.timerSeconds / 60)}:${String(d.timerSeconds % 60).padStart(2, '0')}`;
 }
+
+// IDs, die im pausierten Training stecken: der Tag und seine Module
+// (Übungen und Supersets). Die sind im Plan gesperrt, siehe renderPlan.
+function activeSessionIds() {
+  const d = db.draftWorkout;
+  const ids = new Set();
+  if (!d) return { dayId: null, ids };
+  d.workoutState.exercises.forEach(ex => {
+    if (ex.ss) { ids.add(ex.ss); ids.add(ex.exId.split(':')[1]); }
+    else ids.add(ex.exId);
+  });
+  return { dayId: d.workoutState.dayId, ids };
+}
+
+// Ziehen am Kopf: das Sheet folgt dem Finger. Weit genug oder schnell genug
+// nach unten = minimieren, sonst federt es zurück.
+(function initSheetPull() {
+  const hd = document.getElementById('workout-header');
+  const sheet = document.getElementById('screen-workout');
+  let pull = null;
+  hd.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    pull = { y: e.clientY, t: Date.now(), dy: 0 };
+    hd.setPointerCapture(e.pointerId);
+    sheet.classList.add('dragging');
+  });
+  hd.addEventListener('pointermove', e => {
+    if (!pull) return;
+    pull.dy = Math.max(0, e.clientY - pull.y);
+    sheet.style.transform = `translateY(${pull.dy}px)`;
+  });
+  const end = () => {
+    if (!pull) return;
+    const fast = pull.dy / Math.max(1, Date.now() - pull.t) > 0.6;
+    const far = pull.dy > 120;
+    pull = null;
+    sheet.classList.remove('dragging');
+    if (far || fast) minimizeWorkout(); else sheet.style.transform = '';
+  };
+  hd.addEventListener('pointerup', end);
+  hd.addEventListener('pointercancel', end);
+})();
 
 function startTimer() {
   clearInterval(timerInterval);
@@ -2596,7 +2834,8 @@ function startTimer() {
 // Der User-Input gilt trotzdem als Override, die Pause springt eins weiter.
 let restTimer = null;   // { ei, si, el, total, endsAt, iv }
 
-function startRestTimer(ei, si) {
+// leftMs: Restzeit einer fortgesetzten (vorher pausierten) Satzpause
+function startRestTimer(ei, si, leftMs) {
   stopRestTimer();
   const anchor = document.getElementById(`round-${ei}-${si}`) || document.getElementById(`set-${ei}-${si}`);
   if (!anchor) return;
@@ -2608,7 +2847,7 @@ function startRestTimer(ei, si) {
   anchor.after(el);
   void el.offsetHeight;   // Startzustand festschreiben, sonst fährt sie nicht auf
   el.classList.add('open');
-  restTimer = { ei, si, el, total, endsAt: Date.now() + total * 1000 };
+  restTimer = { ei, si, el, total, endsAt: Date.now() + (leftMs != null ? leftMs : total * 1000) };
   tickRestTimer();
   restTimer.iv = setInterval(tickRestTimer, 250);
 }
@@ -2852,6 +3091,7 @@ function exitWorkout() {
   db.draftWorkout = null;
   saveDB();
   closeModal('modal-confirm');
+  closeWorkoutSheet();
   showScreen('screen-home');
 }
 
@@ -2901,6 +3141,7 @@ function finishWorkout() {
   `;
 
   workoutState = null;
+  closeWorkoutSheet();
   showScreen('screen-finish');
 }
 
@@ -3257,6 +3498,7 @@ function openSSEdit(dayId, idx) {
   const sid = day && day.exercises[idx];
   const ss = getSS(sid);
   if (!ss) return;
+  if (lockedByActiveSession(sid)) return;
   ssEdit = { dayId, idx, sid, members: [...ss.members], gone: new Set(), sets: +ss.sets, restSeconds: +ss.restSeconds };
   renderSSEdit();
   openModal('modal-ss-edit');
@@ -3387,8 +3629,13 @@ function renderPlan(expandDayId) {
   }
 
   const totalEx = days.reduce((a, d) => a + dayFlatExercises(d).length, 0);
+  // Der Tag im pausierten Training ist gesperrt (Leo): die Session ist ein
+  // Snapshot, eine Änderung griffe im laufenden Training nicht, und man würde
+  // glauben, etwas geändert zu haben.
+  const lockedDayId = activeSessionIds().dayId;
 
   const daysHTML = days.map((day) => {
+    const locked = day.id === lockedDayId;
     const selecting = !!planSel && planSel.dayId === day.id;
     const exHTML = (day.exercises || []).map((id, ei) => {
       const shared = daysUsingEx(id).length > 1;
@@ -3431,9 +3678,11 @@ function renderPlan(expandDayId) {
 
     const flat = dayFlatExercises(day);
     const sets = flat.reduce((a, ex) => a + (parseInt(ex.sets) || 0), 0);
-    const meta = flat.length
-      ? `${flat.length} Übungen · ${sets} Sets`
-      : 'Noch keine Übungen';
+    const meta = locked
+      ? 'Im laufenden Training, danach wieder bearbeitbar'
+      : flat.length
+        ? `${flat.length} Übungen · ${sets} Sets`
+        : 'Noch keine Übungen';
 
     // Im Auswahlmodus ersetzt "Superset erstellen" den Hinzufügen-Knopf.
     const footHTML = selecting ? `
@@ -3444,14 +3693,15 @@ function renderPlan(expandDayId) {
       : `<button class="add-exercise-btn" onclick="showAddExerciseModal('${day.id}')">＋ Übung hinzufügen</button>`;
 
     return `
-      <div class="plan-day-block" style="--day-color:${getDayColor(day.id)}">
+      <div class="plan-day-block${locked ? ' locked' : ''}" style="--day-color:${getDayColor(day.id)}">
         <div class="plan-day-header" onclick="togglePlanDay('pd-${day.id}')">
           <div class="plan-day-titles">
             <div class="plan-day-name">${day.name}</div>
             <div class="plan-day-meta">${meta}</div>
           </div>
+          ${locked ? '' : `
           <button class="plan-day-btn" onclick="event.stopPropagation();showEditDayModal('${day.id}')">✏️</button>
-          <button class="plan-day-btn danger" onclick="event.stopPropagation();deletePlanDay('${day.id}')">✕</button>
+          <button class="plan-day-btn danger" onclick="event.stopPropagation();deletePlanDay('${day.id}')">✕</button>`}
           <div class="plan-day-toggle" id="pdt-${day.id}">▼</div>
         </div>
         <div class="plan-day-body${selecting ? ' selecting' : ''}" id="pd-${day.id}">
@@ -3619,9 +3869,18 @@ function showCreateExerciseModal() {
   openModal('modal-exercise');
 }
 
+// Ein Modul ist überall dasselbe. Steckt es im pausierten Training, ist es
+// auch von anderen Tagen aus gesperrt (gleicher Grund wie beim Tag).
+function lockedByActiveSession(id) {
+  if (!activeSessionIds().ids.has(id)) return false;
+  showToast('Steckt im pausierten Training, danach wieder bearbeitbar');
+  return true;
+}
+
 function showEditExerciseModal(dayId, exIdx) {
-  editingExercise = { dayId, exIdx };
   const day = db.plan.days.find(d => d.id === dayId);
+  if (lockedByActiveSession(day.exercises[exIdx])) return;
+  editingExercise = { dayId, exIdx };
   const ex = getExDef(day.exercises[exIdx]);
   if (!ex) return;
   document.getElementById('modal-ex-title').textContent = 'Übung bearbeiten';
@@ -4244,6 +4503,10 @@ function renderKonsistenzHTML() {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 renderFocusHome();
+// Lief beim Beenden der App noch ein Training (nicht minimiert), geht es
+// direkt dort weiter. Ein pausiertes bleibt pausiert, die Leiste zeigt es.
+if (db.draftWorkout && !db.draftWorkout.paused) resumeWorkout();
+else updateMiniBar();
 
 // Service Worker registrieren → App läuft ohne Netz (Training inklusive).
 if ('serviceWorker' in navigator) {

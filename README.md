@@ -215,5 +215,5 @@ flowchart LR
 
 <p>
   <img src="docs/overview.png" width="270" alt="Overview: all training days with last volume, trend, and a four-week activity trail">
-  <img src="docs/workout.png" width="270" alt="Workout mode: minimal per-set reps and weight input, with a rest timer running">
+  <img src="docs/workout.png" width="270" alt="Workout mode: a superset as one block, first round checked off with the rest timer running right below it, upcoming rounds still dashed">
 </p>

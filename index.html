@@ -498,7 +498,6 @@
     transition: background 0.2s;
   }
   .set-row:last-child { border-bottom: none; }
-  .set-row.done { background: rgba(200,241,53,0.04); }
   /* .set-label (S1/S2/S3) entfernt: welche Zeile welcher Satz ist, sagt die
      Reihenfolge. Die freien 22px wandern in die Stepper, damit Werte wie
      „52,5" mehr Platz neben den Knöpfen haben. */
@@ -1285,7 +1284,21 @@
     border-color: transparent; color: var(--on-accent);
     box-shadow: var(--glow-accent), inset 0 1px 0 rgba(255,255,255,0.45);
   }
-  .set-row.done { background: rgba(200,241,53,0.05); }
+  /* ─── UNGELOGGT = die Ausnahme wird markiert, nicht die Regel (2026-10-13)
+     Bei commit-per-default ist fast jeder Set geloggt. Eine Tönung für
+     "geloggt" saß darum auf fast allem und trug kein Signal: die alte
+     5-%-Lime-Fläche hat Leo im Training nicht gesehen. Dazu sah der
+     Placeholder ("10", "0") wie ein eingetragener Wert aus. Jetzt bleibt
+     geloggt neutral, ungeloggt bekommt ein gestricheltes Feld und einen stark
+     gedimmten Placeholder, Gewicht ohne Vorwert zeigt "–". Kein zweites Lime
+     neben dem Haken, der ist die einzige Lime-Fläche pro Zeile. Rand bleibt
+     1px, damit die Zeile beim ersten Wert nicht springt. */
+  .set-row:not(.done) .num-widget {
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.3);
+    box-shadow: none;
+  }
+  .num-input::placeholder { color: var(--text); opacity: 0.3; font-weight: 500; }
 
   /* ─── WOCHENSTREIFEN ──────────────────────────────────────────────────
      Kein farbiger Schlagschatten — der hat die Tagesfarbe in den
@@ -2286,6 +2299,10 @@ function renderOverview() {
   }).join('');
 }
 
+// Aktive Erholung ist ein eigener Eintrag (dayId: null), damit ein komplett
+// trainingsfreier Tag von einem Erholungstag unterscheidbar ist. Leos Zweck:
+// Orientierung für den User im Wochenstreifen und in der Heatmap, keine
+// Analytics und keine Messung der Erholung selbst. Zählt nie als Training.
 function logActiveRest() {
   // Schutz gegen doppelte Einträge, falls die Ansicht veraltet ist.
   if (hasEntryToday()) {
@@ -2379,6 +2396,17 @@ function startBacklogWorkout(dayId) {
   startWorkout();
 }
 
+// Selbstheilende Rotation: vorgeschlagen wird der Tag nach dem zuletzt
+// trainierten in Planreihenfolge, berechnet aus der History statt aus einem
+// Zähler. Warum: Man überspringt real mal einen Tag (nicht auskuriert, keine
+// Zeit), und die App soll das ohne manuelles Zurücksetzen auffangen.
+// Pausiert man, bleibt der fällige Tag fällig (Aktive Erholung hat keine
+// dayId und zählt nicht). Trainiert man außer der Reihe, geht es nach dem
+// tatsächlich trainierten Tag weiter, der übersprungene bleibt übersprungen
+// (manuell wählbar, aber nicht Default). Leos Begründung: (1) Vorgeschlagen
+// wird der chronologisch nächste Tag, einen anderen zu wählen ist also eine
+// bewusste Eingabe. (2) Sonst stünde der übersprungene Tag so lange oben,
+// bis man ihn macht, bei bewusstem Auslassen schnell eine Woche.
 function getSuggestedDayId() {
   const days = db.plan.days;
   if (!days.length) return null;
@@ -2563,6 +2591,9 @@ function startTimer() {
 // Die Pause hängt inline unter dem bestätigten Set (bzw. der Superset-Runde).
 // Es gibt immer nur eine: wird woanders abgehakt, fährt die alte zu und die
 // neue dort auf. Gestartet wird sie ausschließlich über den Set-Haken.
+// Warum keine Sonderlogik: Eine zweite Pause, während die erste läuft, setzt
+// ein Fehlverhalten voraus (Pause nicht abgewartet) und ist kein Normalweg.
+// Der User-Input gilt trotzdem als Override, die Pause springt eins weiter.
 let restTimer = null;   // { ei, si, el, total, endsAt, iv }
 
 function startRestTimer(ei, si) {
@@ -2614,6 +2645,9 @@ function collapseRest(el) {
 
 // Haken = Set bestätigen + Pause starten. Zweiter Tap nimmt ihn zurück und
 // stoppt die Pause. Loggt nichts: geloggt wird per Default über die Werte.
+// Warum ein Haken statt ⏱: Die Pause braucht einen Auslöser. Leos Annahme:
+// Einen Erfolg zu bestätigen ist eine bessere Erfahrung, als eine Pause
+// "anzufragen". Gleich viele Taps wie vorher.
 function toggleSetCheck(ei, si) {
   const set = workoutState.exercises[ei].sets[si];
   const btn = document.getElementById(`chk-${ei}-${si}`);
@@ -2753,7 +2787,7 @@ function setWidgetsHTML(ex, ei, si) {
             <button class="num-btn" onclick="adjustVal(${ei},${si},'weight',${-(ex.weightStep || 2.5)})">−</button>
             <input class="num-input" type="number" inputmode="decimal"
               value="${set.weight}"
-              placeholder="${prevSet ? prevSet.weight : '0'}"
+              placeholder="${prevSet ? prevSet.weight : '–'}"
               onfocus="setTimeout(() => this.select(), 0)"
               onchange="setVal(${ei},${si},'weight',this.value)"
               oninput="setVal(${ei},${si},'weight',this.value)">
@@ -2786,7 +2820,8 @@ function onValChanged(ei, si) {
   const set = workoutState.exercises[ei].sets[si];
   set.done = isSetCommitted(set);
 
-  // done-Styling pro Set-Zeile (leichter Lime-Hintergrund = geloggt). Die
+  // done-Klasse pro Set-Zeile. Gestylt wird die Ausnahme (:not(.done) =
+  // gestrichelt, siehe UNGELOGGT im CSS), nicht der Normalfall. Die
   // ehemalige Übungs-Progress-Bar wurde entfernt, weil sie bei commit-per-default
   // strukturell fast immer voll war. Kommt mit dem Onboarding-Modus
   // commit-per-entry zurueck (siehe Memory tvrd-minimal-input-principle).
@@ -3126,6 +3161,9 @@ function exitPlanSelect() {
 // ─── SUPERSET ERSTELLEN ───────────────────────────────────────────────────────
 // Weichen Sets oder Pause der gewählten Übungen ab, wird beides gebündelt im
 // Sheet gewählt (ohne Vorauswahl). Sonst entsteht das Superset direkt.
+// Gleich viele Sets für alle: Ein Superset kombiniert Übungen ohne Pause
+// hintereinander (gängige Definition), ungleiche Set-Zahlen ergäben keine
+// vollständigen Runden.
 
 let ssCreate = null;   // { dayId, members, sets, restSeconds }
 

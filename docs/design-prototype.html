@@ -389,15 +389,25 @@ body {
    dazwischen ist nicht interaktiv, es überlappt also nichts Klickbares. */
 .step button::after { content: ""; position: absolute; inset: 0 -6px; }
 .step-v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
-.step-v.ph { color: var(--text-muted); font-weight: 500; }
+/* ── Ungeloggt = die Ausnahme wird markiert, nicht die Regel (2026-10-13).
+   Bei commit-per-default ist fast jeder Set geloggt, eine Tönung für
+   "geloggt" sitzt also auf fast allem und trägt kein Signal (die alte
+   5-%-Lime-Fläche hat Leo im Training nicht gesehen). Dazu sah der
+   Placeholder ("10", "0") wie ein eingetragener Wert aus. Jetzt:
+   geloggt = neutral, ungeloggt = gestricheltes Feld, Placeholder stark
+   gedimmt, Gewicht ohne Vorwert als "–". Kein zweites Lime neben dem
+   Haken, der ist die einzige Lime-Fläche pro Zeile. ── */
+.step-v.ph { color: var(--text); opacity: .3; font-weight: 500; }
+.set:not(.done) .step, .round:not(.done) .step {
+  background: transparent;
+  border: 1.5px dashed rgba(255,255,255,.24);
+  box-shadow: none;
+}
 
-/* ── Set-Zeile: Lime-Tönung, sobald Werte drin sind (commit-per-default).
-   Der Haken ändert daran nichts, er startet nur die Pause. ── */
 .set, .round {
   padding: 5px 6px; margin: 0 -6px 9px;
-  border-radius: 17px; transition: background .2s;
+  border-radius: 17px;
 }
-.set.done, .round.done { background: rgba(200,241,53,.05); }
 
 /* ── Haken (ersetzt ⏱): Tap = Set bestätigen + Pause starten.
    Zweiter Tap nimmt den Haken zurück und stoppt die Pause. Archivo hat
@@ -799,9 +809,11 @@ body {
       <div style="font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums">24:10</div>
     </div>
 
-    <!-- Haken = Set bestätigen + Pause starten. Lime-Tönung kommt von den
+    <!-- Haken = Set bestätigen + Pause starten. Geloggt kommt von den
          Werten (commit-per-default), nicht vom Haken: Set 3 bei
-         Schulterdrücken hat Werte, aber keinen Haken. -->
+         Schulterdrücken hat Werte, aber keinen Haken. Ungeloggte Sets
+         (gestrichelt) gibt es nur bei Übungen ohne Vorwerte: Placeholder
+         Reps = untere Zielgrenze, Gewicht = "–". -->
     <div class="body flow" id="wo-body">
       <div class="glass ex">
         <div class="ex-h"><span class="ex-n">Schulterdrücken</span><span class="ex-r">8-10 reps</span></div>
@@ -833,7 +845,7 @@ body {
           <button class="chk on" data-rest="90" id="demo-chk"></button></div>
         <div class="set">
           <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v ph">10</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">–</span><button>+</button></div>
           <button class="chk" data-rest="90"></button></div>
       </div>
 
@@ -853,20 +865,20 @@ body {
         <div class="round">
           <button class="chk" data-rest="60"></button>
           <div class="rl">Standing Curl <span>· 10-12</span></div>
-          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v ph">12,5</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">10</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">–</span><button>+</button></div>
           <div class="rl">Rope Pushdown <span>· 12-15</span></div>
-          <div class="step"><button>−</button><span class="step-v ph">14</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v ph">25</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">–</span><button>+</button></div>
         </div>
         <div class="round">
           <button class="chk" data-rest="60"></button>
           <div class="rl">Standing Curl <span>· 10-12</span></div>
-          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v ph">12,5</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">10</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">–</span><button>+</button></div>
           <div class="rl">Rope Pushdown <span>· 12-15</span></div>
-          <div class="step"><button>−</button><span class="step-v ph">14</span><button>+</button></div>
-          <div class="step"><button>−</button><span class="step-v ph">25</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">12</span><button>+</button></div>
+          <div class="step"><button>−</button><span class="step-v ph">–</span><button>+</button></div>
         </div>
       </div>
 

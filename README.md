@@ -50,7 +50,7 @@ Every decision below exists to reduce something specific I noticed getting in my
 
 **Weight increments are preset per exercise.** Dumbbell exercises step in 2.5 kg. Cables step in 5 kg. I set this once when I built the plan, and from then on `+` moves by the right amount. No "which weight is next" math mid-set.
 
-**Entering a value commits the set.** Typing or tapping a stepper marks the set as done and the row tints lime. No confirm step needed.
+**Entering a value commits the set.** No confirm step. A set without a value yet shows a dashed field, so the one thing that still needs input stands out.
 
 **The checkmark starts the rest.** Each row has a `✓`. It doesn't log anything, the values already did that. Tapping it confirms the set with a short animation and starts the rest timer, which slides open right under that set. Tap the `✓` again to stop it. Same single tap the old ⏱ button needed, it just feels better.
 

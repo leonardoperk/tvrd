@@ -1658,21 +1658,25 @@
     <div class="form-row">
       <div class="form-field">
         <label class="form-label">Sets</label>
-        <input class="form-input" id="ex-sets-input" placeholder="4" type="number" inputmode="numeric">
+        <input class="form-input" id="ex-sets-input" placeholder="4" type="number" inputmode="numeric" onfocus="setTimeout(() => this.select(), 0)">
       </div>
       <div class="form-field">
         <label class="form-label">Ziel Reps</label>
-        <input class="form-input" id="ex-reps-input" placeholder="10-12" type="text">
+        <div style="display:flex;align-items:center;gap:6px">
+          <input class="form-input" id="ex-reps-input" placeholder="10" type="number" inputmode="numeric" min="1" aria-label="Ziel Reps von" onfocus="setTimeout(() => this.select(), 0)">
+          <span style="color:var(--text-muted)">–</span>
+          <input class="form-input" id="ex-reps-max-input" placeholder="12" type="number" inputmode="numeric" min="1" aria-label="Ziel Reps bis (optional)" onfocus="setTimeout(() => this.select(), 0)">
+        </div>
       </div>
     </div>
     <div class="form-row">
       <div class="form-field">
         <label class="form-label">Gewicht-Schritt (kg)</label>
-        <input class="form-input" id="ex-step-input" placeholder="2.5" type="number" inputmode="decimal" step="0.25">
+        <input class="form-input" id="ex-step-input" placeholder="2.5" type="number" inputmode="decimal" step="0.25" onfocus="setTimeout(() => this.select(), 0)">
       </div>
       <div class="form-field">
         <label class="form-label">Pause (Sek.)</label>
-        <input class="form-input" id="ex-rest-input" placeholder="90" type="number" inputmode="numeric" step="5">
+        <input class="form-input" id="ex-rest-input" placeholder="90" type="number" inputmode="numeric" step="5" onfocus="setTimeout(() => this.select(), 0)">
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:8px">
@@ -1909,7 +1913,7 @@ function getDefaultDB() {
       e11: { name: 'Reverse Hyper', sets: 3, targetReps: '10', weightStep: 5 },
       e12: { name: 'Front Squat', sets: 3, targetReps: '12-15', weightStep: 2.5 },
       e13: { name: 'Walking Lunges', sets: 3, targetReps: '12-15', weightStep: 2.5 },
-      e14: { name: 'Wadl Hack', sets: 3, targetReps: 'all out', weightStep: 5 },
+      e14: { name: 'Wadl Hack', sets: 3, targetReps: '12-15', weightStep: 5 },
       e15: { name: 'Trunk Swing hinged', sets: 3, targetReps: '12-15', weightStep: 2.5 },
       e16: { name: 'Ball Crunch', sets: 3, targetReps: '12-15', weightStep: 0 },
       e17: { name: 'Standing Side Raise', sets: 3, targetReps: '15-20', weightStep: 1.25 },
@@ -4056,6 +4060,7 @@ function showCreateExerciseModal() {
   document.getElementById('ex-name-input').value = '';
   document.getElementById('ex-sets-input').value = '';
   document.getElementById('ex-reps-input').value = '';
+  document.getElementById('ex-reps-max-input').value = '';
   document.getElementById('ex-step-input').value = '';
   document.getElementById('ex-rest-input').value = '';
   openModal('modal-exercise');
@@ -4078,7 +4083,11 @@ function showEditExerciseModal(dayId, exIdx) {
   document.getElementById('modal-ex-title').textContent = 'Übung bearbeiten';
   document.getElementById('ex-name-input').value = ex.name;
   document.getElementById('ex-sets-input').value = ex.sets;
-  document.getElementById('ex-reps-input').value = ex.targetReps;
+  // targetReps bleibt ein String ("10-12", "10"), im Formular nur Zahlen (von/bis).
+  // Alter Freitext passt in kein Zahlenfeld und startet leer, von ist Pflicht.
+  const m = String(ex.targetReps).match(/^\s*(\d+)\s*(?:-\s*(\d+))?\s*$/);
+  document.getElementById('ex-reps-input').value = m ? m[1] : '';
+  document.getElementById('ex-reps-max-input').value = m && m[2] ? m[2] : '';
   document.getElementById('ex-step-input').value = ex.weightStep;
   document.getElementById('ex-rest-input').value = ex.restSeconds || '';
   openModal('modal-exercise');
@@ -4087,13 +4096,16 @@ function showEditExerciseModal(dayId, exIdx) {
 function saveExerciseModal() {
   const name = document.getElementById('ex-name-input').value.trim();
   const setsRaw = document.getElementById('ex-sets-input').value.trim();
-  const targetReps = document.getElementById('ex-reps-input').value.trim();
+  const repsMin = parseInt(document.getElementById('ex-reps-input').value);
+  const repsMax = parseInt(document.getElementById('ex-reps-max-input').value);
   const weightStep = parseFloat(document.getElementById('ex-step-input').value) || 2.5;
   const restSeconds = parseInt(document.getElementById('ex-rest-input').value) || 90;
 
   if (!name) { showToast('Name ist Pflichtfeld'); return; }
   if (!setsRaw) { showToast('Sets ist Pflichtfeld'); return; }
-  if (!targetReps) { showToast('Ziel Reps ist Pflichtfeld'); return; }
+  if (!repsMin) { showToast('Ziel Reps ist Pflichtfeld'); return; }
+  if (repsMax && repsMax <= repsMin) { showToast('Reps bis muss größer sein als von'); return; }
+  const targetReps = repsMax ? `${repsMin}-${repsMax}` : String(repsMin);
   const sets = parseInt(setsRaw);
 
   const day = db.plan.days.find(d => d.id === editingExercise.dayId);

@@ -26,13 +26,25 @@ That changed once the function was genuinely done. The app worked exactly how I 
 
 Four principles set the direction from the beginning. Each one has a specific place in the product where it shows up.
 
-**Focus over features.** Only what supports the actual training. No social feed, no gamification loops, no muscle-group encyclopedia. The home screen has one primary action.
+**Minimal input.** Logging should cost as few taps as possible, even if the record ends up less detailed. Any feature that touches logging has to answer one question first: does it cut taps? That's why there's no RPE rating per set and, so far, no notes. If RPE ever reaches a 4 or 5 on the pain scale below, it gets built, taps and all.
 
 **Function first, form second, in that order, not instead of.** Every hour spent on polish while the function still had friction would have been an hour spent wrong. So the design stayed MVP-grade on purpose until the app genuinely did its job. Then form got its own pass, with the same rule applied to it: nothing that costs a tap during a set.
 
-**Good enough is perfect.** I build when a real need surfaces, not before. Cloud sync isn't there because I train on one device. Cost/benefit, not completeness.
+**Good enough is perfect.** I build when a real need surfaces, not before. Cloud sync isn't there because I train on one device. Cost/benefit, not completeness. Everything has to earn its place: each open item on the [story map](#user-story-map) carries a pain value from 0 to 5, how much its absence hurts right now. Whether it gets built is a separate call, but at 4 or 5 it usually does.
 
 **Built for heavy users.** Assumes someone who trains often and knows their weights. Preset weight increments per exercise (2.5 kg for dumbbells, 5 kg for cables), no onboarding flow, no explainer overlays. If you don't already know what a "set" is, this isn't for you.
+
+---
+
+## Working hypotheses
+
+The bigger product decisions are working hypotheses. The evidence is my own daily use, so n=1.
+
+**Sets count as logged by default.** *(Sep 2026)* Pre-filled sets are logged from the start, and I only touch what differs. The alternative, where nothing counts until confirmed, costs a tap per set. What followed: the per-exercise progress bar started full every time, so it went. A light tint marking logged sets went unnoticed in use, so now the exception is marked instead: a set without a value shows a dashed field. *Status: holds.*
+
+**The exercise module is the building block.** *(Sep 2026)* An exercise is a module with its own parameters and its own history, independent of the day or plan it sits in. Same movement with the same parameters is one module. Different parameters make a different one, and a superset is a module of its own. History was already stored per exercise, so the switch needed no data migration. *Status: has held up so far.*
+
+**Periodization comes from the modules.** *(Oct 2026)* Plans are built from modules, and a module keeps its history from plan to plan. Running plans one after another already is periodization, so a separate layer for planning across plans would add nothing. I keep several plans and switch with one tap, and the progression chart follows a module across plans, so the cycle stays visible. *Status: follows from the module hypothesis.*
 
 ---
 
@@ -130,7 +142,7 @@ That's the loop. I bring the ground truth and the judgment, the AI brings the im
 
 ## User story map
 
-The full picture of what the app is trying to do for the user, broken down across the whole training journey: solved, partial, deliberately not built, still on the list.
+The full picture of what the app is trying to do for the user, broken down across the whole training journey: solved, partial, deliberately not built, still on the list. Every open item carries its pain value and what it depends on.
 
 <a href="https://tvrd.app/docs/story-map.html">
   <img src="docs/story-map.png" alt="TVRD user story map: six activity columns from Set Up Plan through Manage Data, each with a main user story, sub-stories, and cards showing what's solved, partial, not yet built, or deliberately left out">
@@ -148,7 +160,7 @@ Supersets live here too. Long-press the drag handle of an exercise, check the on
 
 It did inherit the full visual treatment, though. That fell out of doing the design work at the token layer instead of screen by screen.
 
-**Plans.** I can keep several plans, but exactly one is active. Home, history and stats only show that one, because a plan follows one goal and tracking two at once splits the focus. Switching is one tap on the plan name. A new plan starts empty or as a copy and doesn't activate itself, the app asks at the end. Exercises stay modules across plans, so a copy keeps their history and PRs. Long-term periodization across plans is still on the list, not built.
+**Plans.** I can keep several plans, but exactly one is active. Home, history and stats only show that one, because a plan follows one goal and tracking two at once splits the focus. The exception is the progression chart, which follows a module across plans. Switching is one tap on the plan name. A new plan starts empty or as a copy and doesn't activate itself, the app asks at the end. Exercises stay modules across plans, so a copy keeps their history and PRs. Periodization across plans isn't a feature of its own, see [working hypotheses](#working-hypotheses).
 
 ---
 
@@ -156,10 +168,11 @@ It did inherit the full visual treatment, though. That fell out of doing the des
 
 At n=1, knowing what to leave out is most of the work.
 
+- **Social feed, gamification loops, a muscle-group encyclopedia.** Only what supports the actual training gets in. The home screen has one primary action.
 - **Cloud sync.** `localStorage` only. A backend would let data survive a new phone; for a single-device personal tool the complexity isn't worth it yet.
 - **Running several plans in parallel.** I can keep several, but only one is active at a time. See above.
 - **User management / accounts.** I'm the only user. Would add if a friend wants to try it.
-- **RPE (Rate of Perceived Exertion).** Standard in strength apps, where the user tags each set with how hard it felt. Useful for programming, not for how I currently train. Might add later.
+- **RPE (Rate of Perceived Exertion).** Standard in strength apps, where the user tags each set with how hard it felt. Useful for programming, not for how I currently train, and it costs a tap per set. Pain 2 right now.
 - **Reminders / notifications.** The app doesn't nag. I open it when I train.
 - **Per-muscle-group analytics.** Interesting, not needed for how I actually use it.
 

@@ -150,6 +150,25 @@
   .sm-modal-sub { font-size: 11px; color: var(--text-dim); font-style: italic; margin-bottom: 10px; line-height: 1.5; }
   .sm-modal-text { font-size: 13px; color: var(--text); line-height: 1.6; }
   .sm-modal-text code { background: var(--card); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+  /* ── Pain meter + dependencies (2026-10): data-pain="0..5" or "2-3", data-needs ── */
+  .pain { display: flex; align-items: center; gap: 2px; margin-top: 5px; font-size: 8px; font-weight: 700;
+    letter-spacing: .7px; text-transform: uppercase; color: var(--partial-text); }
+  .pain i { width: 9px; height: 4px; border-radius: 2px; border: 1px solid var(--partial-border); }
+  .pain i.on { background: var(--partial-text); border-color: var(--partial-text); }
+  .pain i.maybe { background: var(--partial-bg); border-color: var(--partial-text); }
+  .pain span { margin-left: 4px; }
+  .needs { margin-top: 3px; font-size: 9px; color: var(--text-dim); }
+  .needs b { color: var(--text); font-weight: 600; }
+  .sm-modal-text .pain { font-size: 10px; margin-top: 10px; }
+  .sm-modal-text .pain i { width: 14px; height: 6px; }
+  .sm-modal-text .needs { font-size: 11px; }
+  .pain-bar { padding: 10px 24px; border-bottom: 1px solid var(--border); font-size: 11px; color: var(--text-dim);
+    line-height: 1.7; }
+  .pain-bar b { color: var(--text); }
+  .pain-rank { cursor: pointer; white-space: nowrap; }
+  .pain-rank:hover { color: var(--text); }
+  .pain-rank em { font-style: normal; color: var(--partial-text); font-weight: 700; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -170,6 +189,11 @@
   <span class="legend-item"><span class="ldot partial"></span>Partially solved / bug</span>
   <span class="legend-item"><span class="ldot gap"></span>Not yet</span>
   <span class="legend-item"><span class="ldot design"></span>By design: not built</span>
+</div>
+
+<div class="pain-bar">
+  <b>Pain 0–5:</b> how much a missing piece hurts right now. Everything has to earn its place: whether it gets built is a separate call, but at 4 or 5 it usually does. <b>Needs</b> names what has to exist first.
+  <div id="pain-ranking"></div>
 </div>
 
 <div class="map-scroll">
@@ -211,13 +235,13 @@
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to activate a new plan when my focus changes, without losing old history."</div>
-      <div class="fc built">Activate new plan (stamps new ID, history stays intact)</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Multiple active-swappable plans + long-term periodization: how plans build on each other over months. Expert-tier feature that assumes the user plans across cycles, not week to week.</div>
+      <div class="fc built">Several plans, exactly one active. Switch with one tap; a new plan starts empty or as a copy, history stays intact</div>
+      <div class="fc design"><span class="tag">By design</span>Periodization across plans as a feature of its own. Plans are built from modules, so running them one after another already is the periodization (working hypothesis, see README)</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to duplicate or template a day instead of re-entering everything."</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Copy / duplicate a training day</div>
+      <div class="fc gap" data-pain="1" data-short="Copy a day"><span class="tag">Not yet</span>Copy / duplicate a training day</div>
     </div>
   </div>
 
@@ -245,7 +269,7 @@
       <div class="sub-story-text">"If I want to see everything or train something different, that should be one tap away."</div>
       <div class="fc built">Overview screen ("Alle Tage"): last volume, trend, 4-week activity dots, "Empfohlen" tag</div>
       <div class="fc built">Day preview (exercise list + last weights) shown when manually picking a day</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Training reminders / push notifications</div>
+      <div class="fc design" data-pain="0" data-short="Reminders"><span class="tag">By design</span>Training reminders / push notifications. The app doesn't nag, I open it when I train</div>
     </div>
 
     <div class="sub-block">
@@ -315,8 +339,8 @@
       <div class="fc built">Auto-save draft on every value change</div>
       <div class="fc built">Self-correcting timer (survives backgrounding)</div>
       <div class="fc built">Abandon confirmation if sets have been logged</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Notes per session or per exercise</div>
-      <div class="fc design"><span class="tag">By design</span>RPE (Rate of Perceived Exertion): standard in strength apps, not needed for how I train. Might add later.</div>
+      <div class="fc gap" data-pain="2" data-short="Notes"><span class="tag">Not yet</span>Notes per session or per exercise</div>
+      <div class="fc design" data-pain="2" data-short="RPE"><span class="tag">By design</span>RPE (Rate of Perceived Exertion): standard in strength apps, not needed for how I train, and it costs a tap per set. Has to earn its place.</div>
     </div>
   </div>
 
@@ -343,7 +367,7 @@
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to share my session or save a screenshot to show progress."</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Share / export session summary</div>
+      <div class="fc gap" data-pain="0" data-short="Share summary"><span class="tag">Not yet</span>Share / export session summary</div>
     </div>
   </div>
 
@@ -358,9 +382,8 @@
 
     <div class="sub-block">
       <div class="sub-story-text">"I want to look back at past sessions to remember what I did."</div>
-      <div class="fc built">Full session history under Statistik → Verlauf (collapsible, set pills per exercise)</div>
+      <div class="fc built">Full session history of the active plan under Statistik → Verlauf (collapsible, set pills per exercise)</div>
       <div class="fc built">Tap a trained day in the home week strip to jump straight to that session</div>
-      <div class="fc partial"><span class="tag">⚠ Partial</span>Filter by training day exists in code, but the old history screen with the day tabs isn't reachable since the tab bar came in. Verlauf shows all sessions.</div>
     </div>
 
     <div class="sub-block">
@@ -372,6 +395,7 @@
       <div class="sub-story-text">"I want a chart that shows whether my lifts are going up over time."</div>
       <div class="fc built">Progression tab: weight over time + volume over time (hand-rolled SVG charts)</div>
       <div class="fc built">Exercise selector to switch between movements</div>
+      <div class="fc built">A module's chart runs across plans: the periodization lives in the modules, so the cycle stays visible after a plan switch</div>
     </div>
 
     <div class="sub-block">
@@ -379,7 +403,6 @@
       <div class="fc built">Konsistenz: 16-week heatmap, color-coded by training day type with a legend</div>
       <div class="fc built">Distinct neutral color for Aktive Erholung entries</div>
       <div class="fc built">Avg sessions/week · current streak · total sessions</div>
-      <div class="fc partial"><span class="tag">⚠ Partial</span><code>planId</code> saved per session but never used in queries, so cross-plan history mixing is silent</div>
     </div>
   </div>
 
@@ -404,13 +427,13 @@
       <div class="sub-story-text">"I want to back up my data and restore it if something goes wrong."</div>
       <div class="fc built">JSON export (dated backup file), tucked away under Plan → Erweitert</div>
       <div class="fc built">JSON import with validation + migration</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Auto-backup reminder after N sessions</div>
+      <div class="fc gap" data-pain="1" data-short="Auto-backup reminder"><span class="tag">Not yet</span>Auto-backup reminder after N sessions</div>
     </div>
 
     <div class="sub-block">
       <div class="sub-story-text">"I want my data to follow me if I get a new phone."</div>
-      <div class="fc gap"><span class="tag">Not yet</span>Cloud sync: data tied to account, not device (e.g. Supabase)</div>
-      <div class="fc design"><span class="tag">By design</span>User management &amp; accounts: I'm the only user. Would add if a friend wants to try it.</div>
+      <div class="fc gap" data-pain="2-3" data-short="Cloud sync" data-needs="User accounts"><span class="tag">Not yet</span>Cloud sync: data tied to account, not device (e.g. Supabase)</div>
+      <div class="fc design"><span class="tag">By design</span>User management &amp; accounts: I'm the only user. Would add if a friend wants to try it, or once cloud sync earns its place.</div>
     </div>
   </div>
 </div>
@@ -524,6 +547,37 @@
     if (e.target === modal || e.target.classList.contains('sm-modal-close')) closeModal();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── Pain meter + dependencies, rendered from data-pain / data-needs ──
+  // data-pain is 0..5 or a range like "2-3" (honest when unsure); the range
+  // shows its upper part as a lighter segment and ranks by the upper value.
+  const painRange = v => { const [lo, hi] = String(v).split('-').map(Number); return [lo, hi == null ? lo : hi]; };
+  const painCards = [...document.querySelectorAll('.fc[data-pain]')];
+  painCards.forEach(fc => {
+    const [lo, hi] = painRange(fc.dataset.pain);
+    const m = document.createElement('div');
+    m.className = 'pain';
+    m.setAttribute('aria-label', 'Pain ' + fc.dataset.pain.replace('-', ' to ') + ' of 5');
+    m.innerHTML = [0, 1, 2, 3, 4].map(i => '<i class="' + (i < lo ? 'on' : i < hi ? 'maybe' : '') + '"></i>').join('') +
+      '<span>Pain ' + fc.dataset.pain.replace('-', '–') + '</span>';
+    fc.appendChild(m);
+    if (fc.dataset.needs) {
+      const n = document.createElement('div');
+      n.className = 'needs';
+      n.innerHTML = 'Needs: <b>' + fc.dataset.needs + '</b>';
+      fc.appendChild(n);
+    }
+  });
+  const ranking = document.getElementById('pain-ranking');
+  if (ranking) {
+    const sorted = painCards.slice().sort((a, b) => painRange(b.dataset.pain)[1] - painRange(a.dataset.pain)[1] || painRange(b.dataset.pain)[0] - painRange(a.dataset.pain)[0]);
+    ranking.innerHTML = '<b>By pain:</b> ' + sorted.map((fc, i) =>
+      '<span class="pain-rank" data-i="' + painCards.indexOf(fc) + '">' + fc.dataset.short + ' <em>' + fc.dataset.pain.replace('-', '–') + '</em></span>').join(' · ');
+    ranking.addEventListener('click', e => {
+      const r = e.target.closest('.pain-rank');
+      if (r) openModal(painCards[+r.dataset.i]);
+    });
+  }
 
   // Wire each card: hover = tooltip, click = detail
   document.querySelectorAll('.fc').forEach(fc => {

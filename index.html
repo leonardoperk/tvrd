@@ -2185,8 +2185,9 @@ function getTodayEntries() {
 // ab, sie parallel zu tracken noch mehr. Wer andere Pläne sehen will, wechselt.
 // Aktive Erholung ist kein Training eines Plans und gilt planübergreifend
 // (Leo). Ebenfalls planübergreifend, weil sie zur Übung gehören, nicht zum
-// Plan: PR-Prüfung im Training und Vorwerte (Modul-History), dazu der Nudge
-// und "heute schon trainiert" (die messen, ob man überhaupt trainiert).
+// Plan: PR-Prüfung im Training, Vorwerte und die Progressions-Charts
+// (Modul-History), dazu der Nudge und "heute schon trainiert" (die messen,
+// ob man überhaupt trainiert).
 function planHistory() {
   return db.history.filter(h => !h.dayId || h.planId === db.activePlanId);
 }
@@ -4704,11 +4705,26 @@ function renderPRBoardHTML() {
   </div>`;
 }
 
-function renderProgressionHTML() {
-  const allExIds = new Map();
-  planHistory().forEach(s => s.exercises.forEach(ex => {
-    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
+// Progression zeigt ein Modul über alle Pläne hinweg. Leo 2026-10-23:
+// Periodisierung entsteht durch die Abfolge der Module in den Plänen, nicht
+// durch ein eigenes Feature. Stehen Module nacheinander in Trainingsplänen,
+// ist das schon die Periodisierung. Darum muss die Kurve eines Moduls über
+// einen Planwechsel durchlaufen. Zur Auswahl stehen die Module des aktiven
+// Plans plus alles, was in ihm trainiert wurde, sofern es History hat.
+function progressionExIds() {
+  const ids = new Set();
+  db.plan.days.forEach(day => dayFlatExercises(day).forEach(ex =>
+    ids.add(ex.ss ? ssHistId(ex.ss, ex.id) : ex.id)));
+  planHistory().forEach(s => s.exercises.forEach(ex => ids.add(ex.exId)));
+  const out = new Map();
+  db.history.forEach(s => s.exercises.forEach(ex => {
+    if (ids.has(ex.exId) && ex.sets.length && !out.has(ex.exId)) out.set(ex.exId, histExName(ex));
   }));
+  return out;
+}
+
+function renderProgressionHTML() {
+  const allExIds = progressionExIds();
   const diffs = statDiffLabels([...allExIds.entries()]);
   const options = [...allExIds.entries()].map(([id, name]) =>
     `<option value="${id}">${name}${diffs.get(id) ? ' (' + diffs.get(id) + ')' : ''}</option>`).join('');
@@ -4731,8 +4747,8 @@ function setupProgSelect() {
 function renderProgCharts(exId) {
   const container = document.getElementById('prog-charts');
   if (!container || !exId) return;
-  const data = planHistory()
-    .filter(s => s.exercises.some(e => e.exId === exId))
+  const data = db.history
+    .filter(s => s.exercises.some(e => e.exId === exId && e.sets.length))
     .sort((a, b) => a.date - b.date)
     .map(s => {
       const ex = s.exercises.find(e => e.exId === exId);

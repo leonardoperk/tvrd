@@ -5,6 +5,10 @@ Status quo · Oct 2026 · interactive version: [docs/story-map.html](docs/story-
 
 Legend: ✅ solved · ⚠️ partially solved / bug · 💡 not yet · 🚫 by design: not built
 
+**Pain 0–5:** how much a missing piece hurts right now. Everything has to earn its place: whether it gets built is a separate call, but at 4 or 5 it usually does. **Needs** names what has to exist first.
+
+**By pain:** Cloud sync 2–3 · Notes 2 · RPE 2 · Copy a day 1 · Auto-backup reminder 1 · Reminders 0 · Share summary 0
+
 ---
 
 ## 1. Set Up Plan
@@ -29,11 +33,11 @@ As a user, I want to **set up a training plan** in order to structure my workout
 - ✅ Superset shows as a box in the plan: tap to edit, add/remove exercises, dissolve
 
 **"I want to activate a new plan when my focus changes, without losing old history."**
-- ✅ Activate new plan (stamps new ID, history stays intact)
-- 💡 Multiple active-swappable plans + long-term periodization: how plans build on each other over months. Expert-tier feature that assumes the user plans across cycles, not week to week.
+- ✅ Several plans, exactly one active. Switch with one tap; a new plan starts empty or as a copy, history stays intact
+- 🚫 Periodization across plans as a feature of its own. Plans are built from modules, so running them one after another already is the periodization (working hypothesis, see README)
 
 **"I want to duplicate or template a day instead of re-entering everything."**
-- 💡 Copy / duplicate a training day
+- 💡 Copy / duplicate a training day · Pain 1
 
 ---
 
@@ -53,7 +57,7 @@ As a user, I want to **know what's next and get moving with zero decisions** in 
 **"If I want to see everything or train something different, that should be one tap away."**
 - ✅ Overview screen ("Alle Tage"): last volume, trend, 4-week activity dots, "Empfohlen" tag
 - ✅ Day preview (exercise list + last weights) shown when manually picking a day
-- 💡 Training reminders / push notifications
+- 🚫 Training reminders / push notifications. The app doesn't nag, I open it when I train · Pain 0
 
 **"I forgot to log a day and want to add it afterwards."**
 - ✅ Tap an empty day in the week strip: log a past training (no live timer, saved to that date) or Active Rest
@@ -101,8 +105,8 @@ As a user, I want to **log every set quickly and accurately, with minimal fricti
 - ✅ Auto-save draft on every value change
 - ✅ Self-correcting timer (survives backgrounding)
 - ✅ Abandon confirmation if sets have been logged
-- 💡 Notes per session or per exercise
-- 🚫 RPE (Rate of Perceived Exertion): standard in strength apps, not needed for how I train. Might add later.
+- 💡 Notes per session or per exercise · Pain 2
+- 🚫 RPE (Rate of Perceived Exertion): standard in strength apps, not needed for how I train, and it costs a tap per set. Has to earn its place. · Pain 2
 
 ---
 
@@ -119,7 +123,7 @@ As a user, I want to **end my session and see a summary** in order to feel the s
 - ✅ 🏆 icon + pulsing badge naming the day if it's a per-day PR
 
 **"I want to share my session or save a screenshot to show progress."**
-- 💡 Share / export session summary
+- 💡 Share / export session summary · Pain 0
 
 ---
 
@@ -128,9 +132,8 @@ As a user, I want to **end my session and see a summary** in order to feel the s
 As a user, I want to **see if I'm getting stronger over time** in order to stay motivated and train with purpose.
 
 **"I want to look back at past sessions to remember what I did."**
-- ✅ Full session history under Statistik → Verlauf (collapsible, set pills per exercise)
+- ✅ Full session history of the active plan under Statistik → Verlauf (collapsible, set pills per exercise)
 - ✅ Tap a trained day in the home week strip to jump straight to that session
-- ⚠️ Filter by training day exists in code, but the old history screen with the day tabs isn't reachable since the tab bar came in. Verlauf shows all sessions.
 
 **"I want to know my all-time best weight and volume per exercise."**
 - ✅ PRs tab: max weight + best set volume per exercise
@@ -138,12 +141,12 @@ As a user, I want to **see if I'm getting stronger over time** in order to stay 
 **"I want a chart that shows whether my lifts are going up over time."**
 - ✅ Progression tab: weight over time + volume over time (hand-rolled SVG charts)
 - ✅ Exercise selector to switch between movements
+- ✅ A module's chart runs across plans: the periodization lives in the modules, so the cycle stays visible after a plan switch
 
 **"I want to see how consistently I'm training, broken down by day, so I stay accountable."**
 - ✅ Konsistenz: 16-week heatmap, color-coded by training day type with a legend
 - ✅ Distinct neutral color for Aktive Erholung entries
 - ✅ Avg sessions/week · current streak · total sessions
-- ⚠️ `planId` saved per session but never used in queries, so cross-plan history mixing is silent
 
 ---
 
@@ -160,8 +163,8 @@ As a user, I want my **training history to always be there** in order to never l
 **"I want to back up my data and restore it if something goes wrong."**
 - ✅ JSON export (dated backup file), tucked away under Plan → Erweitert
 - ✅ JSON import with validation + migration
-- 💡 Auto-backup reminder after N sessions
+- 💡 Auto-backup reminder after N sessions · Pain 1
 
 **"I want my data to follow me if I get a new phone."**
-- 💡 Cloud sync: data tied to account, not device (e.g. Supabase)
-- 🚫 User management & accounts: I'm the only user. Would add if a friend wants to try it.
+- 💡 Cloud sync: data tied to account, not device (e.g. Supabase) · Pain 2–3 · Needs: user accounts
+- 🚫 User management & accounts: I'm the only user. Would add if a friend wants to try it, or once cloud sync earns its place.

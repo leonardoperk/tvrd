@@ -86,7 +86,7 @@ So I set an explicit goal: **it should be obvious this is a 2026 design, not a 2
 
 **Dark stays dark.** Both my references were light-themed. Copying them literally would have produced a bright app, and I open this in a dimly lit gym at 6am. The techniques transfer to dark; the palette doesn't.
 
-**Readable beats impressive.** Every colour decision got measured, not eyeballed. The rule was a 4.5:1 contrast floor for anything I have to read mid-set, and it killed several things that looked better than they read.
+**Readable beats impressive.** Every colour decision got measured, not eyeballed. The rule was a 4.5:1 contrast floor for anything I have to read mid-set, and it killed several things that looked better than they read. White glass copied from the references dropped secondary text to 2.15:1, so the cards became dark glass (5.1:1). And the gradient only goes as strong as the labels sitting directly on it can take, measured against its brightest point.
 
 **Nothing costs a tap.** Same rule as the rest of the app. No animation that delays input, no decoration that eats a touch target, no state where the primary action moves.
 
@@ -114,16 +114,6 @@ So I set an explicit goal: **it should be obvious this is a 2026 design, not a 2
 
 **The font got subset and trimmed.** Full Archivo is 643 KB. Cut to Latin plus umlauts, digits and the punctuation the app actually uses, and with the variable axes clamped to the range in use (weight 400-900, width 100-125% instead of 62-125%), it lands at 50 KB. Embedded as base64 like Inter was, the swap cost 3.5 KB net. The `tnum` OpenType feature was explicitly preserved. Without it, digits jump width while a rest timer counts down.
 
-### What the work actually turned up
-
-Three things worth recording, because none of them were visible at the start:
-
-**White glass doesn't work on dark.** The first build copied the references directly: translucent white cards. On a dark background that *lightens* what's behind it and eats exactly the contrast light text needs. Measured, secondary text had fallen to **2.15:1**. Unreadable. Dark translucent glass darkens instead, still lets the gradient through, and the glass impression turns out to come from the blur and the light edge, not the fill. Rebuilt, it measures 5.1:1.
-
-**The gradient has a hard ceiling.** I wanted it stronger. It can't go much further, because the eyebrow, date and weekday labels sit directly on that surface rather than on a card. At 0.24 accent strength they hold 5.3:1; at 0.30 they drop to 4.6, at 0.40 to 3.3. Going for saturation instead of brightness only buys about 3.6:1. The final answer was to push the surface to its limit *and* raise those four text colours a step, measured against the brightest point of the gradient, not the darkest.
-
-**Screenshots catch what assertions don't.** Every automated check passed (no clipping, no overflow, no small touch targets, contrast fine) while the resume button was rendering as a lime blob filling half the screen. `.btn-primary` carries `flex: 1`, which is right inside the bottom bar and wrong in a column, where it grows vertically; at 12px corners that was a tall rectangle, at pill radius it was a balloon. No property-level check would have flagged it. Looking at it did.
-
 ---
 
 ## How I built it with AI
@@ -135,6 +125,8 @@ I set the direction, made the product decisions, and reviewed every change. Clau
 The most useful thing I brought wasn't the code. It was using the app for real.
 
 **A bug only daily use would catch.** The home screen told me I'd trained back "yesterday" when I'd actually trained it two days earlier. I reported exactly that. It turned out the app measured "last trained" in elapsed 24-hour blocks instead of calendar days, so a Saturday-evening session read as "yesterday" on Monday morning. The same flaw was sitting in two other places, the week dots and the consistency heatmap, where it would have drifted by a day too. Precise direction from real use turned a one-line symptom into a fix for a whole class of bug, instead of a patch on the surface.
+
+**A bug only looking would catch.** During the design pass, every automated check passed: no clipping, no overflow, no small touch targets, contrast fine. On screen, the resume button was a lime balloon filling half the screen. A layout rule that was right inside the bottom bar was wrong in a column, and no property-level check could see that. Since then, every UI change gets verified with a screenshot, not just assertions.
 
 That's the loop. I bring the ground truth and the judgment, the AI brings the implementation, and reviewing the output critically is the actual job. Accepting it isn't.
 

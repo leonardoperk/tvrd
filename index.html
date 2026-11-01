@@ -1569,7 +1569,7 @@
   <div class="scroll-area" id="workout-body"></div>
   <div class="bottom-bar">
     <button class="btn-secondary" onclick="confirmExitWorkout()">Abbrechen</button>
-    <button class="btn-primary" onclick="finishWorkout()">Training beenden <svg class="btn-ico-in stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></button>
+    <button class="btn-primary" onclick="confirmFinishWorkout()">Training beenden <svg class="btn-ico-in stroke" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg></button>
   </div>
 </div>
 
@@ -1795,6 +1795,18 @@
     <div style="display:flex;gap:10px">
       <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-confirm')">Abbrechen</button>
       <button class="btn-primary" style="flex:1;background:var(--red)" id="confirm-ok-btn">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-finish" onclick="closeModalIfBg(event, 'modal-finish')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Training beenden?</div>
+    <div style="color:var(--text-muted);font-size:14px;margin-bottom:20px" id="finish-confirm-body"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-primary" style="flex:0 0 105px" onclick="closeModal('modal-finish'); finishWorkout()">Beenden</button>
+      <button class="btn-secondary" style="flex:1;height:54px" onclick="closeModal('modal-finish')">Weiter trainieren</button>
     </div>
   </div>
 </div>
@@ -3281,6 +3293,19 @@ function exitWorkout() {
   closeModal('modal-confirm');
   closeWorkoutSheet();
   showScreen('screen-home');
+}
+
+// "Training beenden" wurde mehrfach versehentlich getippt, darum eine Rückfrage.
+// Das ist ein Extra-Tap pro Training, nicht pro Satz. Das Modal spiegelt die
+// Aufteilung der unteren Leiste: "Weiter trainieren" liegt breit über der ganzen
+// Fläche von "Training beenden", ein zweiter Tap an derselben Stelle bricht also
+// ab, statt zu beenden. Darum auch die feste Breite von "Beenden".
+function confirmFinishWorkout() {
+  if (!workoutState) return;
+  const doneSets = workoutState.exercises.reduce((a, ex) => a + ex.sets.filter(isSetCommitted).length, 0);
+  document.getElementById('finish-confirm-body').textContent =
+    doneSets === 1 ? '1 Set wird gespeichert.' : `${doneSets} Sets werden gespeichert.`;
+  openModal('modal-finish');
 }
 
 function finishWorkout() {

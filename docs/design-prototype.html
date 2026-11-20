@@ -784,6 +784,149 @@ body {
   box-shadow: 0 5px 18px -5px var(--lime-glow), inset 0 1px 0 rgba(255,255,255,.45);
 }
 
+/* ═══ Runde 2026-11-20: Home ohne Kopf, Konsistenz-Header, Tag-Detail, Statistik ═══
+   Home hat keinen Kopf mehr (Leo): der Plan-Wechsler sitzt jetzt im Plan-Screen,
+   "Nächstes Training" fällt als Label weg, weil es selbsterklärend ist. */
+.body.nohd { padding-top: 56px; }
+.when-idle .focus-name { margin-top: 4px; }
+
+/* Header über dem Wochenstreifen: führt nach Statistik → Konsistenz */
+.week-h {
+  display: flex; align-items: center; justify-content: flex-end;
+  margin: 22px 0 9px; padding: 2px 0; cursor: pointer;
+}
+.week-h + .week { margin-top: 0; }
+.sec-l {
+  font-size: 10.5px; font-weight: var(--t-label-w); letter-spacing: var(--t-label-tr);
+  text-transform: uppercase; color: var(--text-dim);
+}
+.more { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.more b { color: var(--text); font-weight: 800; }
+.more svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.hd .btn-ico { width: 40px; height: 40px; }
+#s-sess:not(.from-tage) .bar-b { display: none; }
+.phone.no-tabs .tabs { display: none; }
+
+/* ── Tag-Detail: pro Übung das schwerste Gewicht groß, darunter ein Kästchen
+   pro Set mit den Wiederholungen. Gewicht pro Set nur, wenn es abweicht. ── */
+.sum {
+  display: grid; grid-template-columns: repeat(3, 1fr); text-align: center;
+  padding: 15px 6px 14px;
+}
+.sum-v { font-size: 20px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.sum-l { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+.sx { padding: 14px 16px 15px; margin-bottom: 11px; }
+.sx-h { display: flex; align-items: baseline; gap: 10px; }
+.sx-n { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 650; letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sx-w { flex-shrink: 0; font-size: 19px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.sx-w small { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-left: 3px; letter-spacing: 0; }
+.sx-t { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
+.sx-sets { display: flex; gap: 6px; margin-top: 11px; }
+.sx-set {
+  flex: 1; max-width: 62px; text-align: center; padding: 7px 0 6px; border-radius: 12px;
+  background: var(--glass-3); border: 1px solid var(--edge-soft);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+.sx-set b { display: block; font-size: 16px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.sx-set span { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
+.sx.none .sx-n { color: var(--text-dim); }
+.sx-ss {
+  padding: 13px 16px 2px; margin-bottom: 11px;
+  border-color: rgba(200,241,53,.26);
+  background: linear-gradient(158deg, rgba(200,241,53,.08), transparent 60%), var(--glass-2);
+}
+.sx-ss .sx { padding: 11px 0 14px; margin: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.sx-ss .sx:last-child { border-bottom: 0; }
+
+/* ── Statistik: drei Karten, jede mit einer Zahl, einer Grafik und dem
+   Einstieg in die Details. Alles Weitere ist dort eingenestet. ── */
+.st { padding: 17px 18px 16px; margin-bottom: 13px; cursor: pointer; transition: transform .18s var(--ease); }
+.st:active { transform: scale(.985); }
+.st-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+.big { display: flex; align-items: center; gap: 12px; }
+.big b {
+  font-size: 44px; font-weight: 900; font-stretch: 116%; letter-spacing: -.045em;
+  line-height: 1; font-variant-numeric: tabular-nums;
+}
+.big b i { font-style: normal; font-size: 26px; font-weight: 800; color: var(--text-muted); letter-spacing: -.02em; }
+.big span { font-size: 13px; color: var(--text-dim); line-height: 1.3; }
+
+.split { display: flex; gap: 3px; height: 8px; margin: 15px 0 9px; }
+.split i { border-radius: 4px; }
+.c-up { background: var(--green); }
+.c-eq { background: rgba(255,255,255,.24); }
+.c-dn { background: var(--red); }
+.leg { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--text-dim); }
+.leg i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+
+.mrows { margin-top: 13px; border-top: 1px solid rgba(255,255,255,.06); }
+.mrow { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.mrow:last-child { border-bottom: 0; padding-bottom: 0; }
+.mrow-n { flex: 1; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mrow-n small { display: block; font-size: 11.5px; font-weight: 400; color: var(--text-muted); margin-top: 1px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; }
+.mrow-v { flex-shrink: 0; text-align: right; font-size: 15px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.mrow-v small { font-size: 11px; font-weight: 600; color: var(--text-dim); margin-left: 2px; }
+.spark { width: 58px; height: 22px; flex-shrink: 0; overflow: visible; }
+.delta {
+  flex-shrink: 0; min-width: 64px; text-align: center; padding: 4px 8px;
+  border-radius: var(--r-pill); font-size: 11.5px; font-weight: 750; font-variant-numeric: tabular-nums;
+}
+.delta.up { color: var(--green); background: linear-gradient(160deg, rgba(110,231,135,.20), rgba(110,231,135,.07)); border: 1px solid rgba(110,231,135,.24); }
+.delta.eq { color: var(--text-muted); background: rgba(255,255,255,.04); border: 1px solid var(--edge-soft); }
+.delta.dn { color: #ff9494; background: rgba(255,92,92,.10); border: 1px solid rgba(255,92,92,.24); }
+
+.bars { position: relative; display: flex; align-items: flex-end; gap: 5px; height: 66px; margin: 16px 0 9px; }
+.bars i { flex: 1; border-radius: 4px 4px 2px 2px; background: rgba(255,255,255,.2); }
+.bars i.full { background: linear-gradient(180deg, var(--lime-hi), var(--lime-lo)); }
+.bars i.cur { box-shadow: 0 0 0 1.5px rgba(255,255,255,.55); }
+.bars .goal { position: absolute; left: -2px; right: -2px; height: 0; border-top: 1.5px dashed rgba(200,241,53,.6); }
+.bars .goal span { position: absolute; right: 0; top: -15px; font-size: 9.5px; font-weight: 800; color: var(--lime); letter-spacing: .05em; }
+.st-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* Progression-Liste */
+.fchips { display: flex; gap: 7px; flex-wrap: wrap; margin: 2px 0 6px; }
+.fchip {
+  appearance: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700;
+  padding: 7px 13px; border-radius: var(--r-pill); color: var(--text-dim);
+  background: var(--glass-3); border: 1px solid var(--edge-soft);
+}
+.fchip.on { color: var(--lime); border-color: rgba(200,241,53,.5); background: linear-gradient(160deg, rgba(200,241,53,.2), rgba(200,241,53,.06)); }
+.grp-h { display: flex; align-items: center; gap: 8px; margin: 20px 2px 8px; }
+.grp-h i { width: 8px; height: 8px; border-radius: 50%; }
+.plist { padding: 2px 16px 12px; }
+.plist .mrow { cursor: pointer; }
+
+/* Übungs-Detail */
+.ex-hero { text-align: center; margin: 4px 0 18px; }
+.ex-hero b { font-size: 40px; font-weight: 900; font-stretch: 116%; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+.ex-hero b small { font-size: 18px; font-weight: 700; color: var(--text-dim); letter-spacing: -.01em; margin-left: 4px; }
+.ex-hero .sub { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; font-size: 12.5px; color: var(--text-dim); }
+.chart { padding: 14px 12px 10px; margin-bottom: 11px; }
+.chart svg { width: 100%; display: block; overflow: visible; }
+.chart-leg { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); padding: 4px 6px 0; }
+.chart-leg i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 6px var(--lime-glow); margin-right: 5px; vertical-align: 0; }
+.kv { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-dim); }
+.kv b { font-size: 16px; color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Konsistenz: rollierende 7-Tage-Wochen wie der Streifen auf Start, gestapelt */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px; }
+.tile { padding: 13px 10px 12px; text-align: center; border-radius: 18px; }
+.tile b { display: block; font-size: 22px; font-weight: 850; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.tile span { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+.kgrid { padding: 14px 14px 12px; }
+.krow { display: grid; grid-template-columns: repeat(7, 1fr) 58px; gap: 5px; align-items: center; margin-bottom: 5px; }
+.krow.head div { font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: center; }
+.kc { height: 26px; border-radius: 8px; background: var(--glass-3); border: 1px solid var(--edge-soft); }
+.kc.f { border: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); cursor: pointer; }
+.kc.rest { border: 0; }
+.kn { text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.kn small { display: block; font-size: 9.5px; font-weight: 500; color: var(--text-muted); }
+.kn.full { color: var(--lime); }
+.krow.cur .kc:not(.f):not(.rest) { border-color: rgba(255,255,255,.22); }
+.kleg { display: flex; flex-wrap: wrap; gap: 6px 13px; margin-top: 14px; font-size: 11px; color: var(--text-dim); }
+.kleg i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
 /* ═══ Umschalter für dich (gehört nicht zur App) ═══ */
 .dev {
   position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 99;
@@ -810,6 +953,8 @@ body {
   <button data-g="screen" onclick="go('days',this)">Alle Tage</button>
   <button data-g="screen" onclick="go('workout',this)">Training</button>
   <button data-g="screen" onclick="go('plan',this)">Plan</button>
+  <button data-g="screen" onclick="go('stats',this)">Statistik</button>
+  <button data-g="screen" onclick="mark('screen',this); openDay('L')">Tag-Detail</button>
   <span class="dev-sep"></span>
   <button onclick="demoFast = !demoFast; this.classList.toggle('on', demoFast)">Pause 5 s</button>
 </div>
@@ -819,22 +964,14 @@ body {
   <div class="ambient"></div>
 
   <!-- ══════════ START ══════════ -->
+  <!-- Kein Kopf mehr (Leo 2026-11-20): der Plan-Wechsler sitzt im Plan-Screen,
+       das Label "Nächstes Training" ist selbsterklärend und fällt weg. -->
   <section class="screen on" id="s-home">
-    <div class="hd">
-      <div style="flex:1;min-width:0">
-        <button class="plan-sw" onclick="openPlans()" aria-label="Plan wechseln">
-          <span class="hd-t" id="plan-name">Push Pull Beine</span>
-          <svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="body">
+    <div class="body nohd">
       <div class="when-idle">
-        <div class="kicker">Nächstes Training</div>
         <div class="focus-name">Rücken</div>
         <div class="focus-meta">
-          <span>Zuletzt 6. Aug.</span><span>·</span><span>5.830 kg</span>
+          <span>Zuletzt 6. Nov.</span><span>·</span><span>5.830 kg</span>
           <span class="pill-stat">↑ 30%</span>
         </div>
       </div>
@@ -844,6 +981,11 @@ body {
         <div class="focus-meta"><span>6 / 16 Sets</span><span>·</span><span id="home-clock">24:10</span></div>
       </div>
 
+      <!-- Header macht den Streifen zum Einstieg in Statistik → Konsistenz.
+           Gezählt wird dasselbe Fenster, das der Streifen zeigt. -->
+      <div class="week-h" onclick="goKons()" role="button">
+        <span class="more"><b>3</b>/ 5 Trainings<svg viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></svg></span>
+      </div>
       <div class="week">
         <div class="wd"><div class="wd-l">Fr</div><div class="wd-b f" style="--tint:#c8f135;--tint-lo:#9ec91a"></div></div>
         <div class="wd"><div class="wd-l">Sa</div><div class="wd-b"></div></div>
@@ -885,32 +1027,39 @@ body {
     <div class="hd"><div class="hd-t">Alle Tage</div></div>
     <div class="body">
 
-      <div class="day" style="--tint:#c8f135">
+      <div class="day" style="--tint:#c8f135" onclick="openDay('B')">
         <div class="day-h"><span class="day-n">Brust &amp; Arme</span></div>
         <div class="day-m">vor 6 Tagen<span>·</span><b>5.709 kg</b>
           <span class="pill-stat">↑ 61%</span><span>·</span>68 min</div>
         <div class="dots"><i class="dot"></i><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><span>letzte 4 Wochen</span></div>
       </div>
 
-      <div class="day" style="--tint:#5ac8f0">
+      <div class="day" style="--tint:#5ac8f0" onclick="openDay('L')">
         <div class="day-h"><span class="day-n">Beine</span></div>
         <div class="day-m">vor 3 Tagen<span>·</span><b>8.192 kg</b>
           <span class="pill-stat">↑ 15%</span><span>·</span>103 min</div>
         <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><span>letzte 4 Wochen</span></div>
       </div>
 
-      <div class="day" style="--tint:#ff8a4c">
+      <div class="day" style="--tint:#ff8a4c" onclick="openDay('S')">
         <div class="day-h"><span class="day-n">Schulter &amp; Arme</span></div>
         <div class="day-m">Vorgestern<span>·</span><b>4.678 kg</b>
           <span class="pill-stat">↑ 30%</span><span>·</span>81 min</div>
         <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><i class="dot on"></i><span>letzte 4 Wochen</span></div>
       </div>
 
-      <div class="day" style="--tint:#b07cf0">
+      <div class="day" style="--tint:#b07cf0" onclick="openDay('R')">
         <div class="day-h"><span class="day-n">Rücken</span><span class="tag">Empfohlen</span></div>
-        <div class="day-m">6. Aug.<span>·</span><b>5.830 kg</b>
+        <div class="day-m">6. Nov.<span>·</span><b>5.830 kg</b>
           <span class="pill-stat">↑ 30%</span><span>·</span>128 min</div>
         <div class="dots"><i class="dot"></i><i class="dot on"></i><i class="dot on"></i><i class="dot"></i><span>letzte 4 Wochen</span></div>
+      </div>
+
+      <div class="day" style="--tint:#ffb84d" onclick="openDay('C')">
+        <div class="day-h"><span class="day-n">Rumpf</span></div>
+        <div class="day-m">8. Nov.<span>·</span><b>2.081 kg</b>
+          <span class="pill-stat">↑ 4%</span><span>·</span>38 min</div>
+        <div class="dots"><i class="dot on"></i><i class="dot on"></i><i class="dot"></i><i class="dot"></i><span>letzte 4 Wochen</span></div>
       </div>
 
     </div>
@@ -1017,10 +1166,15 @@ body {
        Long-Press (450 ms) auf die 6 Punkte einer Einzelübung = Superset-Auswahl.
        Vorher bewegt = normaler Drag (hier nicht verdrahtet, existiert in der App). -->
   <section class="screen" id="s-plan">
+    <!-- Plan-Wechsler lebt jetzt hier (Leo 2026-11-20): Pläne aktiviert und
+         tauscht man im Plan-Screen, nicht auf Start. -->
     <div class="hd">
-      <div style="flex:1">
-        <div class="hd-t">Plan</div>
-        <div class="hd-s">4 Trainingstage · 24 Übungen</div>
+      <div style="flex:1;min-width:0">
+        <button class="plan-sw" onclick="openPlans()" aria-label="Plan wechseln">
+          <span class="hd-t" id="plan-name">Push Pull Beine</span>
+          <svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg>
+        </button>
+        <div class="hd-s">5 Trainingstage · 27 Übungen</div>
       </div>
     </div>
     <div class="body">
@@ -1053,7 +1207,61 @@ body {
       <div class="glass pday" style="--tint:#c8f135"><div class="pday-h"><div style="flex:1"><div class="pday-n">Brust &amp; Arme</div><div class="pday-m">7 Übungen · 21 Sets</div></div><span class="pday-tg">▼</span></div></div>
       <div class="glass pday" style="--tint:#5ac8f0"><div class="pday-h"><div style="flex:1"><div class="pday-n">Beine</div><div class="pday-m">6 Übungen · 26 Sets</div></div><span class="pday-tg">▼</span></div></div>
       <div class="glass pday" style="--tint:#b07cf0"><div class="pday-h"><div style="flex:1"><div class="pday-n">Rücken</div><div class="pday-m">7 Übungen · 21 Sets</div></div><span class="pday-tg">▼</span></div></div>
+      <div class="glass pday" style="--tint:#ffb84d"><div class="pday-h"><div style="flex:1"><div class="pday-n">Rumpf</div><div class="pday-m">3 Übungen · 9 Sets</div></div><span class="pday-tg">▼</span></div></div>
     </div>
+  </section>
+
+  <!-- ══════════ TAG-DETAIL / SESSION (2026-11-20) ══════════
+       Aus "Tage": letzte Session des Tages + Start-Knopf. Aus Konsistenz:
+       genau diese Session, ohne Start-Knopf. Gleiche Darstellung. -->
+  <section class="screen" id="s-sess">
+    <div class="hd">
+      <button class="btn btn-ico" onclick="back()" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+      <div style="flex:1;min-width:0"><div class="hd-t" id="sess-t"></div><div class="hd-s" id="sess-s"></div></div>
+    </div>
+    <div class="body" id="sess-b"></div>
+    <div class="bar-b"><button class="btn btn-primary" style="flex:1">Training starten ▶</button></div>
+  </section>
+
+  <!-- ══════════ STATISTIK (2026-11-20) ══════════
+       Drei Karten: Progression, PRs, Konsistenz. Je eine Zahl, eine Grafik,
+       Tap führt in die Details. Der alte Tab "Verlauf" entfällt: einzelne
+       Sessions erreicht man über Konsistenz (Tap auf einen Tag). -->
+  <section class="screen" id="s-stats">
+    <div class="hd"><div style="flex:1;min-width:0"><div class="hd-t">Statistik</div><div class="hd-s" id="stats-plan">Push Pull Beine</div></div></div>
+    <div class="body" id="stats-b"></div>
+  </section>
+
+  <section class="screen" id="s-prog">
+    <div class="hd">
+      <button class="btn btn-ico" onclick="back()" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+      <div style="flex:1;min-width:0"><div class="hd-t">Progression</div><div class="hd-s">Bestes Set heute gegen vor 4 Wochen</div></div>
+    </div>
+    <div class="body" id="prog-b"></div>
+  </section>
+
+  <section class="screen" id="s-ex">
+    <div class="hd">
+      <button class="btn btn-ico" onclick="back()" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+      <div style="flex:1;min-width:0"><div class="hd-t" id="ex-t"></div><div class="hd-s" id="ex-s"></div></div>
+    </div>
+    <div class="body" id="ex-b"></div>
+  </section>
+
+  <section class="screen" id="s-prs">
+    <div class="hd">
+      <button class="btn btn-ico" onclick="back()" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+      <div style="flex:1;min-width:0"><div class="hd-t">PRs</div><div class="hd-s">Max. Gewicht pro Übung, neueste zuerst</div></div>
+    </div>
+    <div class="body" id="prs-b"></div>
+  </section>
+
+  <section class="screen" id="s-kons">
+    <div class="hd">
+      <button class="btn btn-ico" onclick="back()" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg></button>
+      <div style="flex:1;min-width:0"><div class="hd-t">Konsistenz</div><div class="hd-s">Geplant: 5 Trainings pro Woche</div></div>
+    </div>
+    <div class="body" id="kons-b"></div>
   </section>
 
   <!-- Sheet + Toast liegen über allem, auch über der Tab-Bar -->
@@ -1093,11 +1301,29 @@ function go(name, devBtn, tabBtn) {
   if (name === 'workout') { if (devBtn) mark('screen', devBtn); openWorkout(); return; }
   if (wsheet.classList.contains('open')) minimize();
   if (devBtn) mark('screen', devBtn);
-  const map = { home: 's-home', days: 's-days', stats: 's-home', plan: 's-plan' };
+  const map = { home: 's-home', days: 's-days', stats: 's-stats', plan: 's-plan' };
   const id = map[name] || 's-home';
-  document.querySelectorAll('.screen:not(#s-workout)').forEach(s => s.classList.toggle('on', s.id === id));
-  if (tabBtn) document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b === tabBtn));
+  if (name === 'stats') renderStats();
+  navStack.length = 0;
+  show(id, false);
+  setTab(name);
   document.querySelectorAll('.body').forEach(b => b.scrollTop = 0);
+}
+
+// Unterseiten (Tag-Detail, Statistik-Details) mit einfachem Zurück-Stapel
+const navStack = [];
+function show(id, push = true) {
+  const cur = document.querySelector('.screen.on:not(#s-workout)');
+  if (push && cur && cur.id !== id) navStack.push(cur.id);
+  document.querySelectorAll('.screen:not(#s-workout)').forEach(s => s.classList.toggle('on', s.id === id));
+  const b = document.getElementById(id).querySelector('.body');
+  if (b && push) b.scrollTop = 0;
+  phone.classList.toggle('no-tabs', id === 's-sess' && document.getElementById('s-sess').classList.contains('from-tage'));
+}
+function back() { show(navStack.pop() || 's-home', false); }
+function setTab(name) {
+  const i = ['home', 'days', 'stats', 'plan'].indexOf(name);
+  document.querySelectorAll('.tab').forEach((b, j) => b.classList.toggle('on', j === i));
 }
 
 /* ═══ Demo-Logik Sheet + Pausieren (nur Prototyp, wird nicht portiert) ═══ */
@@ -1480,6 +1706,7 @@ function switchPlan(id) {
   if (sessionLocked()) { toast('Erst das pausierte Training beenden'); return; }
   activePlan = id;
   document.getElementById('plan-name').textContent = plans.find(p => p.id === id).name;
+  document.getElementById('stats-plan').textContent = plans.find(p => p.id === id).name;
   closeSheet();
   toast('Plan gewechselt');
 }
@@ -1592,6 +1819,342 @@ function openPlanDelete(id) {
     }
   };
   openSheet();
+}
+
+/* ═══ Demo-Logik Statistik + Tag-Detail (2026-11-20, nur Prototyp, wird nicht portiert) ═══
+   Eine Datenquelle für alles: ein Kalender (12 rollierende Wochen) und pro
+   Übung das beste Set je Session. Daraus rechnen Konsistenz, PRs, Progression
+   und Tag-Detail, damit die Zahlen zwischen den Screens zusammenpassen.
+   Größenordnungen aus Leos echtem Backup (Stand 13.10.): 2–6 Trainings pro
+   Woche, meist 3–4; ~2–3 Gewichts-PRs pro Woche; im 4-Wochen-Vergleich die
+   Mehrheit der Übungen "gleich". */
+const TODAY = new Date(2026, 10, 19);   // Do, passt zum Wochenstreifen auf Start
+const PLAN_DAYS = {
+  B: { n: 'Brust & Arme',    c: '#c8f135' },
+  L: { n: 'Beine',           c: '#5ac8f0' },
+  S: { n: 'Schulter & Arme', c: '#ff8a4c' },
+  R: { n: 'Rücken',          c: '#b07cf0' },
+  C: { n: 'Rumpf',           c: '#ffb84d' },
+};
+// Geplant = Anzahl Tage im Plan (Plan-Rotation, Leo: 5× pro Woche geplant)
+const TARGET = Object.keys(PLAN_DAYS).length;
+const REST_C = '#7a8478';
+// Älteste Woche zuerst, die letzte endet heute. r = Aktive Erholung (zählt nicht)
+const WEEKS = ['BL.S.R.', 'C.B.L.S', '.R.rC.B', 'L..S.rR', '.C..B.L', 'SRC.BLS',
+               'rR..C.B', 'L.SR.C.', 'BL.SR.C', '.B.Lr.S', 'R.C.BL.', 'B..LSr.'];
+const CAL = WEEKS.join('').split('').map((k, i, a) => {
+  const d = new Date(TODAY); d.setDate(d.getDate() - (a.length - 1 - i));
+  return { k: k === '.' ? null : k, t: d.getTime() };
+});
+const DATES = {};
+Object.keys(PLAN_DAYS).forEach(k => DATES[k] = CAL.filter(c => c.k === k).map(c => c.t));
+
+// Bestes Set je Session [kg, Wdh], älteste zuerst. 0 kg = Eigengewicht
+const EX = [
+  { id: 'inc', d: 'B', n: 'Incline Press',      sets: 3, rr: '8-12',  h: [[20,10],[20,12],[22.5,10],[22.5,10],[22.5,11],[22.5,12],[25,9],[25,10],[25,10],[25,11]] },
+  { id: 'bbc', d: 'B', n: 'BB Curl',            sets: 3, rr: '10-12', h: [[20,10],[20,10],[22.5,8],[22.5,9],[22.5,10],[22.5,10],[22.5,10],[22.5,10],[22.5,10],[22.5,10]] },
+  { id: 'cpd', d: 'B', n: 'Cable Pushdown',     sets: 3, rr: '12-15', h: [[18.75,15],[18.75,15],[21.25,12],[21.25,15],[23.75,12],[23.75,12],[23.75,13],[23.75,12],[21.25,15],[21.25,15]] },
+  { id: 'lex', d: 'L', n: 'Leg Extension',      sets: 4, rr: '12-15', ramp: 1, h: [[45,15],[45,15],[47.5,13],[47.5,15],[50,12],[50,14],[50,15],[52.5,12],[52.5,15],[52.5,15]] },
+  { id: 'lcu', d: 'L', n: 'Leg Curl',           sets: 3, rr: '12-15', h: [[40,15],[42.5,12],[42.5,15],[45,12],[45,13],[45,15],[45,15],[45,15],[45,15],[45,15]] },
+  { id: 'hsq', d: 'L', n: 'Hacksquat',          sets: 3, rr: '10-12', ramp: 1, h: [[60,12],[60,12],[70,10],[70,12],[70,12],[80,10],[80,10],[80,11],[80,12],[80,12]] },
+  { id: 'fsq', d: 'L', n: 'Front Squat',        sets: 3, rr: '12-15', h: [[45,15],[50,12],[50,15],[50,15],[50,15],[52.5,12],[52.5,12],[50,15],[50,15],[50,15]] },
+  { id: 'wlu', d: 'L', n: 'Walking Lunges',     sets: 3, rr: '12-15', h: [] },
+  { id: 'shp', d: 'S', n: 'Shoulder Press',     sets: 3, rr: '8-10',  h: [[25,10],[25,12],[27.5,10],[27.5,10],[30,8],[30,9],[30,10],[30,10],[32.5,8],[32.5,8]] },
+  { id: 'sei', d: 'S', n: 'Seitheben',          sets: 4, rr: '12-15', h: [[8,15],[8,15],[10,12],[10,13],[10,15],[10,15],[10,15],[10,15],[10,15],[10,15]] },
+  { id: 'stc', d: 'S', n: 'Standing Curl',      sets: 3, rr: '10-12', ss: 's1', h: [[10,12],[12.5,10],[12.5,11],[12.5,12],[12.5,12],[15,10],[15,10],[15,11],[15,12],[15,12]] },
+  { id: 'rpd', d: 'S', n: 'Rope Pushdown',      sets: 3, rr: '12-15', ss: 's1', h: [[20,15],[22.5,12],[22.5,14],[22.5,15],[25,12],[25,14],[25,15],[25,15],[27.5,12],[27.5,13]] },
+  { id: 'crw', d: 'R', n: 'Cable Row',          sets: 3, rr: '12-15', h: [[25,15],[30,15],[30,15],[35,15],[35,12],[35,15],[30,15],[35,15],[35,15],[37.5,12]] },
+  { id: 'pdf', d: 'R', n: 'Pulldown Front',     sets: 3, rr: '12-15', h: [[30,15],[30,15],[30,15],[30,15],[35,15],[30,15],[30,13],[30,15],[30,15],[30,15]] },
+  { id: 'klz', d: 'R', n: 'Klimmzüge',          sets: 3, rr: '8-10',  h: [[0,6],[0,7],[0,7],[0,8],[0,8],[0,8],[0,9],[0,9],[0,10],[0,10]] },
+  { id: 'rhy', d: 'C', n: 'Reverse Hyper',      sets: 3, rr: '15-20', h: [[3.75,15],[5,15],[6.25,15],[6.25,15],[6.25,15],[6.25,15],[6.25,15],[6.25,15],[5,15],[5,15]] },
+  { id: 'scr', d: 'C', n: 'Seil-Crunch',        sets: 3, rr: '12-15', h: [[30,15],[32.5,12],[32.5,15],[32.5,15],[32.5,15],[32.5,15],[32.5,15],[32.5,15],[32.5,15],[32.5,15]] },
+  { id: 'tsh', d: 'C', n: 'Trunk Swing hinged', sets: 3, rr: '12-15', h: [[16.25,15],[18.75,15],[18.75,15],[21.25,12],[21.25,15],[21.25,15],[21.25,15],[22.5,12],[23.75,12],[23.75,14]] },
+];
+EX.forEach(ex => {
+  const ds = DATES[ex.d];
+  ex.s = ex.h.slice(-ds.length).map((v, i, a) => ({ t: ds[ds.length - a.length + i], w: v[0], r: v[1] }));
+});
+
+const DAYMS = 86400000;
+const fmtN = n => n.toLocaleString('de');   // wie in der App: 5.830 statt 5 830
+const fmtD = t => new Date(t).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
+const ago = t => Math.round((TODAY - t) / DAYMS);
+const fmtTop = x => x.w ? `${fmtN(x.w)} kg × ${x.r}` : `${x.r} Wdh`;
+// Fortschritt = mehr Gewicht, oder gleiches Gewicht mit mehr Wiederholungen (Leo: "beides")
+const cmp = (a, b) => a.w !== b.w ? a.w - b.w : a.r - b.r;
+const CHEV = '<svg viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></svg>';
+
+function progress(ex) {
+  const s = ex.s;
+  if (s.length < 2) return null;
+  const last = s[s.length - 1];
+  const ref = [...s].reverse().find(x => ago(x.t) >= 28) || s[0];
+  const c = cmp(last, ref);
+  let label = 'gleich';
+  if (last.w !== ref.w) label = (last.w > ref.w ? '+' : '−') + fmtN(Math.abs(last.w - ref.w)) + ' kg';
+  else if (last.r !== ref.r) label = (last.r > ref.r ? '+' : '−') + Math.abs(last.r - ref.r) + ' Wdh';
+  let same = 1;
+  for (let i = s.length - 1; i > 0 && cmp(s[i], s[i - 1]) === 0; i--) same++;
+  // Reihung "größter Sprung": Gewicht relativ, Wdh nur als Feinstufe
+  const gain = (ref.w ? (last.w - ref.w) / ref.w : 0) + (last.r - ref.r) / 100;
+  return { dir: c > 0 ? 'up' : c < 0 ? 'dn' : 'eq', label, last, ref, same, gain };
+}
+const DIR_C = { up: 'var(--green)', eq: '#8b948a', dn: 'var(--red)' };
+
+// Mini-Kurve: Gewicht des besten Sets, bei Eigengewicht die Wiederholungen
+function spark(ex, dir) {
+  const s = ex.s.slice(-8), bw = s.every(x => !x.w);
+  const v = s.map(x => bw ? x.r : x.w);
+  const W = 58, H = 22, mn = Math.min(...v), mx = Math.max(...v), rg = mx - mn;
+  const pts = v.map((y, i) => [(i / (v.length - 1)) * W, rg ? H - 3 - (y - mn) / rg * (H - 6) : H / 2]);
+  const [lx, ly] = pts[pts.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}"><polyline points="${pts.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${DIR_C[dir]}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.6" fill="${DIR_C[dir]}"/></svg>`;
+}
+
+// PR = neues Max. Gewicht (Leo 2026-11-20: nur noch Gewicht, kein Volumen).
+// Die erste Session einer Übung ist kein PR, es gibt nichts zu schlagen.
+function prEvents(ex) {
+  const out = []; let best = null;
+  ex.s.forEach(x => {
+    if (x.w > 0 && best !== null && x.w > best) out.push({ ex, t: x.t, w: x.w, d: x.w - best });
+    if (x.w > 0) best = best === null ? x.w : Math.max(best, x.w);
+  });
+  return out;
+}
+
+// Rollierende 7-Tage-Fenster wie der Streifen auf Start, älteste zuerst
+function weekCounts() {
+  return WEEKS.map((_, i) => CAL.slice(i * 7, i * 7 + 7).filter(c => c.k && c.k !== 'r').length);
+}
+
+function renderStats() {
+  const pr = EX.map(ex => ({ ex, p: progress(ex) })).filter(x => x.p);
+  const n = { up: 0, eq: 0, dn: 0 };
+  pr.forEach(x => n[x.p.dir]++);
+  const movers = pr.filter(x => x.p.dir === 'up').sort((a, b) => b.p.gain - a.p.gain).slice(0, 3);
+
+  const evs = EX.flatMap(prEvents).filter(e => ago(e.t) < 28).sort((a, b) => b.t - a.t);
+
+  const counts = weekCounts(), now = counts[counts.length - 1];
+  const max = Math.max(TARGET + 1, ...counts);
+  const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+
+  document.getElementById('stats-b').innerHTML = `
+    <div class="glass st" onclick="openProg()">
+      <div class="st-h"><span class="sec-l">Progression</span><span class="more">4 Wochen${CHEV}</span></div>
+      <div class="big"><b>${n.up}</b><span>von ${pr.length} Übungen<br>im Plus</span></div>
+      <div class="split">
+        <i class="c-up" style="flex:${n.up}"></i><i class="c-eq" style="flex:${n.eq}"></i><i class="c-dn" style="flex:${n.dn}"></i>
+      </div>
+      <div class="leg"><span><i class="c-up"></i>${n.up} Plus</span><span><i class="c-eq"></i>${n.eq} gleich</span><span><i class="c-dn"></i>${n.dn} Minus</span></div>
+      <div class="mrows">${movers.map(({ ex, p }) => `
+        <div class="mrow"><div class="mrow-n">${ex.n}<small>${fmtTop(p.last)}</small></div>${spark(ex, p.dir)}<span class="delta ${p.dir}">${p.label}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="glass st" onclick="openPRs()">
+      <div class="st-h"><span class="sec-l">PRs · Max. Gewicht</span><span class="more">Alle${CHEV}</span></div>
+      <div class="big"><b>${evs.length}</b><span>neue PRs<br>in 4 Wochen</span></div>
+      <div class="mrows">${evs.slice(0, 3).map(e => `
+        <div class="mrow"><div class="mrow-n">${e.ex.n}<small>${fmtD(e.t)} · +${fmtN(e.d)} kg</small></div><div class="mrow-v">${fmtN(e.w)}<small>kg</small></div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="glass st" id="st-kons" onclick="openKons()">
+      <div class="st-h"><span class="sec-l">Konsistenz</span><span class="more">12 Wochen${CHEV}</span></div>
+      <div class="big"><b>${now}<i>/${TARGET}</i></b><span>Trainings in den<br>letzten 7 Tagen</span></div>
+      <div class="bars">
+        ${counts.map((c, i) => `<i class="${c >= TARGET ? 'full' : ''}${i === counts.length - 1 ? ' cur' : ''}" style="height:${Math.max(4, c / max * 100)}%"></i>`).join('')}
+        <div class="goal" style="bottom:${TARGET / max * 100}%"><span>SOLL ${TARGET}</span></div>
+      </div>
+      <div class="st-foot"><span>vor 12 Wochen</span><span>Ø ${fmtN(Math.round(avg * 10) / 10)} pro Woche</span><span>jetzt</span></div>
+    </div>`;
+}
+
+function openProg(filter = 'all') {
+  const pr = EX.map(ex => ({ ex, p: progress(ex) })).filter(x => x.p);
+  const n = { all: pr.length, up: 0, eq: 0, dn: 0 };
+  pr.forEach(x => n[x.p.dir]++);
+  const chip = (k, l) => `<button class="fchip${filter === k ? ' on' : ''}" onclick="openProg('${k}')">${l} ${n[k]}</button>`;
+  const groups = Object.entries(PLAN_DAYS).map(([k, day]) => {
+    const rows = pr.filter(x => x.ex.d === k && (filter === 'all' || x.p.dir === filter));
+    if (!rows.length) return '';
+    return `<div class="grp-h"><i style="background:${day.c}"></i><span class="sec-l">${day.n}</span></div>
+      <div class="glass plist">${rows.map(({ ex, p }) => `
+        <div class="mrow" onclick="openEx('${ex.id}')"><div class="mrow-n">${ex.n}<small>${fmtTop(p.last)}${p.dir === 'eq' ? ` · ${p.same}× in Folge` : ''}</small></div>${spark(ex, p.dir)}<span class="delta ${p.dir}">${p.label}</span></div>`).join('')}
+      </div>`;
+  }).join('');
+  document.getElementById('prog-b').innerHTML = `
+    <div class="fchips">${chip('all', 'Alle')}${chip('up', 'Plus')}${chip('eq', 'Gleich')}${chip('dn', 'Minus')}</div>${groups}`;
+  if (!document.getElementById('s-prog').classList.contains('on')) show('s-prog');
+}
+
+// Kurve über alle Sessions: Gewicht des besten Sets, darunter die Wdh dazu.
+// So sieht man beide Wege des Fortschritts in einem Bild. PR-Punkte in Lime.
+function chartHTML(ex) {
+  const s = ex.s, bw = s.every(x => !x.w);
+  const W = 320, H = 158, L = 34, R = 12, T = 12, B = 42;
+  const v = s.map(x => bw ? x.r : x.w);
+  let mn = Math.min(...v), mx = Math.max(...v);
+  if (mn === mx) { mn -= 1; mx += 1; }
+  const pad = (mx - mn) * .18; mn -= pad; mx += pad;
+  const X = i => L + 14 + i * (W - L - R - 14) / (s.length - 1);
+  const Y = y => T + (1 - (y - mn) / (mx - mn)) * (H - T - B);
+  let best = null;
+  const isPR = s.map(x => {
+    const p = !bw && best !== null && x.w > best;
+    if (!bw) best = best === null ? x.w : Math.max(best, x.w);
+    return p;
+  });
+  const lo = Math.min(...v), hi = Math.max(...v);
+  const ticks = lo === hi ? [lo] : [lo, hi];
+  const grid = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="rgba(255,255,255,.08)" stroke-dasharray="3 4"/>
+    <text x="${L - 7}" y="${(Y(t) + 3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8b948a">${fmtN(t)}</text>`).join('');
+  const path = s.map((x, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v[i]).toFixed(1)}`).join('');
+  const dots = s.map((x, i) => isPR[i]
+    ? `<circle cx="${X(i).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="5" fill="#c8f135" style="filter:drop-shadow(0 0 5px rgba(200,241,53,.6))"/>`
+    : `<circle cx="${X(i).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="3.2" fill="#0d110e" stroke="#b9c1b6" stroke-width="1.6"/>`).join('');
+  const reps = bw ? '' : `<text x="${L - 7}" y="${H - B + 19}" text-anchor="end" font-size="9" font-weight="700" fill="#8b948a">WDH</text>` +
+    s.map((x, i) => `<text x="${X(i).toFixed(1)}" y="${H - B + 19}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#b9c1b6">${x.r}</text>`).join('');
+  const dates = [0, s.length - 1].map(i => `<text x="${X(i).toFixed(1)}" y="${H - 4}" text-anchor="${i ? 'end' : 'start'}" font-size="10" fill="#8b948a">${fmtD(s[i].t)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}">${grid}<path d="${path}" fill="none" stroke="#c8f135" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>${dots}${reps}${dates}</svg>`;
+}
+
+function openEx(id) {
+  const ex = EX.find(e => e.id === id), p = progress(ex), bw = ex.s.every(x => !x.w);
+  document.getElementById('ex-t').textContent = ex.n;
+  document.getElementById('ex-s').textContent = `${PLAN_DAYS[ex.d].n} · Ziel ${ex.sets}×${ex.rr}`;
+  const max = Math.max(...ex.s.map(x => x.w));
+  const ev = prEvents(ex), lastPR = ev[ev.length - 1];
+  const prT = lastPR ? lastPR.t : (ex.s.find(x => x.w === max) || {}).t;
+  document.getElementById('ex-b').innerHTML = `
+    <div class="ex-hero">
+      <b>${bw ? `${p.last.r}<small>Wdh</small>` : `${fmtN(p.last.w)}<small>kg × ${p.last.r}</small>`}</b>
+      <div class="sub">Bestes Set · ${fmtD(p.last.t)}<span class="delta ${p.dir}">${p.label}</span></div>
+    </div>
+    <div class="glass chart">${chartHTML(ex)}
+      <div class="chart-leg">${bw ? '<span>Wiederholungen, Eigengewicht</span>' : '<span><i></i>PR: neues Max. Gewicht</span>'}</div>
+    </div>
+    ${bw ? '' : `<div class="glass kv"><span>Bestwert</span><span><b>${fmtN(max)} kg</b> · ${fmtD(prT)}</span></div>`}
+    <div class="grp-h"><span class="sec-l">Sessions</span></div>
+    ${[...ex.s].reverse().map(x => sxHTML(ex, x, fmtD(x.t))).join('')}`;
+  show('s-ex');
+}
+
+function openPRs() {
+  const rows = EX.filter(ex => ex.s.some(x => x.w > 0)).map(ex => {
+    const ev = prEvents(ex), last = ev[ev.length - 1];
+    const w = Math.max(...ex.s.map(x => x.w));
+    return { ex, w, t: last ? last.t : ex.s.find(x => x.w === w).t, d: last ? last.d : null };
+  }).sort((a, b) => b.t - a.t);
+  const row = r => `<div class="mrow" onclick="openEx('${r.ex.id}')">
+      <div class="mrow-n">${r.ex.n}${ago(r.t) <= 14 ? ' <span class="tag" style="margin-left:4px">Neu</span>' : ''}<small>${fmtD(r.t)}${r.d ? ` · +${fmtN(r.d)} kg` : ' · seit Beginn'}</small></div>
+      <div class="mrow-v">${fmtN(r.w)}<small>kg</small></div></div>`;
+  const recent = rows.filter(r => ago(r.t) < 28), older = rows.filter(r => ago(r.t) >= 28);
+  document.getElementById('prs-b').innerHTML =
+    (recent.length ? `<div class="grp-h" style="margin-top:4px"><span class="sec-l">Letzte 4 Wochen</span></div><div class="glass plist">${recent.map(row).join('')}</div>` : '') +
+    (older.length ? `<div class="grp-h"><span class="sec-l">Davor</span></div><div class="glass plist">${older.map(row).join('')}</div>` : '');
+  show('s-prs');
+}
+
+function openKons() {
+  const counts = weekCounts(), now = counts[counts.length - 1];
+  const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+  const full = counts.filter(c => c >= TARGET).length;
+  const wd = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const head = CAL.slice(-7).map(c => `<div>${wd[new Date(c.t).getDay()]}</div>`).join('');
+  const rows = WEEKS.map((_, i) => {
+    const cells = CAL.slice(i * 7, i * 7 + 7);
+    const n = counts[i];
+    const range = `${new Date(cells[0].t).getDate()}.–${fmtD(cells[6].t)}`;
+    return `<div class="krow${i === WEEKS.length - 1 ? ' cur' : ''}">
+      ${cells.map(c => !c.k ? '<i class="kc"></i>'
+        : c.k === 'r' ? `<i class="kc rest" style="background:${REST_C}"></i>`
+        : `<i class="kc f" style="background:${PLAN_DAYS[c.k].c}" onclick="openSess('${c.k}', ${c.t}, false)"></i>`).join('')}
+      <div class="kn${n >= TARGET ? ' full' : ''}">${n}/${TARGET}<small>${range}</small></div></div>`;
+  }).reverse().join('');
+  document.getElementById('kons-b').innerHTML = `
+    <div class="tiles">
+      <div class="glass tile"><b>${now}/${TARGET}</b><span>letzte<br>7 Tage</span></div>
+      <div class="glass tile"><b>${fmtN(Math.round(avg * 10) / 10)}</b><span>Ø pro Woche<br>(12 Wochen)</span></div>
+      <div class="glass tile"><b>${full}/${WEEKS.length}</b><span>Wochen<br>im Soll</span></div>
+    </div>
+    <div class="glass kgrid">
+      <div class="krow head">${head}<div></div></div>
+      ${rows}
+      <div class="kleg">${Object.values(PLAN_DAYS).map(d => `<span><i style="background:${d.c}"></i>${d.n}</span>`).join('')}
+        <span><i style="background:${REST_C}"></i>Aktive Erholung, zählt nicht</span></div>
+    </div>`;
+  show('s-kons');
+}
+
+// Vom Wochenstreifen auf Start: direkt in Statistik → Konsistenz
+function goKons() {
+  renderStats();
+  navStack.length = 0;
+  show('s-stats', false);
+  setTab('stats');
+  openKons();
+}
+
+// Sets aus dem besten Set ableiten (nur Demo): Rampen-Übungen starten leichter
+function setsOf(ex, x) {
+  return Array.from({ length: ex.sets }, (_, i) => {
+    if (ex.ramp && i === 0) return { w: x.w - (x.w >= 50 ? 10 : 5), r: x.r };
+    return { w: x.w, r: Math.max(1, x.r - (i >= 2 ? 1 : 0)) };
+  });
+}
+
+// Eine Übung einer Session: schwerstes Gewicht groß rechts, darunter eine
+// Zeile mit den Wdh ("3 × 12" oder "12 · 12 · 10"). Keine Set-Kästchen (Leo: füllt nur auf).
+function sxHTML(ex, x, name, glass = true) {
+  const g = glass ? 'glass ' : '';
+  if (!x) return `<div class="${g}sx none"><div class="sx-h"><span class="sx-n">${name || ex.n}</span></div>
+    <div class="sx-t">Noch nicht trainiert · Ziel ${ex.sets}×${ex.rr}</div></div>`;
+  const sets = setsOf(ex, x), reps = sets.map(s => s.r);
+  const top = Math.max(...sets.map(s => s.w));
+  const line = new Set(reps).size === 1 ? `${sets.length} × ${reps[0]}` : reps.join(' · ');
+  return `<div class="${g}sx">
+    <div class="sx-h"><span class="sx-n">${name || ex.n}</span><span class="sx-w">${top ? `${fmtN(top)}<small>kg</small>` : '<small>Eigengewicht</small>'}</span></div>
+    <div class="sx-t">${line} Wdh</div>
+  </div>`;
+}
+
+function openSess(k, t, fromTage) {
+  const day = PLAN_DAYS[k], idx = DATES[k].indexOf(t);
+  const items = EX.filter(e => e.d === k).map(ex => {
+    const off = DATES[k].length - ex.s.length;   // Übung kam später dazu oder ist neu
+    return { ex, x: idx - off >= 0 ? ex.s[idx - off] : null };
+  });
+  const done = items.filter(i => i.x);
+  const sets = done.reduce((a, i) => a + i.ex.sets, 0);
+  const vol = done.reduce((a, i) => a + setsOf(i.ex, i.x).reduce((b, s) => b + s.w * s.r, 0), 0);
+  // Supersets als ein Block, wie im Training
+  let html = '';
+  items.forEach((it, i) => {
+    if (it.ex.ss && i > 0 && items[i - 1].ex.ss === it.ex.ss) return;
+    if (it.ex.ss) {
+      const grp = items.filter(o => o.ex.ss === it.ex.ss);
+      html += `<div class="glass sx-ss"><span class="ss-tag">Superset</span>${grp.map(o => sxHTML(o.ex, o.x, null, false)).join('')}</div>`;
+    } else html += sxHTML(it.ex, it.x);
+  });
+  const date = new Date(t).toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('sess-t').textContent = day.n;
+  document.getElementById('sess-s').textContent = (fromTage ? 'Zuletzt ' : '') + date + ` · ${45 + done.length * 8} min`;
+  document.getElementById('sess-b').innerHTML = `
+    <div class="day sum" style="--tint:${day.c}">
+      <div><div class="sum-v">${done.length}</div><div class="sum-l">Übungen</div></div>
+      <div><div class="sum-v">${sets}</div><div class="sum-l">Sets</div></div>
+      <div><div class="sum-v">${fmtN(Math.round(vol))}</div><div class="sum-l">kg gesamt</div></div>
+    </div>${html}`;
+  document.getElementById('s-sess').classList.toggle('from-tage', !!fromTage);
+  show('s-sess');
+}
+
+// Aus "Tage": die letzte Session dieses Tages, mit Start-Knopf
+function openDay(k) {
+  if (!document.getElementById('s-days').classList.contains('on')) { navStack.length = 0; show('s-days', false); setTab('days'); }
+  openSess(k, DATES[k][DATES[k].length - 1], true);
 }
 </script>
 </body>

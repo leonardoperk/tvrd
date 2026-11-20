@@ -1516,20 +1516,165 @@
   .pl-btns .btn-primary { flex: 1.5; }
   .pl-danger { color: var(--red) !important; }
   .pl-danger:disabled { opacity: 0.4; }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     RUNDE 2026-11-20: Home ohne Kopf, Konsistenz-Header, Tag-Detail, Statistik
+     Portiert aus docs/design-prototype.html. Home hat keinen Kopf mehr (Leo),
+     der Plan-Wechsler sitzt im Plan-Screen. Statistik ist ein Screen mit drei
+     Karten (Progression, PRs, Konsistenz), alles Weitere in Unterseiten.
+     ══════════════════════════════════════════════════════════════════════ */
+  #screen-home .scroll-area { padding-top: calc(env(safe-area-inset-top) + 8px); }
+
+  /* Header über dem Wochenstreifen: führt nach Statistik → Konsistenz */
+  .week-h {
+    display: flex; align-items: center; justify-content: flex-end;
+    margin: 0 0 9px; padding: 2px 0; cursor: pointer;
+  }
+  .sec-l {
+    font-size: 10.5px; font-weight: var(--w-label); letter-spacing: var(--tr-label);
+    text-transform: uppercase; color: var(--text-dim);
+  }
+  .more { display: inline-flex; align-items: center; gap: 3px; font-size: 12.5px; font-weight: 700; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+  .more b { color: var(--text); font-weight: 800; }
+  .more svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Glaskarte für die neuen Screens, gleiche Machart wie .day-row */
+  .gcard {
+    position: relative; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    box-shadow: var(--lift-1);
+  }
+  .gcard::before {
+    content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--edge-hi), transparent);
+    pointer-events: none; z-index: 1;
+  }
+
+  /* ── Tag-Detail: pro Übung das schwerste Gewicht groß, darunter eine Zeile
+     mit den Wdh. Keine Set-Kästchen (Leo: füllt nur auf). ── */
+  .sum {
+    display: grid; grid-template-columns: repeat(3, 1fr); text-align: center;
+    padding: 15px 6px 14px; margin-bottom: 11px;
+    background:
+      linear-gradient(158deg, color-mix(in srgb, var(--day-color, transparent) 13%, transparent), transparent 58%),
+      var(--surface);
+  }
+  .sum::before { background: linear-gradient(90deg, transparent, var(--day-color, var(--edge-hi)), transparent); opacity: 0.75; height: 1.5px; }
+  .sum-v { font-size: 20px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .sum-l { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+  .sx { padding: 14px 16px 15px; margin-bottom: 11px; }
+  .sx-h { display: flex; align-items: baseline; gap: 10px; }
+  .sx-n { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 650; letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sx-w { flex-shrink: 0; font-size: 19px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .sx-w small { font-size: 12px; font-weight: 600; color: var(--text-dim); margin-left: 3px; letter-spacing: 0; }
+  .sx-t { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .sx.none .sx-n { color: var(--text-dim); }
+  .sx-ss {
+    padding: 13px 16px 2px; margin-bottom: 11px;
+    border-color: rgba(200,241,53,.26);
+    background: linear-gradient(158deg, rgba(200,241,53,.08), transparent 60%), var(--surface);
+  }
+  .sx-ss .sx { padding: 11px 0 14px; margin: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .sx-ss .sx:last-child { border-bottom: 0; }
+
+  /* ── Statistik: drei Karten, jede mit einer Zahl, einer Grafik und dem
+     Einstieg in die Details. ── */
+  .st { padding: 17px 18px 16px; margin-bottom: 13px; cursor: pointer; transition: transform .18s var(--ease); }
+  .st:active { transform: scale(.985); }
+  .st-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+  .big { display: flex; align-items: center; gap: 12px; }
+  .big b {
+    font-size: 44px; font-weight: 900; font-stretch: 116%; letter-spacing: -.045em;
+    line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .big b i { font-style: normal; font-size: 26px; font-weight: 800; color: var(--text-muted); letter-spacing: -.02em; }
+  .big span { font-size: 13px; color: var(--text-dim); line-height: 1.3; }
+
+  .split { display: flex; gap: 3px; height: 8px; margin: 15px 0 9px; }
+  .split i { border-radius: 4px; }
+  .c-up { background: var(--green); }
+  .c-eq { background: rgba(255,255,255,.24); }
+  .c-dn { background: var(--red); }
+  .leg { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--text-dim); }
+  .leg i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+
+  .mrows { margin-top: 13px; border-top: 1px solid rgba(255,255,255,.06); }
+  .mrow { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .mrow:last-child { border-bottom: 0; padding-bottom: 0; }
+  .mrow-n { flex: 1; min-width: 0; font-size: 14px; font-weight: 550; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mrow-n small { display: block; font-size: 11.5px; font-weight: 400; color: var(--text-muted); margin-top: 1px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; }
+  .mrow-v { flex-shrink: 0; text-align: right; font-size: 15px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .mrow-v small { font-size: 11px; font-weight: 600; color: var(--text-dim); margin-left: 2px; }
+  .mrow .ss-tag { margin-left: 4px; vertical-align: 1px; }
+  .spark { width: 58px; height: 22px; flex-shrink: 0; overflow: visible; }
+  .delta {
+    flex-shrink: 0; min-width: 64px; text-align: center; padding: 4px 8px;
+    border-radius: var(--radius-pill); font-size: 11.5px; font-weight: 750; font-variant-numeric: tabular-nums;
+  }
+  .delta.up { color: var(--green); background: linear-gradient(160deg, rgba(110,231,135,.20), rgba(110,231,135,.07)); border: 1px solid rgba(110,231,135,.24); }
+  .delta.eq { color: var(--text-muted); background: rgba(255,255,255,.04); border: 1px solid var(--border-soft); }
+  .delta.dn { color: #ff9494; background: rgba(255,92,92,.10); border: 1px solid rgba(255,92,92,.24); }
+
+  .bars { position: relative; display: flex; align-items: flex-end; gap: 5px; height: 66px; margin: 16px 0 9px; }
+  .bars i { flex: 1; border-radius: 4px 4px 2px 2px; background: rgba(255,255,255,.2); }
+  .bars i.full { background: linear-gradient(180deg, var(--accent-hi), var(--accent-lo)); }
+  .bars i.cur { box-shadow: 0 0 0 1.5px rgba(255,255,255,.55); }
+  .bars .goal { position: absolute; left: -2px; right: -2px; height: 0; border-top: 1.5px dashed rgba(200,241,53,.6); }
+  .bars .goal span { position: absolute; right: 0; top: -15px; font-size: 9.5px; font-weight: 800; color: var(--accent); letter-spacing: .05em; }
+  .st-foot { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .st-empty { font-size: var(--fs-sm); color: var(--text-muted); margin-top: 10px; }
+
+  /* Progression-Liste */
+  .fchips { display: flex; gap: 7px; flex-wrap: wrap; margin: 2px 0 6px; }
+  .fchip {
+    appearance: none; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 700;
+    padding: 7px 13px; border-radius: var(--radius-pill); color: var(--text-dim);
+    background: var(--surface2); border: 1px solid var(--border-soft);
+  }
+  .fchip.on { color: var(--accent); border-color: rgba(200,241,53,.5); background: linear-gradient(160deg, rgba(200,241,53,.2), rgba(200,241,53,.06)); }
+  .grp-h { display: flex; align-items: center; gap: 8px; margin: 20px 2px 8px; }
+  .grp-h i { width: 8px; height: 8px; border-radius: 50%; }
+  .plist { padding: 2px 16px 12px; }
+  .plist .mrow { cursor: pointer; }
+
+  /* Übungs-Detail */
+  .ex-hero { text-align: center; margin: 4px 0 18px; }
+  .ex-hero b { font-size: 40px; font-weight: 900; font-stretch: 116%; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
+  .ex-hero b small { font-size: 18px; font-weight: 700; color: var(--text-dim); letter-spacing: -.01em; margin-left: 4px; }
+  .ex-hero .sub { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 6px; font-size: 12.5px; color: var(--text-dim); }
+  .chart { padding: 14px 12px 10px; margin-bottom: 11px; }
+  .chart svg { width: 100%; display: block; overflow: visible; }
+  .chart-leg { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); padding: 4px 6px 0; }
+  .chart-leg i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); margin-right: 5px; vertical-align: 0; }
+  .kv { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; margin-bottom: 20px; font-size: 13px; color: var(--text-dim); }
+  .kv b { font-size: 16px; color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  /* Konsistenz: rollierende 7-Tage-Wochen wie der Streifen auf Start, gestapelt */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px; }
+  .tile { padding: 13px 10px 12px; text-align: center; border-radius: 18px; }
+  .tile b { display: block; font-size: 22px; font-weight: 850; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .tile span { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
+  .kgrid { padding: 14px 14px 12px; }
+  .krow { display: grid; grid-template-columns: repeat(7, 1fr) 58px; gap: 5px; align-items: center; margin-bottom: 5px; }
+  .krow.head div { font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: center; }
+  .kc { height: 26px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border-soft); }
+  .kc.f { border: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
+  .kc.tap { cursor: pointer; }
+  .kc.rest { border: 0; }
+  .kn { text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kn small { display: block; font-size: 9.5px; font-weight: 500; color: var(--text-muted); }
+  .kn.full { color: var(--accent); }
+  .krow.cur .kc:not(.f):not(.rest) { border-color: rgba(255,255,255,.22); }
+  .kleg { display: flex; flex-wrap: wrap; gap: 6px 13px; margin-top: 14px; font-size: 11px; color: var(--text-dim); }
+  .kleg i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
 </style>
 </head>
 <body>
 
 <!-- HOME SCREEN (FOCUS VIEW) -->
 <div class="screen active" id="screen-home">
-  <div class="header">
-    <div style="flex:1;min-width:0">
-      <button class="plan-sw" onclick="openPlans()" aria-label="Plan wechseln">
-        <span class="header-title" id="plan-name"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>
-      </button>
-    </div>
-  </div>
+  <!-- Kein Kopf mehr (Leo 2026-11-20): der Plan-Wechsler sitzt im Plan-Screen -->
   <div class="scroll-area" id="focus-body"></div>
 </div>
 
@@ -1548,7 +1693,7 @@
 <div class="screen" id="screen-day-preview">
   <div class="header">
     <button class="btn-icon" onclick="showScreen('screen-overview')">←</button>
-    <div class="header-title" id="preview-title"></div>
+    <div style="flex:1;min-width:0"><div class="header-title" id="preview-title"></div><div class="header-sub" id="preview-sub"></div></div>
   </div>
   <div class="scroll-area" id="preview-body"></div>
   <div class="bottom-bar">
@@ -1587,19 +1732,55 @@
   </div>
 </div>
 
-<!-- ANALYTICS SCREEN -->
+<!-- STATISTIK (2026-11-20): drei Karten, Details in den Unterseiten darunter.
+     Der alte Tab "Verlauf" entfällt, Sessions über Konsistenz und den Streifen. -->
 <div class="screen" id="screen-analytics">
   <div class="header">
     <button class="btn-icon" onclick="showScreen('screen-home')">←</button>
-    <div class="header-title">Analytics</div>
-  </div>
-  <div class="analytics-tabs">
-    <div class="analytics-tab active" onclick="switchAnalyticsTab('verlauf',this)">Verlauf</div>
-    <div class="analytics-tab" onclick="switchAnalyticsTab('prs',this)">PRs</div>
-    <div class="analytics-tab" onclick="switchAnalyticsTab('progression',this)">Progression</div>
-    <div class="analytics-tab" onclick="switchAnalyticsTab('konsistenz',this)">Konsistenz</div>
+    <div style="flex:1;min-width:0"><div class="header-title">Statistik</div><div class="header-sub" id="stats-plan"></div></div>
   </div>
   <div class="scroll-area" id="analytics-body"></div>
+</div>
+
+<div class="screen" id="screen-prog">
+  <div class="header">
+    <button class="btn-icon" onclick="navBack()" aria-label="Zurück">←</button>
+    <div style="flex:1;min-width:0"><div class="header-title">Progression</div><div class="header-sub">Bestes Set heute gegen vor 4 Wochen</div></div>
+  </div>
+  <div class="scroll-area" id="prog-body"></div>
+</div>
+
+<div class="screen" id="screen-stat-ex">
+  <div class="header">
+    <button class="btn-icon" onclick="navBack()" aria-label="Zurück">←</button>
+    <div style="flex:1;min-width:0"><div class="header-title" id="stat-ex-title"></div><div class="header-sub" id="stat-ex-sub"></div></div>
+  </div>
+  <div class="scroll-area" id="stat-ex-body"></div>
+</div>
+
+<div class="screen" id="screen-prs">
+  <div class="header">
+    <button class="btn-icon" onclick="navBack()" aria-label="Zurück">←</button>
+    <div style="flex:1;min-width:0"><div class="header-title">PRs</div><div class="header-sub">Max. Gewicht pro Übung, neueste zuerst</div></div>
+  </div>
+  <div class="scroll-area" id="prs-body"></div>
+</div>
+
+<div class="screen" id="screen-kons">
+  <div class="header">
+    <button class="btn-icon" onclick="navBack()" aria-label="Zurück">←</button>
+    <div style="flex:1;min-width:0"><div class="header-title">Konsistenz</div><div class="header-sub" id="kons-sub"></div></div>
+  </div>
+  <div class="scroll-area" id="kons-body"></div>
+</div>
+
+<!-- Eine Session (aus Konsistenz oder vom Wochenstreifen), ohne Start-Knopf -->
+<div class="screen" id="screen-session">
+  <div class="header">
+    <button class="btn-icon" onclick="navBack()" aria-label="Zurück">←</button>
+    <div style="flex:1;min-width:0"><div class="header-title" id="session-title"></div><div class="header-sub" id="session-sub"></div></div>
+  </div>
+  <div class="scroll-area" id="session-body"></div>
 </div>
 
 <!-- HISTORY SCREEN -->
@@ -1619,7 +1800,14 @@
 <div class="screen" id="screen-plan">
   <div class="header">
     <button class="btn-icon" onclick="showScreen('screen-home')">←</button>
-    <div class="header-title">Trainingsplan</div>
+    <!-- Plan-Wechsler lebt hier (Leo 2026-11-20): Pläne aktiviert und tauscht
+         man im Plan-Screen, nicht mehr auf Start. -->
+    <div style="flex:1;min-width:0">
+      <button class="plan-sw" onclick="openPlans()" aria-label="Plan wechseln">
+        <span class="header-title" id="plan-name"></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>
+      </button>
+    </div>
     <button class="btn-icon" onclick="showAddDayModal()" title="Tag hinzufügen">+</button>
   </div>
   <div class="scroll-area" id="plan-body"></div>
@@ -2122,7 +2310,30 @@ const EDIT_SVG = '<svg class="ico-edit" viewBox="0 0 24 24" aria-hidden="true"><
 // Das Training selbst ist kein Screen mehr, sondern ein Sheet darüber.
 const FLOW_SCREENS = ['screen-day-preview', 'screen-finish'];
 
-function showScreen(id) {
+// Tab-Screens sind Wurzeln. Unterseiten (Statistik-Details, Session) merken
+// sich, woher sie kamen, damit ← dorthin zurückführt, samt Scrollposition.
+const TAB_SCREENS = ['screen-home', 'screen-overview', 'screen-analytics', 'screen-plan'];
+const navStack = [];
+
+function openSub(id) {
+  const cur = document.querySelector('.screen.active');
+  if (cur && cur.id === id) return;
+  if (cur) {
+    const area = cur.querySelector('.scroll-area');
+    navStack.push({ id: cur.id, scroll: area ? area.scrollTop : 0 });
+  }
+  showScreen(id);
+}
+
+function navBack() {
+  const prev = navStack.pop();
+  showScreen(prev ? prev.id : 'screen-home', true);
+  const area = prev && document.querySelector(`#${prev.id} .scroll-area`);
+  if (area) area.scrollTop = prev.scroll;
+}
+
+function showScreen(id, fromBack) {
+  if (!fromBack && TAB_SCREENS.includes(id)) navStack.length = 0;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const screen = document.getElementById(id);
   screen.classList.add('active');
@@ -2136,8 +2347,10 @@ function showScreen(id) {
   const tabbar = document.getElementById('tabbar');
   if (tabbar) {
     tabbar.hidden = FLOW_SCREENS.includes(id);
+    // Unterseiten markieren den Tab, aus dem sie geöffnet wurden
+    const tab = TAB_SCREENS.includes(id) ? id : (navStack[0] && navStack[0].id) || id;
     tabbar.querySelectorAll('.tabbar-item').forEach(b =>
-      b.classList.toggle('active', b.dataset.target === id));
+      b.classList.toggle('active', b.dataset.target === tab));
   }
 
   updateMiniBar(id);
@@ -2145,7 +2358,7 @@ function showScreen(id) {
   if (id === 'screen-overview') renderOverview();
   if (id === 'screen-plan') { planSel = null; renderPlan(); }
   if (id === 'screen-history') renderHistory('all');
-  if (id === 'screen-analytics') renderAnalytics('verlauf');
+  if (id === 'screen-analytics') renderStats();
 }
 
 // ─── HOME (FOCUS VIEW) ────────────────────────────────────────────────────────
@@ -2239,8 +2452,8 @@ function renderWeekStrip() {
       // Training aus einem anderen Plan: neutral markiert, nicht anklickbar.
       // Der Tag war kein freier Tag, Details zeigt aber nur der eigene Plan.
       style = ` style="background:${own ? getDayColor(training.dayId) : training ? OTHER_PLAN_COLOR : REST_COLOR}"`;
-      // Nur echte Trainings sind anklickbar, springen in den Verlauf.
-      if (own) { cellCls += ' clickable'; tap = ` onclick="openSessionFromStrip('${training.id}')"`; }
+      // Nur echte Trainings sind anklickbar, öffnen die Session.
+      if (own) { cellCls += ' clickable'; tap = ` onclick="openSession('${training.id}')"`; }
     } else {
       // Leerer Tag: nachträglich Training oder Aktive Erholung eintragen.
       cellCls += ' backlog';
@@ -2254,31 +2467,6 @@ function renderWeekStrip() {
   }
 
   return `<div class="week-strip-wrap"><div class="week-strip">${cells.join('')}</div></div>`;
-}
-
-// Klick auf eine Trainings-Zelle im Wochenstreifen → Verlauf öffnen und die
-// betreffende Session aufklappen. Nutzt dieselbe Karte wie Statistik → Verlauf.
-function openSessionFromStrip(sessionId) {
-  showScreen('screen-analytics');
-  const verlaufTab = document.querySelector('#screen-analytics .analytics-tab');
-  switchAnalyticsTab('verlauf', verlaufTab);
-  requestAnimationFrame(() => {
-    const body = document.getElementById('vs-' + sessionId);
-    if (!body) return;
-    body.classList.add('open');
-    const card = body.closest('.history-session');
-    if (card) {
-      // Kartenkopf (Tagesname) an die Oberkante der Scrollfläche holen, statt
-      // die Karte mittig zu zentrieren. Dabei rutschte der Kopf nach unten weg.
-      const area = card.closest('.scroll-area');
-      if (area) {
-        const delta = card.getBoundingClientRect().top - area.getBoundingClientRect().top;
-        area.scrollTo({ top: area.scrollTop + delta - 12, behavior: 'smooth' });
-      }
-      card.classList.add('session-flash');
-      setTimeout(() => card.classList.remove('session-flash'), 1500);
-    }
-  });
 }
 
 // Wie viele Übungszeilen und wie hoch der Wochenstreifen — beides richtet sich
@@ -2373,10 +2561,7 @@ window.addEventListener('resize', () => {
 });
 
 function renderFocusHome() {
-  // Kein Datum mehr im Kopf (2026-10-13): der Wochenstreifen markiert heute
-  // schon, die Zeile trug keine eigene Information.
-  document.getElementById('plan-name').textContent = db.plan.name;
-
+  // Kein Kopf mehr (Leo 2026-11-20), der Plan-Wechsler sitzt im Plan-Screen.
   const body = document.getElementById('focus-body');
   const draft = db.draftWorkout;
 
@@ -2406,6 +2591,7 @@ function renderFocusHome() {
           ? 'Nachtrag für ' + backlogDateLabel(ws.backlogDate)
           : `Pausiert bei ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`}</div>
         <div class="focus-gap sm"></div>
+        ${weekHeadHTML()}
         ${renderWeekStrip()}
         <div class="focus-gap"></div>
         <div class="focus-preview" id="focus-preview">
@@ -2515,10 +2701,11 @@ function renderFocusHome() {
   body.innerHTML = `
     <div class="focus-card" id="focus-card">
       ${alertHTML}
-      <div class="focus-eyebrow">Nächstes Training</div>
+      <!-- Kein Label "Nächstes Training" mehr (Leo 2026-11-20: ist logisch) -->
       <div class="focus-name">${day.name}</div>
       ${metaHTML}
       <div class="focus-gap sm"></div>
+      ${weekHeadHTML()}
       ${renderWeekStrip()}
       <div class="focus-gap"></div>
       ${previewHTML}
@@ -2751,44 +2938,6 @@ let workoutState = null;
 let timerInterval = null;
 let timerSeconds = 0;
 let pendingDayId = null;
-
-function previewDay(dayId) {
-  const day = db.plan.days.find(d => d.id === dayId);
-  if (!day) return;
-  pendingDayId = dayId;
-
-  document.getElementById('preview-title').textContent = day.name;
-
-  const lastSession = getLastSession(dayId);
-  const body = document.getElementById('preview-body');
-  const lastDate = lastSession
-    ? formatDate(lastSession.date)
-    : null;
-
-  body.innerHTML = `
-    <div class="preview-hero">
-      <div class="preview-hero-name">${day.name}</div>
-      <div class="preview-hero-sub">${dayFlatExercises(day).length} Übungen${lastDate ? ' · Zuletzt ' + lastDate : ' · Erstes Mal'}</div>
-    </div>
-    <div class="preview-ex-list">
-      ${dayFlatExercises(day).map(ex => {
-        const histId = ex.ss ? ssHistId(ex.ss, ex.id) : ex.id;
-        const lastEx = lastSession && lastSession.exercises.find(e => e.exId === histId);
-        const lastLine = lastEx
-          ? lastEx.sets.map(s => `${s.reps}×${s.weight}kg`).join(' ')
-          : '—';
-        return `
-          <div class="preview-ex-item">
-            <div class="preview-ex-name">${ex.name}</div>
-            <div class="preview-ex-meta">${ex.ss ? 'SS · ' : ''}${ex.sets}×${ex.targetReps}</div>
-            <div class="preview-ex-last">${lastLine}</div>
-          </div>`;
-      }).join('')}
-    </div>
-  `;
-
-  showScreen('screen-day-preview');
-}
 
 function startWorkout() {
   // Immer nur eine Session: solange eine pausiert ist, startet keine zweite.
@@ -3358,6 +3507,86 @@ function finishWorkout() {
   showScreen('screen-finish');
 }
 
+// ─── TAG-DETAIL / SESSION (2026-11-20) ────────────────────────────────────────
+// Leo: auf einen Blick sehen, was wie oft und wie schwer trainiert wurde. Pro
+// Übung das schwerste Gewicht groß rechts, darunter eine Zeile mit den Wdh
+// ("3 × 12" oder "12 · 12 · 10"). Keine Set-Kästchen, die füllten nur auf.
+
+function sxHTML(name, e, def, glass = true) {
+  const g = glass ? 'gcard ' : '';
+  const sets = e ? doneSets(e.sets) : [];
+  if (!sets.length) return `<div class="${g}sx none"><div class="sx-h"><span class="sx-n">${escHTML(name)}</span></div>
+    <div class="sx-t">Noch nicht trainiert${def ? ` · Ziel ${def.sets}×${def.targetReps}` : ''}</div></div>`;
+  const reps = sets.map(s => +s.reps);
+  const top = Math.max(...sets.map(s => +s.weight || 0));
+  const line = new Set(reps).size === 1 ? `${reps.length} × ${reps[0]}` : reps.join(' · ');
+  return `<div class="${g}sx">
+    <div class="sx-h"><span class="sx-n">${escHTML(name)}</span><span class="sx-w">${top ? `${fmtN(top)}<small>kg</small>` : '<small>Eigengewicht</small>'}</span></div>
+    <div class="sx-t">${line} Wdh</div>
+  </div>`;
+}
+
+// items: [{ name, ss, e, def }]. Supersets als ein Block, wie im Training.
+function sessionBodyHTML(session, items, color) {
+  let html = '';
+  items.forEach((it, i) => {
+    if (it.ss && i > 0 && items[i - 1].ss === it.ss) return;
+    if (it.ss) {
+      const grp = [];
+      for (let j = i; j < items.length && items[j].ss === it.ss; j++) grp.push(items[j]);
+      html += `<div class="gcard sx-ss"><span class="ss-tag">Superset</span>${grp.map(o => sxHTML(o.name, o.e, o.def, false)).join('')}</div>`;
+    } else html += sxHTML(it.name, it.e, it.def);
+  });
+  if (!session) return html;
+  const done = session.exercises.filter(e => doneSets(e.sets).length);
+  const sets = done.reduce((a, e) => a + doneSets(e.sets).length, 0);
+  return `
+    <div class="gcard sum" style="--day-color:${color}">
+      <div><div class="sum-v">${done.length}</div><div class="sum-l">Übungen</div></div>
+      <div><div class="sum-v">${sets}</div><div class="sum-l">Sets</div></div>
+      <div><div class="sum-v">${fmtN(Math.round(calcSessionVol(session)))}</div><div class="sum-l">kg gesamt</div></div>
+    </div>${html}`;
+}
+
+function sessionSubText(session, prefix) {
+  const date = new Date(session.date).toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+  const min = Math.floor((session.duration || 0) / 60);
+  return prefix + date + (min ? ` · ${min} min` : '');
+}
+
+// Aus "Tage": die letzte Session dieses Tages, entlang der Übungen im Plan.
+// Übungen ohne Daten stehen als "Noch nicht trainiert" da, mit Start-Knopf.
+function previewDay(dayId) {
+  const day = db.plan.days.find(d => d.id === dayId);
+  if (!day) return;
+  pendingDayId = dayId;
+  const last = getLastSession(dayId);
+  const used = new Set();
+  const items = dayFlatExercises(day).map(ex => {
+    const hid = ex.ss ? ssHistId(ex.ss, ex.id) : ex.id;
+    const e = last && last.exercises.find(x => x.exId === hid);
+    if (e) used.add(e);
+    return { name: ex.name, ss: ex.ss || null, e, def: ex };
+  });
+  // In der Session, aber nicht mehr im Plan: trotzdem zeigen, gehört zum Tag
+  if (last) last.exercises.forEach(e => { if (!used.has(e) && doneSets(e.sets).length) items.push({ name: e.name, ss: e.ss || null, e, def: null }); });
+  document.getElementById('preview-title').textContent = day.name;
+  document.getElementById('preview-sub').textContent = last ? sessionSubText(last, 'Zuletzt ') : 'Erstes Mal';
+  document.getElementById('preview-body').innerHTML = sessionBodyHTML(last, items, getDayColor(dayId));
+  showScreen('screen-day-preview');
+}
+
+// Eine bestimmte Session (aus Konsistenz oder vom Wochenstreifen), ohne Start
+function openSession(sessionId) {
+  const s = db.history.find(h => String(h.id) === String(sessionId));
+  if (!s) return;
+  const items = s.exercises.filter(e => doneSets(e.sets).length).map(e => ({ name: e.name, ss: e.ss || null, e, def: null }));
+  document.getElementById('session-title').textContent = s.dayName;
+  document.getElementById('session-sub').textContent = sessionSubText(s, '');
+  document.getElementById('session-body').innerHTML = sessionBodyHTML(s, items, getDayColor(s.dayId));
+  openSub('screen-session');
+}
+
 // ─── HISTORY ──────────────────────────────────────────────────────────────────
 
 let historyFilter = 'all';
@@ -3836,6 +4065,7 @@ function backToSSEdit() {
 function renderPlan(expandDayId) {
   const body = document.getElementById('plan-body');
   const days = db.plan.days;
+  document.getElementById('plan-name').textContent = db.plan.name;
 
   if (!days.length) {
     body.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">Noch keine Trainingstage. Tippe + oben rechts.</div></div>`;
@@ -4360,7 +4590,7 @@ function switchPlan(id) {
   db.activePlanId = id;
   saveDB();
   closeModal('modal-plans');
-  showScreen('screen-home');
+  showScreen('screen-plan');
   showToast('Plan gewechselt');
 }
 
@@ -4578,12 +4808,11 @@ function checkSetAndExPR(ei, si) {
   // PR-Feature aktiviert sich erst, wenn ein Vergleichswert existiert.
   if (getExSessionCount(ex.exId) === 0) return;
 
+  // Nur noch Gewichts-PRs (Leo 2026-11-20), kein Set- oder Übungs-Volumen.
   const bests = getExBests(ex.exId);
-  const setVol = reps * weight;
   const isWeightPR = weight > 0 && weight > bests.bestWeight;
-  const isVolPR = setVol > 0 && setVol > bests.bestSetVol;
 
-  if (isWeightPR || isVolPR) {
+  if (isWeightPR) {
     const row = document.getElementById(`set-${ei}-${si}`);
     if (row) {
       row.querySelectorAll('.pr-badge').forEach(b => b.remove());
@@ -4593,30 +4822,9 @@ function checkSetAndExPR(ei, si) {
       row.style.position = 'relative';
       const badge = document.createElement('div');
       badge.className = 'pr-badge';
-      badge.textContent = isWeightPR ? '⚡ Gewicht PR' : '⚡ Volumen PR';
+      badge.textContent = '⚡ Gewicht PR';
       row.appendChild(badge);
       setTimeout(() => badge.remove(), 2700);
-    }
-  }
-
-  // Exercise PR: current session total vs. all-time session best for this exercise
-  const sessionExVol = ex.sets.reduce((a, s) => a + (+s.reps||0)*(+s.weight||0), 0);
-  if (sessionExVol > bests.bestSessionVol && sessionExVol > 0 && !prShownForEx.has(ei)) {
-    prShownForEx.add(ei);
-    // Superset-Übungen teilen sich einen Block (id hängt an der ersten Übung)
-    const block = document.getElementById(`ex-block-${ei}`) ||
-                  document.getElementById(`set-${ei}-${si}`)?.closest('.exercise-block');
-    if (block) {
-      block.classList.remove('pr-ex-glow');
-      void block.offsetWidth;
-      block.classList.add('pr-ex-glow');
-      const exBadge = document.createElement('div');
-      exBadge.className = 'pr-badge';
-      exBadge.style.cssText = 'position:absolute;right:12px;top:12px;';
-      exBadge.textContent = '🏆 Übungs-PR';
-      block.style.position = 'relative';
-      block.appendChild(exBadge);
-      setTimeout(() => exBadge.remove(), 3000);
     }
   }
 }
@@ -4638,98 +4846,6 @@ function checkDayPR(dayId, totalVol) {
   return totalVol > prevBest;
 }
 
-// ─── ANALYTICS ────────────────────────────────────────────────────────────────
-
-let currentAnalyticsTab = 'verlauf';
-
-function switchAnalyticsTab(tab, el) {
-  currentAnalyticsTab = tab;
-  document.querySelectorAll('.analytics-tab').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
-  renderAnalytics(tab);
-}
-
-function renderAnalytics(tab) {
-  tab = tab || currentAnalyticsTab;
-  const body = document.getElementById('analytics-body');
-  if (!body) return;
-
-  if (tab === 'verlauf') {
-    body.innerHTML = renderVerlaufHTML();
-  } else if (tab === 'prs') {
-    body.innerHTML = renderPRBoardHTML();
-  } else if (tab === 'progression') {
-    body.innerHTML = renderProgressionHTML();
-    setupProgSelect();
-  } else if (tab === 'konsistenz') {
-    body.innerHTML = renderKonsistenzHTML();
-  }
-}
-
-function renderVerlaufHTML() {
-  const sessions = planHistory();
-  if (!sessions.length) return `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Noch keine Sessions.</div></div>`;
-  return sessions.map(session => {
-    const d = new Date(session.date);
-    const dateStr = d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-    const min = Math.floor((session.duration || 0) / 60);
-    const totalSets = session.exercises.reduce((a, ex) => a + ex.sets.length, 0);
-    const exHTML = session.exercises.map(ex => `
-      <div class="history-ex-row">
-        <div class="history-ex-name">${histExName(ex)}</div>
-        <div class="history-set-pills">${ex.sets.map((s,i) => `<span class="history-set-pill">S${i+1}: ${s.reps}r · ${s.weight}kg</span>`).join('')}</div>
-      </div>`).join('');
-    return `
-      <div class="history-session">
-        <div class="history-session-header" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div><div class="history-session-date">${session.dayName}</div><div class="history-session-meta">${dateStr} · ${totalSets} Sets${min ? ' · '+min+'min' : ''}</div></div>
-          <div style="color:var(--text-muted);font-size:18px">›</div>
-        </div>
-        <div class="history-session-body" id="vs-${session.id}">${exHTML}</div>
-      </div>`;
-  }).join('');
-}
-
-// PR-Board zeigt nur den aktiven Plan (Statistik). Das "Neuer PR!" im Training
-// prüft dagegen gegen die ganze Modul-History (getExBests), Leo: ein PR für
-// eine Übung ist ein PR, egal in welchem Plan.
-function renderPRBoardHTML() {
-  const sessionsInPlan = planHistory();
-  const allExIds = new Map();
-  sessionsInPlan.forEach(s => s.exercises.forEach(ex => {
-    if (!allExIds.has(ex.exId)) allExIds.set(ex.exId, histExName(ex));
-  }));
-  if (!allExIds.size) return `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Noch keine PRs — training starten!</div></div>`;
-
-  const diffs = statDiffLabels([...allExIds.entries()]);
-  const rows = [...allExIds.entries()].map(([exId, name]) => {
-    let bestWeight = 0, bestWeightDate = null;
-    let bestSetVol = 0, bestSetVolDate = null;
-    sessionsInPlan.forEach(s => {
-      const ex = s.exercises.find(e => e.exId === exId);
-      if (!ex) return;
-      ex.sets.forEach(st => {
-        if ((+st.weight||0) > bestWeight) { bestWeight = +st.weight; bestWeightDate = s.date; }
-        const sv = (+st.reps||0)*(+st.weight||0);
-        if (sv > bestSetVol) { bestSetVol = sv; bestSetVolDate = s.date; }
-      });
-    });
-    const fmt = ts => new Date(ts).toLocaleDateString('de-AT', { day:'numeric', month:'short' });
-    return `<tr>
-      <td class="pr-ex-name-cell">${name}${diffs.get(exId) ? `<div class="pr-date">${diffs.get(exId)}</div>` : ''}</td>
-      <td><div class="pr-val">${bestWeight > 0 ? bestWeight+'kg' : '—'}</div>${bestWeightDate ? `<div class="pr-date">${fmt(bestWeightDate)}</div>` : ''}</td>
-      <td><div class="pr-val">${bestSetVol > 0 ? Math.round(bestSetVol)+'kg' : '—'}</div>${bestSetVolDate ? `<div class="pr-date">${fmt(bestSetVolDate)}</div>` : ''}</td>
-    </tr>`;
-  }).join('');
-
-  return `<div style="padding:16px">
-    <table class="pr-table">
-      <thead><tr><th>Übung</th><th>Max Gewicht</th><th>Set Volumen</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>`;
-}
-
 // Progression zeigt ein Modul über alle Pläne hinweg. Leo 2026-10-23:
 // Periodisierung entsteht durch die Abfolge der Module in den Plänen, nicht
 // durch ein eigenes Feature. Stehen Module nacheinander in Trainingsplänen,
@@ -4748,145 +4864,358 @@ function progressionExIds() {
   return out;
 }
 
-function renderProgressionHTML() {
-  const allExIds = progressionExIds();
-  const diffs = statDiffLabels([...allExIds.entries()]);
-  const options = [...allExIds.entries()].map(([id, name]) =>
-    `<option value="${id}">${name}${diffs.get(id) ? ' (' + diffs.get(id) + ')' : ''}</option>`).join('');
-  return `<div style="padding:16px">
-    <select class="prog-select" id="prog-ex-select" onchange="renderProgCharts(this.value)">
-      <option value="">— Übung wählen —</option>${options}
-    </select>
-    <div id="prog-charts"></div>
-  </div>`;
+// ─── STATISTIK (2026-11-20) ───────────────────────────────────────────────────
+// Ein Screen mit drei Karten: Progression, PRs, Konsistenz (Leo: die drei klar
+// sehen, alles Weitere eingenestet). Der alte Tab "Verlauf" entfällt, einzelne
+// Sessions erreicht man über Konsistenz und den Wochenstreifen.
+// Progression und PRs laufen pro Modul über alle Pläne (Periodisierung über
+// Module, siehe progressionExIds). Zur Auswahl stehen die Module des aktiven
+// Plans plus alles, was in ihm trainiert wurde.
+
+const STAT_WEEKS = 12;     // Konsistenz: so viele rollierende Wochen
+const PROG_DAYS = 28;      // Progression und PR-Zähler: 4 Wochen
+const fmtN = n => (Math.round(n * 100) / 100).toLocaleString('de');
+const fmtD = t => new Date(t).toLocaleDateString('de-AT', { day: 'numeric', month: 'short' });
+const fmtTop = x => x.w ? `${fmtN(x.w)} kg × ${x.r}` : `${x.r} Wdh`;
+const CHEV_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+// Fortschritt = mehr Gewicht, oder gleiches Gewicht mit mehr Wdh (Leo: "beides")
+const cmpSet = (a, b) => a.w !== b.w ? a.w - b.w : a.r - b.r;
+const DIR_C = { up: 'var(--green)', eq: '#8b948a', dn: 'var(--red)' };
+
+// Bestes Set einer Session: schwerstes Gewicht, bei Gleichstand mehr Wdh
+function bestSet(sets) {
+  return sets.map(s => ({ w: +s.weight || 0, r: +s.reps || 0 }))
+    .reduce((b, s) => !b || cmpSet(s, b) > 0 ? s : b, null);
 }
 
-function setupProgSelect() {
-  const sel = document.getElementById('prog-ex-select');
-  if (sel && sel.options.length > 1) {
-    sel.selectedIndex = 1;
-    renderProgCharts(sel.value);
-  }
+// Sets mit 0 Wdh sind nicht gemacht (kommen in echten Daten vor, ~4 %).
+// Sie zählen weder als Set noch als bestes Set, sonst wäre ein 0-Wdh-Set mit
+// mehr Gewicht ein PR.
+const doneSets = sets => sets.filter(s => (+s.reps || 0) > 0);
+
+// Alle Sessions eines Moduls (History-ID), älteste zuerst, planübergreifend
+function exSeries(histId) {
+  return db.history
+    .map(h => ({ h, e: h.exercises.find(e => e.exId === histId && doneSets(e.sets).length) }))
+    .filter(x => x.e)
+    .sort((a, b) => a.h.date - b.h.date)
+    .map(({ h, e }) => ({ t: h.date, e, ...bestSet(doneSets(e.sets)) }));
 }
 
-function renderProgCharts(exId) {
-  const container = document.getElementById('prog-charts');
-  if (!container || !exId) return;
-  const data = db.history
-    .filter(s => s.exercises.some(e => e.exId === exId && e.sets.length))
-    .sort((a, b) => a.date - b.date)
-    .map(s => {
-      const ex = s.exercises.find(e => e.exId === exId);
-      const maxW = Math.max(...ex.sets.map(st => +st.weight || 0));
-      const vol = ex.sets.reduce((a, st) => a + (+st.reps||0)*(+st.weight||0), 0);
-      return { date: s.date, maxW, vol };
-    });
-  if (data.length < 2) { container.innerHTML = `<div class="chart-empty">Mindestens 2 Sessions nötig für den Chart.</div>`; return; }
-  container.innerHTML = `
-    <div class="chart-wrap"><div class="chart-label">Max. Gewicht (kg)</div>${svgLine(data, 'maxW', '#c8f135')}</div>
-    <div class="chart-wrap"><div class="chart-label">Session Volumen (kg)</div>${svgLine(data, 'vol', '#7ec8e3')}</div>
-  `;
+let statEx = [];   // zuletzt berechnete Übungsliste, für die Unterseiten
+
+function buildStatEx() {
+  const dayOf = new Map(), def = new Map();
+  db.plan.days.forEach(day => dayFlatExercises(day).forEach(ex => {
+    const hid = ex.ss ? ssHistId(ex.ss, ex.id) : ex.id;
+    if (!dayOf.has(hid)) { dayOf.set(hid, day.id); def.set(hid, ex); }
+  }));
+  const ids = progressionExIds();
+  const diffs = statDiffLabels([...ids.entries()]);
+  statEx = [...ids.entries()].map(([id, name]) => {
+    const ex = { id, name, diff: diffs.get(id) || '', day: dayOf.get(id) || null, def: def.get(id) || null, s: exSeries(id) };
+    ex.p = progress(ex);
+    return ex;
+  }).filter(ex => ex.s.length);
+  return statEx;
 }
 
-function svgLine(data, field, color) {
-  const W = 300, H = 110, PL = 38, PR = 10, PT = 8, PB = 28;
-  const vals = data.map(d => d[field]);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const range = max - min || 1;
-  const xS = i => PL + (i / (data.length - 1)) * (W - PL - PR);
-  const yS = v => PT + (1 - (v - min) / range) * (H - PT - PB);
-  const path = data.map((d, i) => `${i ? 'L' : 'M'}${xS(i).toFixed(1)},${yS(d[field]).toFixed(1)}`).join('');
-  const dots = data.map((d, i) => `<circle cx="${xS(i).toFixed(1)}" cy="${yS(d[field]).toFixed(1)}" r="3" fill="${color}"/>`).join('');
-  const yLabels = [min, min + range/2, max].map(v =>
-    `<text x="${PL-4}" y="${(yS(v)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--text-muted)">${Math.round(v)}</text>`).join('');
-  const step = Math.max(1, Math.floor(data.length / 4));
-  const xLabels = data.filter((_, i) => i % step === 0 || i === data.length-1).map((d, _, arr) => {
-    const i = data.indexOf(d);
-    return `<text x="${xS(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text-muted)">${new Date(d.date).toLocaleDateString('de-AT',{day:'numeric',month:'short'})}</text>`;
-  }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block">
-    ${yLabels}${xLabels}
-    <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}
-  </svg>`;
+// Bestes Set der letzten Session gegen die letzte Session, die mindestens
+// 4 Wochen zurückliegt (gibt es keine, gegen die erste). Übungen, die in den
+// letzten 4 Wochen nicht trainiert wurden, haben keine Progression.
+function progress(ex) {
+  const s = ex.s;
+  if (s.length < 2) return null;
+  const last = s[s.length - 1];
+  if (calendarDaysAgo(last.t) >= PROG_DAYS) return null;
+  const older = s.slice(0, -1);
+  const ref = [...older].reverse().find(x => calendarDaysAgo(x.t) >= PROG_DAYS) || older[0];
+  const c = cmpSet(last, ref);
+  let label = 'gleich';
+  if (last.w !== ref.w) label = (last.w > ref.w ? '+' : '−') + fmtN(Math.abs(last.w - ref.w)) + ' kg';
+  else if (last.r !== ref.r) label = (last.r > ref.r ? '+' : '−') + Math.abs(last.r - ref.r) + ' Wdh';
+  let same = 1;
+  for (let i = s.length - 1; i > 0 && cmpSet(s[i], s[i - 1]) === 0; i--) same++;
+  // Reihung "größter Sprung": Gewicht relativ, Wdh nur als Feinstufe
+  const gain = (ref.w ? (last.w - ref.w) / ref.w : 0) + (last.r - ref.r) / 100;
+  return { dir: c > 0 ? 'up' : c < 0 ? 'dn' : 'eq', label, last, ref, same, gain };
 }
 
-function renderKonsistenzHTML() {
-  const sessions = planHistory();
-  if (!sessions.length) return `<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Noch keine Daten.</div></div>`;
+// Mini-Kurve: Gewicht des besten Sets, bei Eigengewicht die Wiederholungen
+function spark(ex, dir) {
+  const s = ex.s.slice(-8), bw = s.every(x => !x.w);
+  const v = s.map(x => bw ? x.r : x.w);
+  const W = 58, H = 22, mn = Math.min(...v), mx = Math.max(...v), rg = mx - mn;
+  const pts = v.map((y, i) => [v.length > 1 ? (i / (v.length - 1)) * W : W / 2, rg ? H - 3 - (y - mn) / rg * (H - 6) : H / 2]);
+  const [lx, ly] = pts[pts.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${pts.map(p => p.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${DIR_C[dir]}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.6" fill="${DIR_C[dir]}"/></svg>`;
+}
 
-  const now = Date.now();
-  const msDay = 86400000, msWeek = 7 * msDay;
-
-  // Avg sessions/week (last 8 weeks)
-  const last8w = sessions.filter(s => now - s.date < 8 * msWeek);
-  const avgPerWeek = (last8w.length / 8).toFixed(1);
-
-  // Current streak (consecutive weeks with ≥1 session, going back from now)
-  let streak = 0;
-  for (let w = 0; w < 52; w++) {
-    const hit = sessions.some(s => (now - s.date) >= w * msWeek && (now - s.date) < (w+1) * msWeek);
-    if (hit) streak++; else break;
-  }
-
-  // Total sessions
-  const total = sessions.length;
-
-  // Heatmap: last 16 weeks × 7 days, color-coded by training day type
-  const weeks = 16;
-  // Zellen über echte Kalendertage aufbauen, nicht über ms-Addition —
-  // sonst verschiebt sich das Raster bei der Zeitumstellung um einen Tag.
-  const cellMs = n => {
-    const d = new Date(); d.setHours(0,0,0,0);
-    d.setDate(d.getDate() - (weeks * 7 - 1) + n);
-    return d.getTime();
-  };
-
-  const sessionsByDate = new Map();
-  sessions.forEach(s => {
-    const d = new Date(s.date); d.setHours(0,0,0,0);
-    const key = d.getTime();
-    if (!sessionsByDate.has(key)) sessionsByDate.set(key, []);
-    sessionsByDate.get(key).push(s);
+// PR = neues Max. Gewicht (Leo 2026-11-20: nur noch Gewicht, kein Volumen).
+// Die erste Session einer Übung ist kein PR, es gibt nichts zu schlagen.
+function prEvents(ex) {
+  const out = []; let best = null;
+  ex.s.forEach(x => {
+    if (x.w > 0 && best !== null && x.w > best) out.push({ ex, t: x.t, w: x.w, d: x.w - best });
+    if (x.w > 0) best = best === null ? x.w : Math.max(best, x.w);
   });
+  return out;
+}
 
-  let heatHTML = '';
-  for (let w = 0; w < weeks; w++) {
-    heatHTML += '<div class="heatmap-week">';
-    for (let d = 0; d < 7; d++) {
-      const dayMs = cellMs(w * 7 + d);
-      const daySessions = sessionsByDate.get(dayMs);
-      let cellColor = '';
-      if (daySessions) {
-        let bestIdx = Infinity, best = null;
-        daySessions.forEach(s => {
-          const idx = db.plan.days.findIndex(pd => pd.id === s.dayId);
-          if (idx !== -1 && idx < bestIdx) { bestIdx = idx; best = getDayColor(s.dayId); }
-        });
-        cellColor = best || REST_COLOR;
-      }
-      heatHTML += `<div class="heatmap-day"${cellColor ? ` style="background:${cellColor}"` : ''}></div>`;
+const exLabel = ex => escHTML(ex.name);
+const exSub = (ex, txt) => `<small>${txt}${ex.diff ? ' · ' + escHTML(ex.diff) : ''}</small>`;
+
+// ── Konsistenz ──
+// Geplant = Anzahl Tage im aktiven Plan (Leo: gegen die Plan-Rotation, 5 Tage
+// = 5 pro Woche). Gezählt wird, ob trainiert wurde, darum planübergreifend wie
+// der Wochenstreifen: ein Training aus einem anderen Plan zählt, ist aber grau.
+// Aktive Erholung zählt nie. Woche = rollierende 7 Tage bis heute, wie der
+// Streifen auf Start, damit die Zahl im Header zum Streifen passt.
+function weekTarget() { return db.plan.days.length; }
+
+function konsWeeks(nWeeks) {
+  const byDay = new Map();
+  db.history.forEach(h => {
+    const k = startOfDay(h.date), cur = byDay.get(k);
+    // Training schlägt Erholung, eigener Plan schlägt fremden
+    const rank = !h.dayId ? 0 : h.planId === db.activePlanId ? 2 : 1;
+    if (!cur || rank > cur.rank) byDay.set(k, { h, rank });
+  });
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const weeks = [];
+  for (let w = nWeeks - 1; w >= 0; w--) {
+    const cells = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(today.getDate() - w * 7 - i);
+      const hit = byDay.get(d.getTime());
+      cells.push({ t: d.getTime(), h: hit ? hit.h : null, rank: hit ? hit.rank : -1 });
     }
-    heatHTML += '</div>';
+    weeks.push({ cells, n: cells.filter(c => c.rank >= 1).length });
   }
+  return weeks;   // älteste zuerst, die letzte endet heute
+}
 
-  const hasRestEntries = sessions.some(s => !s.dayId);
-  const legendHTML = `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px">
-    ${db.plan.days.map(d => `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${getDayColor(d.id)};display:inline-block;flex-shrink:0"></span>${d.name}</div>`).join('')}
-    ${hasRestEntries ? `<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim)"><span style="width:8px;height:8px;border-radius:50%;background:${REST_COLOR};display:inline-block;flex-shrink:0"></span>Aktive Erholung</div>` : ''}
-  </div>`;
+// Wie viele Wochen es überhaupt gibt: ab dem ersten Eintrag, höchstens 12.
+// Sonst drückten leere Wochen vor dem ersten Training den Schnitt.
+function konsWeekCount() {
+  if (!db.history.length) return 1;
+  const first = Math.min(...db.history.map(h => h.date));
+  return Math.max(1, Math.min(STAT_WEEKS, Math.ceil((calendarDaysAgo(first) + 1) / 7)));
+}
 
-  return `<div style="padding:16px">
-    <div class="stat-row">
-      <div class="stat-card"><div class="stat-card-num">${avgPerWeek}×</div><div class="stat-card-label">Ø / Woche (8 Wo)</div></div>
-      <div class="stat-card"><div class="stat-card-num">${streak}</div><div class="stat-card-label">Wochen-Streak</div></div>
-      <div class="stat-card"><div class="stat-card-num">${total}</div><div class="stat-card-label">Sessions gesamt</div></div>
+function recentTrainingCount() { return konsWeeks(1)[0].n; }
+
+// Header über dem Wochenstreifen auf Start (Leo: das Label war überflüssig,
+// "3 / 5 Trainings" bleibt als Konsistenz-Orientierung)
+function weekHeadHTML() {
+  if (!db.plan.days.length) return '';
+  return `<div class="week-h" onclick="goKons()" role="button" aria-label="Konsistenz öffnen">
+    <span class="more"><b>${recentTrainingCount()}</b>/ ${weekTarget()} Trainings${CHEV_SVG}</span></div>`;
+}
+
+// ── Statistik-Screen ──
+function renderStats() {
+  document.getElementById('stats-plan').textContent = db.plan.name;
+  const body = document.getElementById('analytics-body');
+  if (!db.history.some(h => h.dayId)) {
+    body.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Noch keine Trainings. Nach dem ersten Training siehst du hier Progression, PRs und Konsistenz.</div></div>`;
+    return;
+  }
+  const exs = buildStatEx();
+  const pr = exs.filter(ex => ex.p);
+  const n = { up: 0, eq: 0, dn: 0 };
+  pr.forEach(ex => n[ex.p.dir]++);
+  const movers = pr.filter(ex => ex.p.dir === 'up').sort((a, b) => b.p.gain - a.p.gain).slice(0, 3);
+
+  const evs = exs.flatMap(prEvents).filter(e => calendarDaysAgo(e.t) < PROG_DAYS).sort((a, b) => b.t - a.t);
+
+  const T = weekTarget();
+  const weeks = konsWeeks(konsWeekCount()), counts = weeks.map(w => w.n), now = counts[counts.length - 1];
+  const max = Math.max(T + 1, ...counts);
+  const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+
+  const progCard = pr.length ? `
+      <div class="big"><b>${n.up}</b><span>von ${pr.length} Übungen<br>im Plus</span></div>
+      <div class="split">
+        <i class="c-up" style="flex:${n.up}"></i><i class="c-eq" style="flex:${n.eq}"></i><i class="c-dn" style="flex:${n.dn}"></i>
+      </div>
+      <div class="leg"><span><i class="c-up"></i>${n.up} Plus</span><span><i class="c-eq"></i>${n.eq} gleich</span><span><i class="c-dn"></i>${n.dn} Minus</span></div>
+      ${movers.length ? `<div class="mrows">${movers.map(ex => `
+        <div class="mrow"><div class="mrow-n">${exLabel(ex)}${exSub(ex, fmtTop(ex.p.last))}</div>${spark(ex, ex.p.dir)}<span class="delta ${ex.p.dir}">${ex.p.label}</span></div>`).join('')}
+      </div>` : ''}`
+    : `<div class="st-empty">Noch keine Übung zweimal trainiert.</div>`;
+
+  body.innerHTML = `
+    <div class="gcard st" onclick="openProg()">
+      <div class="st-h"><span class="sec-l">Progression</span><span class="more">4 Wochen${CHEV_SVG}</span></div>
+      ${progCard}
     </div>
-    <div class="section-title">Letzte 16 Wochen</div>
-    <div class="heatmap">${heatHTML}</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-top:8px">← älter · neuer →</div>
-    ${legendHTML}
-  </div>`;
+
+    <div class="gcard st" onclick="openPRs()">
+      <div class="st-h"><span class="sec-l">PRs · Max. Gewicht</span><span class="more">Alle${CHEV_SVG}</span></div>
+      <div class="big"><b>${evs.length}</b><span>neue PRs<br>in 4 Wochen</span></div>
+      ${evs.length ? `<div class="mrows">${evs.slice(0, 3).map(e => `
+        <div class="mrow"><div class="mrow-n">${exLabel(e.ex)}${exSub(e.ex, `${fmtD(e.t)} · +${fmtN(e.d)} kg`)}</div><div class="mrow-v">${fmtN(e.w)}<small>kg</small></div></div>`).join('')}
+      </div>` : ''}
+    </div>
+
+    ${T ? `<div class="gcard st" onclick="openKons()">
+      <div class="st-h"><span class="sec-l">Konsistenz</span><span class="more">${counts.length} Woche${counts.length === 1 ? '' : 'n'}${CHEV_SVG}</span></div>
+      <div class="big"><b>${now}<i>/${T}</i></b><span>Trainings in den<br>letzten 7 Tagen</span></div>
+      <div class="bars">
+        ${counts.map((c, i) => `<i class="${c >= T ? 'full' : ''}${i === counts.length - 1 ? ' cur' : ''}" style="height:${Math.max(4, c / max * 100)}%"></i>`).join('')}
+        <div class="goal" style="bottom:${T / max * 100}%"><span>SOLL ${T}</span></div>
+      </div>
+      <div class="st-foot"><span>vor ${counts.length} Wo.</span><span>Ø ${fmtN(Math.round(avg * 10) / 10)} pro Woche</span><span>jetzt</span></div>
+    </div>` : ''}`;
+}
+
+// ── Progression-Liste: nach Tag gruppiert, filterbar ──
+function openProg(filter = 'all') {
+  if (!statEx.length) buildStatEx();
+  const pr = statEx.filter(ex => ex.p);
+  const n = { all: pr.length, up: 0, eq: 0, dn: 0 };
+  pr.forEach(ex => n[ex.p.dir]++);
+  const chip = (k, l) => `<button class="fchip${filter === k ? ' on' : ''}" onclick="openProg('${k}')">${l} ${n[k]}</button>`;
+  const row = ex => `
+    <div class="mrow" onclick="openStatEx('${ex.id}')"><div class="mrow-n">${exLabel(ex)}${exSub(ex, fmtTop(ex.p.last) + (ex.p.dir === 'eq' ? ` · ${ex.p.same}× in Folge` : ''))}</div>${spark(ex, ex.p.dir)}<span class="delta ${ex.p.dir}">${ex.p.label}</span></div>`;
+  const groups = [...db.plan.days.map(d => ({ id: d.id, n: d.name, c: getDayColor(d.id) })), { id: null, n: 'Nicht im Plan', c: OTHER_PLAN_COLOR }]
+    .map(g => {
+      const rows = pr.filter(ex => ex.day === g.id && (filter === 'all' || ex.p.dir === filter));
+      if (!rows.length) return '';
+      return `<div class="grp-h"><i style="background:${g.c}"></i><span class="sec-l">${escHTML(g.n)}</span></div>
+        <div class="gcard plist">${rows.map(row).join('')}</div>`;
+    }).join('');
+  document.getElementById('prog-body').innerHTML = `
+    <div class="fchips">${chip('all', 'Alle')}${chip('up', 'Plus')}${chip('eq', 'Gleich')}${chip('dn', 'Minus')}</div>
+    ${groups || '<div class="st-empty">Keine Übung in dieser Auswahl.</div>'}`;
+  openSub('screen-prog');
+}
+
+// Kurve über die letzten Sessions: Gewicht des besten Sets, darunter die Wdh
+// dazu. So sieht man beide Wege des Fortschritts in einem Bild. PR-Punkte in
+// Lime, gerechnet über die ganze History.
+const CHART_MAX = 12;
+function chartHTML(ex) {
+  const all = ex.s, bw = all.every(x => !x.w);
+  let best = null;
+  const prAll = all.map(x => {
+    const p = !bw && best !== null && x.w > best;
+    if (!bw && x.w > 0) best = best === null ? x.w : Math.max(best, x.w);
+    return p;
+  });
+  const s = all.slice(-CHART_MAX), isPR = prAll.slice(-CHART_MAX);
+  const W = 320, H = 158, L = 34, R = 12, T = 12, B = 42;
+  const v = s.map(x => bw ? x.r : x.w);
+  let mn = Math.min(...v), mx = Math.max(...v);
+  if (mn === mx) { mn -= 1; mx += 1; }
+  const pad = (mx - mn) * .18; mn -= pad; mx += pad;
+  const X = i => s.length > 1 ? L + 14 + i * (W - L - R - 14) / (s.length - 1) : (L + W - R) / 2;
+  const Y = y => T + (1 - (y - mn) / (mx - mn)) * (H - T - B);
+  const lo = Math.min(...v), hi = Math.max(...v);
+  const ticks = lo === hi ? [lo] : [lo, hi];
+  const grid = ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}" stroke="rgba(255,255,255,.08)" stroke-dasharray="3 4"/>
+    <text x="${L - 7}" y="${(Y(t) + 3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8b948a">${fmtN(t)}</text>`).join('');
+  const path = s.map((x, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v[i]).toFixed(1)}`).join('');
+  const dots = s.map((x, i) => isPR[i]
+    ? `<circle cx="${X(i).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="5" fill="#c8f135" style="filter:drop-shadow(0 0 5px rgba(200,241,53,.6))"/>`
+    : `<circle cx="${X(i).toFixed(1)}" cy="${Y(v[i]).toFixed(1)}" r="3.2" fill="#0d110e" stroke="#b9c1b6" stroke-width="1.6"/>`).join('');
+  const reps = bw ? '' : `<text x="${L - 7}" y="${H - B + 19}" text-anchor="end" font-size="9" font-weight="700" fill="#8b948a">WDH</text>` +
+    s.map((x, i) => `<text x="${X(i).toFixed(1)}" y="${H - B + 19}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#b9c1b6">${x.r}</text>`).join('');
+  const ends = s.length > 1 ? [0, s.length - 1] : [0];
+  const dates = ends.map(i => `<text x="${X(i).toFixed(1)}" y="${H - 4}" text-anchor="${s.length === 1 ? 'middle' : i ? 'end' : 'start'}" font-size="10" fill="#8b948a">${fmtD(s[i].t)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${grid}<path d="${path}" fill="none" stroke="#c8f135" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>${dots}${reps}${dates}</svg>`;
+}
+
+function openStatEx(id) {
+  const ex = statEx.find(e => e.id === id);
+  if (!ex) return;
+  const p = ex.p, last = ex.s[ex.s.length - 1], bw = ex.s.every(x => !x.w);
+  const day = ex.day && db.plan.days.find(d => d.id === ex.day);
+  document.getElementById('stat-ex-title').textContent = ex.name;
+  document.getElementById('stat-ex-sub').textContent = (day ? day.name : 'Nicht im aktiven Plan')
+    + (ex.def ? ` · Ziel ${ex.def.sets}×${ex.def.targetReps}` : '') + (ex.diff ? ` · ${ex.diff}` : '');
+  const max = Math.max(...ex.s.map(x => x.w));
+  const ev = prEvents(ex), lastPR = ev[ev.length - 1];
+  const prT = lastPR ? lastPR.t : (ex.s.find(x => x.w === max) || {}).t;
+  const recent = [...ex.s].reverse().slice(0, 10);
+  document.getElementById('stat-ex-body').innerHTML = `
+    <div class="ex-hero">
+      <b>${bw ? `${last.r}<small>Wdh</small>` : `${fmtN(last.w)}<small>kg × ${last.r}</small>`}</b>
+      <div class="sub">Bestes Set · ${fmtD(last.t)}${p ? `<span class="delta ${p.dir}">${p.label}</span>` : ''}</div>
+    </div>
+    <div class="gcard chart">${chartHTML(ex)}
+      <div class="chart-leg">${bw ? '<span>Wiederholungen, Eigengewicht</span>' : '<span><i></i>PR: neues Max. Gewicht</span>'}${ex.s.length > CHART_MAX ? `<span>letzte ${CHART_MAX} Sessions</span>` : ''}</div>
+    </div>
+    ${bw ? '' : `<div class="gcard kv"><span>Bestwert</span><span><b>${fmtN(max)} kg</b> · ${fmtD(prT)}</span></div>`}
+    <div class="grp-h"><span class="sec-l">${ex.s.length > 10 ? 'Letzte 10 Sessions' : 'Sessions'}</span></div>
+    ${recent.map(x => sxHTML(fmtD(x.t), x.e)).join('')}`;
+  openSub('screen-stat-ex');
+}
+
+// ── PR-Liste: Max. Gewicht pro Übung, neueste zuerst ──
+function openPRs() {
+  if (!statEx.length) buildStatEx();
+  const rows = statEx.filter(ex => ex.s.some(x => x.w > 0)).map(ex => {
+    const ev = prEvents(ex), last = ev[ev.length - 1];
+    const w = Math.max(...ex.s.map(x => x.w));
+    return { ex, w, t: last ? last.t : ex.s.find(x => x.w === w).t, d: last ? last.d : null };
+  }).sort((a, b) => b.t - a.t);
+  const row = r => `<div class="mrow" onclick="openStatEx('${r.ex.id}')">
+      <div class="mrow-n">${exLabel(r.ex)}${calendarDaysAgo(r.t) <= 14 && r.d ? '<span class="ss-tag">Neu</span>' : ''}${exSub(r.ex, fmtD(r.t) + (r.d ? ` · +${fmtN(r.d)} kg` : ' · seit Beginn'))}</div>
+      <div class="mrow-v">${fmtN(r.w)}<small>kg</small></div></div>`;
+  // Oben nur echte PRs der letzten 4 Wochen, damit die Zahl zur Karte passt.
+  // Bestwerte ohne PR (seit der ersten Session gleich) stehen unten.
+  const isNew = r => r.d && calendarDaysAgo(r.t) < PROG_DAYS;
+  const recent = rows.filter(isNew), older = rows.filter(r => !isNew(r));
+  document.getElementById('prs-body').innerHTML = !rows.length
+    ? '<div class="st-empty">Noch keine Übung mit Gewicht trainiert.</div>'
+    : (recent.length ? `<div class="grp-h" style="margin-top:4px"><span class="sec-l">Neu in den letzten 4 Wochen</span></div><div class="gcard plist">${recent.map(row).join('')}</div>` : '') +
+      (older.length ? `<div class="grp-h"><span class="sec-l">Übrige Bestwerte</span></div><div class="gcard plist">${older.map(row).join('')}</div>` : '');
+  openSub('screen-prs');
+}
+
+// ── Konsistenz-Detail: Wochen gestapelt, neueste oben, Tap auf einen Tag ──
+function openKons() {
+  const T = weekTarget();
+  const weeks = konsWeeks(konsWeekCount()), counts = weeks.map(w => w.n), now = counts[counts.length - 1];
+  const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+  const full = counts.filter(c => c >= T).length;
+  const wd = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const head = weeks[weeks.length - 1].cells.map(c => `<div>${wd[new Date(c.t).getDay()]}</div>`).join('');
+  let other = false, rest = false;
+  const rows = weeks.map((wk, i) => {
+    const range = `${new Date(wk.cells[0].t).getDate()}.–${fmtD(wk.cells[6].t)}`;
+    return `<div class="krow${i === weeks.length - 1 ? ' cur' : ''}">
+      ${wk.cells.map(c => {
+        if (c.rank === 0) { rest = true; return `<i class="kc rest" style="background:${REST_COLOR}"></i>`; }
+        if (c.rank === 1) { other = true; return `<i class="kc f" style="background:${OTHER_PLAN_COLOR}"></i>`; }
+        if (c.rank === 2) return `<i class="kc f tap" style="background:${getDayColor(c.h.dayId)}" onclick="openSession('${c.h.id}')"></i>`;
+        return '<i class="kc"></i>';
+      }).join('')}
+      <div class="kn${wk.n >= T ? ' full' : ''}">${wk.n}/${T}<small>${range}</small></div></div>`;
+  }).reverse().join('');
+  document.getElementById('kons-sub').textContent = `Geplant: ${T} Training${T === 1 ? '' : 's'} pro Woche`;
+  document.getElementById('kons-body').innerHTML = `
+    <div class="tiles">
+      <div class="gcard tile"><b>${now}/${T}</b><span>letzte<br>7 Tage</span></div>
+      <div class="gcard tile"><b>${fmtN(Math.round(avg * 10) / 10)}</b><span>Ø pro Woche<br>(${weeks.length} Wo.)</span></div>
+      <div class="gcard tile"><b>${full}/${weeks.length}</b><span>Wochen<br>im Soll</span></div>
+    </div>
+    <div class="gcard kgrid">
+      <div class="krow head">${head}<div></div></div>
+      ${rows}
+      <div class="kleg">${db.plan.days.map(d => `<span><i style="background:${getDayColor(d.id)}"></i>${escHTML(d.name)}</span>`).join('')}
+        ${other ? `<span><i style="background:${OTHER_PLAN_COLOR}"></i>Anderer Plan</span>` : ''}
+        ${rest ? `<span><i style="background:${REST_COLOR}"></i>Aktive Erholung, zählt nicht</span>` : ''}</div>
+    </div>`;
+  openSub('screen-kons');
+}
+
+// Vom Wochenstreifen auf Start: direkt in Statistik → Konsistenz
+function goKons() {
+  showScreen('screen-analytics');
+  openKons();
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────

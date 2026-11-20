@@ -742,10 +742,6 @@
     to   { transform: scale(1) translateY(0); opacity: 1; }
   }
   @keyframes prBadgeFade { to { opacity: 0; transform: translateY(-8px); } }
-  @keyframes sessionPRPulse {
-    0%,100% { transform: scale(1); }
-    50%     { transform: scale(1.15); }
-  }
   .pr-row-flash { animation: prRowFlash 0.8s ease; }
   .pr-ex-glow   { animation: prExGlow 1s ease; }
   .pr-badge {
@@ -755,12 +751,6 @@
     pointer-events: none; z-index: 10; white-space: nowrap;
     animation: prBadgeIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275),
                prBadgeFade 0.4s ease 2.2s forwards;
-  }
-  .finish-pr-badge {
-    display: inline-block; background: var(--accent); color: #000;
-    font-size: 13px; font-weight: 800; border-radius: 8px; padding: 4px 14px;
-    margin-bottom: 12px;
-    animation: sessionPRPulse 0.6s ease 0.3s 2;
   }
 
   /* ANALYTICS SCREEN */
@@ -1323,7 +1313,7 @@
   .day-row-badge { border-radius: var(--radius-pill); }
   .vol-trend { border-radius: var(--radius-pill); padding: 2px 7px; }
   .vol-trend.up { color: var(--green); background: linear-gradient(160deg, rgba(110,231,135,0.20), rgba(110,231,135,0.07)); border-color: rgba(110,231,135,0.24); }
-  .finish-pr-badge, .pr-badge {
+  .pr-badge {
     background: linear-gradient(168deg, var(--accent-hi), var(--accent-lo));
     color: var(--on-accent); box-shadow: var(--glow-accent);
     border-radius: var(--radius-pill);
@@ -1723,7 +1713,6 @@
   <div class="scroll-area">
     <div class="finish-summary">
       <div class="finish-icon" id="finish-icon">🏋️</div>
-      <div id="finish-pr-badge"></div>
       <div class="finish-title">Training done.</div>
       <div class="finish-sub" id="finish-sub"></div>
       <div class="finish-stats" id="finish-stats"></div>
@@ -3490,10 +3479,8 @@ function finishWorkout() {
   const totalVol = session.exercises.reduce((a, ex) => a + ex.sets.reduce((b, s) => b + s.reps * s.weight, 0), 0);
   const min = Math.floor(timerSeconds / 60);
 
-  const isDayPR = checkDayPR(session.dayId, totalVol);
-  document.getElementById('finish-icon').textContent = isDayPR ? '🏆' : '🏋️';
-  document.getElementById('finish-pr-badge').innerHTML = isDayPR
-    ? `<div class="finish-pr-badge">⚡ Neuer Bestwert für ${session.dayName}!</div>` : '';
+  // Kein Tagesvolumen-Bestwert mehr am Ende (Leo 2026-11-20): PRs sind nur
+  // noch Max. Gewicht, die meldet das Training selbst.
   document.getElementById('finish-sub').textContent = workoutState.dayName + ' · ' + new Date(session.date).toLocaleDateString('de-AT', { day: 'numeric', month: 'long' });
   document.getElementById('finish-stats').innerHTML = `
     <div class="finish-stat"><div class="finish-stat-num">${totalSets}</div><div class="finish-stat-label">Sets</div></div>
@@ -4833,17 +4820,6 @@ function onValChangedWithPR(ei, si) {
   onValChanged(ei, si);
   clearTimeout(prCheckTimers[`${ei}-${si}`]);
   prCheckTimers[`${ei}-${si}`] = setTimeout(() => checkSetAndExPR(ei, si), 600);
-}
-
-function checkDayPR(dayId, totalVol) {
-  if (totalVol <= 0) return false;
-  // slice(1) überspringt die gerade gespeicherte Session.
-  const prior = db.history.slice(1).filter(s => s.dayId === dayId && s.exercises.length);
-  if (!prior.length) return false; // Erstes Mal für diesen Tag → kein Bestwert möglich
-  const prevBest = Math.max(...prior.map(s =>
-    s.exercises.reduce((a, ex) => a + ex.sets.reduce((b, st) => b + (+st.reps||0)*(+st.weight||0), 0), 0)
-  ), 0);
-  return totalVol > prevBest;
 }
 
 // Progression zeigt ein Modul über alle Pläne hinweg. Leo 2026-10-23:
